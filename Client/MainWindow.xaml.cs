@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
 
 namespace Client {
 
@@ -30,10 +31,12 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
+            string id = "";
             try {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
-                client = new TcpClient(ipAddress.ToString(), port);
+                
+                TcpClient client = new TcpClient(ipAddress.ToString(), port);
                 MessageBox.Show($"Connected to server on {ipAddress}:{port}");
 
                 NetworkStream stream = client.GetStream();
@@ -46,14 +49,38 @@ namespace Client {
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
                 string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
                 MessageBox.Show($"Recieved response {responseMessage}");
+                id = responseMessage;
+
             } catch (Exception ex) {
                 MessageBox.Show($"An Error Occured: {ex.Message}");
             } finally {
-                client.Close();
                 MessageBox.Show("Connection closed");
             }
 
+            try {
 
+                IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
+                int port = 7256;
+
+                TcpClient client = new TcpClient(ipAddress.ToString(), port);
+                MessageBox.Show($"Connected to server on {ipAddress}:{port}");
+
+                NetworkStream stream = client.GetStream();
+
+                string message = $"DELETE {id}";
+                byte[] messageBytes = Encoding.ASCII.GetBytes(message);
+                stream.Write(messageBytes, 0, messageBytes.Length);
+
+                byte[] responseBytes = new byte[1024];
+                int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
+                string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
+                MessageBox.Show($"Recieved response {responseMessage}");
+            } catch (Exception ex) {
+                MessageBox.Show($"An Error Occured: {ex.Message}");
+
+            } finally {
+                MessageBox.Show("Connection closed");
+            }
         }
     }
 }

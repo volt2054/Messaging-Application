@@ -61,7 +61,9 @@ namespace Server {
                     responseMessage = InsertNewUser(username, email, password);
                     SelectAll();
                 } else if (message.StartsWith("DELETE")) {  // DELETE MESSAGES
-
+                    string userID = args[1];
+                    DeleteUser(userID);
+                    SelectAll();
                 } else if (message.StartsWith("GET")) {     // FETCH MESSAGES
 
                 } else {
