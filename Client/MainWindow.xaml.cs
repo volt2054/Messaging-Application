@@ -45,8 +45,6 @@ namespace Client {
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
                 string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
                 MessageBox.Show($"Recieved response {responseMessage}");
-                id = responseMessage;
-
             } catch (Exception ex) {
                 MessageBox.Show($"An Error Occured: {ex.Message}");
             } finally {
@@ -54,8 +52,8 @@ namespace Client {
             }
         }
 
-        static int getID() {
-            return 0;
+        static string getID() {
+            return "1";
         }
 
         static void deleteUser() {
@@ -89,9 +87,11 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            
+            TextBox txt_Username = new TextBox();
+            TextBox txt_Email = new TextBox();
+            TextBox txt_Password = new TextBox();
 
-
+            Button btn_Register = new Button();
         }
     }
 }
