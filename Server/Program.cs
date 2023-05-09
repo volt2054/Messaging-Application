@@ -86,19 +86,17 @@ namespace Server {
             Console.WriteLine("Server started");
         }
 
-        static void DeleteUser(string username) { }
+        static void DeleteUser(string userID) {
+            ExecuteDatabaseOperations(connection => {
+                string deleteQuery = $"DELETE FROM Users WHERE user_id = '{userID}'";
+                ExecuteNonQuery(connection, deleteQuery);
+            });
+        }
 
         static string InsertNewUser(string username, string email, string password) {
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Users (username, email, password) VALUES(@value1, @value2, @value3)";
-                using (SqlCommand command = new SqlCommand(insertQuery, connection)) {
-                    connection.Open();
-                    command.Parameters.AddWithValue("@value1", username);
-                    command.Parameters.AddWithValue("@value2", email);
-                    command.Parameters.AddWithValue("@value3", password);
-
-                    command.ExecuteNonQuery();
-                }
+                string insertQuery = $"INSERT INTO Users (username, email, password) VALUES('{username}', '{email}', '{password}')";
+                ExecuteQuery(connection, insertQuery);
             });
 
             List<string> result = new List<string>();
