@@ -27,15 +27,11 @@ namespace Client {
 
         private static TcpClient client;
 
-
-        public MainWindow() {
-            InitializeComponent();
-
-            string id = "";
+        static void createUser() {
             try {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
-                
+
                 TcpClient client = new TcpClient(ipAddress.ToString(), port);
                 MessageBox.Show($"Connected to server on {ipAddress}:{port}");
 
@@ -56,11 +52,18 @@ namespace Client {
             } finally {
                 MessageBox.Show("Connection closed");
             }
+        }
 
+        static int getID() {
+            return 0;
+        }
+
+        static void deleteUser() {
             try {
-
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
+
+                string id = getID();
 
                 TcpClient client = new TcpClient(ipAddress.ToString(), port);
                 MessageBox.Show($"Connected to server on {ipAddress}:{port}");
@@ -81,6 +84,14 @@ namespace Client {
             } finally {
                 MessageBox.Show("Connection closed");
             }
+        }
+
+        public MainWindow() {
+            InitializeComponent();
+
+            
+
+
         }
     }
 }
