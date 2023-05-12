@@ -7,11 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Canvas Name="MyCanvas">
-        <TextBox Canvas.Left="340" TextWrapping="Wrap" Text="Username" Canvas.Top="185" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-        <TextBox Canvas.Left="340" TextWrapping="Wrap" Text="Email" Canvas.Top="208" Width="120"/>
-        <TextBox Canvas.Left="340" TextWrapping="Wrap" Text="Password" Canvas.Top="231" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-
-        <Button Content="Button" Canvas.Left="380" Canvas.Top="273"/>
 
     </Canvas>
 </Window>
