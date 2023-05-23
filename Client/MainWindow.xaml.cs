@@ -58,8 +58,9 @@ namespace Client {
             }
         }
 
-        static string getID() {
-            return "1";
+        // TODO get ID from Username
+        static string getID(string username) {
+            throw new NotImplementedException();
         }
 
         static void deleteUser() {
@@ -67,7 +68,7 @@ namespace Client {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
 
-                string id = getID();
+                string id = getID("a");
 
                 TcpClient client = new TcpClient(ipAddress.ToString(), port);
                 MessageBox.Show($"Connected to server on {ipAddress}:{port}");
