@@ -18,6 +18,7 @@ using System.Net;
 using System.IO;
 using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.InteropServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace Client {
 
@@ -32,7 +33,7 @@ namespace Client {
 
         private static TcpClient client;
 
-        static void createUser() {
+        static void createUser(string username, string email, string password) {
             try {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
@@ -41,7 +42,7 @@ namespace Client {
                 MessageBox.Show($"Connected to server on {ipAddress}:{port}");
 
                 NetworkStream stream = client.GetStream();
-                string message = "CREATE testttusername testemailll testpasswordd";
+                string message = $"CREATE {username} {email} {password}";
                 byte[] messageBytes = Encoding.ASCII.GetBytes(message);
                 stream.Write(messageBytes, 0, messageBytes.Length);
                 MessageBox.Show($"Sent message: {message}");
@@ -90,68 +91,97 @@ namespace Client {
         }
 
 
-        //TODO SWITCH TO GRID
+        TextBox txt_Username = new TextBox();
+        TextBox txt_Email = new TextBox();
+        TextBox txt_Password = new TextBox();
+
+
+
         public MainWindow() {
             InitializeComponent();
 
-            int textBoxWidth = 120;
-            int canvasWidth = 850;
+            Grid gridRegister = new Grid();
+
+            ColumnDefinition columnDefinitionMain = new ColumnDefinition();
+            gridRegister.ColumnDefinitions.Add(columnDefinitionMain);
+
+            RowDefinition rowDefinitionTitle = new RowDefinition();
+            rowDefinitionTitle.Height = new GridLength(5, GridUnitType.Star);
+            RowDefinition rowDefinitionUsername = new RowDefinition();
+            rowDefinitionUsername.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionEmail = new RowDefinition();
+            rowDefinitionEmail.Height = new GridLength(1, GridUnitType.Star); 
+            RowDefinition rowDefinitionPassword = new RowDefinition();
+            rowDefinitionPassword.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionRegisterButton = new RowDefinition();
+            rowDefinitionRegisterButton.Height = new GridLength(2, GridUnitType.Star);
+
+            gridRegister.RowDefinitions.Add(rowDefinitionTitle);
+            gridRegister.RowDefinitions.Add(rowDefinitionUsername);
+            gridRegister.RowDefinitions.Add(rowDefinitionEmail);
+            gridRegister.RowDefinitions.Add(rowDefinitionPassword);
+            gridRegister.RowDefinitions.Add(rowDefinitionRegisterButton);
 
             Label lab_Title = new Label();
             lab_Title.Content = "Messaging";
             lab_Title.FontSize = 36;
             lab_Title.Width = 200;
+            lab_Title.VerticalAlignment = VerticalAlignment.Center;
+            lab_Title.HorizontalContentAlignment = HorizontalAlignment.Center;
 
-            Canvas.SetLeft(lab_Title, (canvasWidth - 200) / 2);
-            Canvas.SetTop(lab_Title, 100);
+            Grid.SetRow(lab_Title, 0);
 
-            TextBox txt_Username = new TextBox();
             txt_Username.Text = "Username";
             txt_Username.HorizontalAlignment = HorizontalAlignment.Center;
             txt_Username.VerticalAlignment = VerticalAlignment.Center;
-            txt_Username.Width = 120;
+            txt_Username.Width = 150;
+            txt_Username.Height = 30;
+            txt_Username.FontSize = 20;
+            Grid.SetRow(txt_Username, 1);
 
-            Canvas.SetLeft(txt_Username, (canvasWidth - textBoxWidth) / 2);
-            Canvas.SetTop(txt_Username, 185);
 
-
-            TextBox txt_Email = new TextBox();
             txt_Email.Text = "Email";
             txt_Email.HorizontalAlignment = HorizontalAlignment.Center;
             txt_Email.VerticalAlignment = VerticalAlignment.Center;
-            txt_Email.Width = 120;
+            txt_Email.Width = 150;
+            txt_Email.Height = 30;
+            txt_Email.FontSize = 20;
+            Grid.SetRow(txt_Email, 2);
 
-            Canvas.SetLeft(txt_Email, (canvasWidth - textBoxWidth) / 2);
-            Canvas.SetTop(txt_Email, 208);
-
-            TextBox txt_Password = new TextBox();
             txt_Password.Text = "Password";
             txt_Password.HorizontalAlignment = HorizontalAlignment.Center;
             txt_Password.VerticalAlignment = VerticalAlignment.Center;
-            txt_Password.Width = 120;
-
-            Canvas.SetLeft(txt_Password, (canvasWidth - textBoxWidth) / 2);
-            Canvas.SetTop(txt_Password, 231);
+            txt_Password.Width = 150;
+            txt_Password.Height = 30;
+            txt_Password.FontSize = 20;
+            Grid.SetRow(txt_Password, 3);
 
             Button btn_Register = new Button();
             btn_Register.Content = "Register";
-            btn_Register.Width = 120;
+            btn_Register.Width = 150;
+            btn_Register.Height = 50;
+            btn_Register.FontSize = 30;
 
-            Canvas.SetLeft(btn_Register, (canvasWidth - textBoxWidth) / 2);
-            Canvas.SetTop(btn_Register, 273);
+            Grid.SetRow(btn_Register, 4);
+
+            gridRegister.Children.Add(lab_Title);
+            gridRegister.Children.Add(txt_Username);
+            gridRegister.Children.Add(txt_Email);
+            gridRegister.Children.Add(txt_Password);
+            gridRegister.Children.Add(btn_Register);
+            
+
 
             btn_Register.Click += Btn_Register_Click;
 
-            MyCanvas.Children.Add(lab_Title);
-            MyCanvas.Children.Add(txt_Username);
-            MyCanvas.Children.Add(txt_Email);
-            MyCanvas.Children.Add(txt_Password);
-            MyCanvas.Children.Add(btn_Register);
+
+
+            PrimaryWindow.Content = gridRegister;
         }
 
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
+            createUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
         }
     }
 }
