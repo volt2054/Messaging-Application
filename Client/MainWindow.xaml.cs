@@ -16,9 +16,6 @@ using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
-using static System.Net.Mime.MediaTypeNames;
-using System.Runtime.InteropServices;
-using System.ComponentModel.DataAnnotations;
 
 namespace Client {
 

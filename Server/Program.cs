@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
+using Azure.Messaging;
 
 namespace Server {
 
@@ -149,7 +150,7 @@ namespace Server {
         static void DropTables() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users";
+                    string command = "DROP TABLE Users; DROP TABLE Messages";
                     ExecuteNonQuery(connection, command);
 
                 });
@@ -168,12 +169,31 @@ namespace Server {
                     "   [username]      VARCHAR (255) NOT NULL," +
                     "   [email]         VARCHAR (255) NOT NULL," +
                     "   [password]      VARCHAR (255) NOT NULL," +
-                    "   [date_created]  DATETIME          NOT NULL DEFAULT(getdate())," +
+                    "   [date_created]  DATETIME      NOT NULL DEFAULT(getdate())," +
                     "   PRIMARY KEY CLUSTERED ([user_id] ASC)" +
                     ");";
 
                     ExecuteNonQuery(connection, command);
                 });
+
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[Messages] (" +
+                    "[message_id]         INT         NOT NULL IDENTITY(1,1)," +
+                    "[message_content]    TEXT        NOT NULL," +
+                    "[channel_id]         INT         NOT NULL," +
+                    "[user_id]            INT         NOT NULL," +
+                    "[date_sent]          DATETIME    NOT NULL DEFAULT(getdate())" +
+                    "PRIMARY KEY CLUSTERED ([message_id] ASC), " +
+                    "FOREIGN KEY(channel_id) REFERENCES Channels(channel_id)" +
+                    "FOREIGN KEY(user_id) REFERENCES Users(user_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+
+
                 Console.WriteLine("Tables created successfully");
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
