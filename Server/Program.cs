@@ -15,9 +15,12 @@ namespace Server {
 
     class Server {
 
+        // TODO - Loading options from file??
+        const string DATABASE_FILE_PATH = @"C:\Users\school work\Documents\dev\Messaging-Application\Server\Database.mdf";
+
         static void Main(string[] args) {
-            Console.WriteLine("Dropping Tables");
-            DropTables();
+            //Console.WriteLine("Dropping Tables");
+            //DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
 
@@ -139,8 +142,7 @@ namespace Server {
         }
 
         static void ExecuteDatabaseOperations(Action<SqlConnection> databaseOperation) {
-            string databaseFilePath = @"C:\Users\school work\Documents\dev\Messaging-Application\Server\Database.mdf";
-            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={databaseFilePath};Integrated Security=True";
+            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={DATABASE_FILE_PATH};Integrated Security=True";
 
             using (SqlConnection connection = new SqlConnection(connectionString)) {
                 databaseOperation(connection);
@@ -162,6 +164,8 @@ namespace Server {
 
         static void CreateTables() {
             try {
+                Console.WriteLine("Creating table users");
+
                 ExecuteDatabaseOperations(connection => {
                     string command =
                     "CREATE TABLE [dbo].[Users] (" +
@@ -176,23 +180,54 @@ namespace Server {
                     ExecuteNonQuery(connection, command);
                 });
 
+                Console.WriteLine("Creating table servers");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[Servers] (" +
+                    "   [server_id]         INT             NOT NULL IDENTITY(1,1)," +
+                    "   [server_name]       VARCHAR (255)   NOT NULL," +
+                    "   [server_owner]      INT             NOT NULL," +
+                    "   [date_created]      DATETIME        NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY CLUSTERED ([server_id] ASC)," +
+                    "   FOREIGN KEY (server_owner) REFERENCES Users(user_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+
+                });
+
+                Console.WriteLine("Creating table channels ");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[Channels] (" +
+                    "   [channel_id]       INT            NOT NULL IDENTITY(1,1)," +
+                    "   [channel_name]     VARCHAR (255)  NOT NULL," +
+                    "   [server_id]        INT            NOT NULL," +
+                    "   [date_created]     DATETIME       NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY CLUSTERED ([channel_id] ASC)," +
+                    "   FOREIGN KEY (server_id) REFERENCES Servers(server_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+
+                });
+
+                Console.WriteLine("Creating table messages");
                 ExecuteDatabaseOperations(connection => {
                     string command =
                     "CREATE TABLE [dbo].[Messages] (" +
-                    "[message_id]         INT         NOT NULL IDENTITY(1,1)," +
-                    "[message_content]    TEXT        NOT NULL," +
-                    "[channel_id]         INT         NOT NULL," +
-                    "[user_id]            INT         NOT NULL," +
-                    "[date_sent]          DATETIME    NOT NULL DEFAULT(getdate())" +
-                    "PRIMARY KEY CLUSTERED ([message_id] ASC), " +
-                    "FOREIGN KEY(channel_id) REFERENCES Channels(channel_id)" +
-                    "FOREIGN KEY(user_id) REFERENCES Users(user_id)" +
+                    "   [message_id]         INT         NOT NULL IDENTITY(1,1)," +
+                    "   [message_content]    TEXT        NOT NULL," +
+                    "   [channel_id]         INT         NOT NULL," +
+                    "   [user_id]            INT         NOT NULL," +
+                    "   [date_sent]          DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY CLUSTERED ([message_id] ASC)," +
+                    "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
+                    "   FOREIGN KEY (user_id) REFERENCES Users(user_id)" +
                     ");";
 
                     ExecuteNonQuery(connection, command);
                 });
-
-
 
                 Console.WriteLine("Tables created successfully");
             } catch (SqlException ex) {
