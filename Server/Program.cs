@@ -70,6 +70,9 @@ namespace Server {
                     SelectAll();
                 } else if (message.StartsWith("GET")) {     // FETCH MESSAGES
 
+                } else if (message.StartsWith("GETUSERID")) {
+                    string username = args[1];
+                    responseMessage = getID(username);
                 } else {
 
                 }
@@ -82,6 +85,15 @@ namespace Server {
                 client.Close();
                 Console.WriteLine("Client disconnected");
             }
+        }
+
+        private static string getID(string username) {
+            string result = "";
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = $"SELECT user_id FROM Users WHERE username = '{username}'";
+                result = ExecuteQuery(connection, selectQuery)[0];
+            });
+            return result;
         }
 
         private static void StartServer(out TcpListener listener) {
@@ -145,7 +157,11 @@ namespace Server {
             string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={DATABASE_FILE_PATH};Integrated Security=True";
 
             using (SqlConnection connection = new SqlConnection(connectionString)) {
-                databaseOperation(connection);
+                try {
+                    databaseOperation(connection);
+                } catch {
+                    Console.WriteLine("Error");
+                }
             }
         }
 

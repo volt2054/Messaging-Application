@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,18 +20,28 @@ using System.IO;
 
 namespace Client {
 
-
-
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
 
 
-        private static TcpClient client;
+        string clientID;
 
-        static void createUser(string username, string email, string password) {
+        enum TypeOfCommunication {
+            SendMessage = 0, // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
+            GetMessages = 1, // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
+            GetID = 2, // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
+            RegisterUser = 3, // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            ValidateUser = 4, // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
+        }
+
+        static string createCommunication(TypeOfCommunication communicationType) {
+
+            return "";
+        }
+
+        static void createUser(string username, string email, string password, ref string clientID) {
             try {
                 IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
                 int port = 7256;
@@ -47,6 +58,7 @@ namespace Client {
                 byte[] responseBytes = new byte[1024];
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
                 string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
+                clientID = responseMessage;
                 MessageBox.Show($"Recieved response {responseMessage}");
             } catch (Exception ex) {
                 MessageBox.Show($"An Error Occured: {ex.Message}");
@@ -168,18 +180,19 @@ namespace Client {
             gridRegister.Children.Add(txt_Password);
             gridRegister.Children.Add(btn_Register);
             
-
-
             btn_Register.Click += Btn_Register_Click;
 
-
-
             PrimaryWindow.Content = gridRegister;
+
+
         }
 
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            createUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            createUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, ref clientID);
+            if (clientID != null) {
+                //PrimaryWindow.Content = gridMessages;
+            }
         }
     }
 }
