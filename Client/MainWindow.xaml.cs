@@ -17,87 +17,69 @@ using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
+using System.Net.Http;
 
 namespace Client {
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    /// 
+
+
     public partial class MainWindow : Window {
 
-
+        const int PORT = 7256;
+        const string IP_ADDRESS = "127.0.0.1";
         string clientID;
 
-        enum TypeOfCommunication {
-            SendMessage = 0, // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
-            GetMessages = 1, // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
-            GetID = 2, // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
-            RegisterUser = 3, // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            ValidateUser = 4, // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
+        // C# doesnt support string enums
+        public class TypeOfCommunication {
+            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
+            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
+            public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
+            public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
         }
 
-        static string createCommunication(TypeOfCommunication communicationType) {
-
-            return "";
-        }
-
-        static void createUser(string username, string email, string password, ref string clientID) {
+        static string CreateCommunication(string communicationType, string data) {
+            string responseMessage = "-1"; // FAILED
             try {
-                IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
-                int port = 7256;
-
-                TcpClient client = new TcpClient(ipAddress.ToString(), port);
-                MessageBox.Show($"Connected to server on {ipAddress}:{port}");
+                TcpClient client = new(IP_ADDRESS, PORT);
+                MessageBox.Show($"Connected to server on {IP_ADDRESS}:{PORT}");
 
                 NetworkStream stream = client.GetStream();
-                string message = $"CREATE {username} {email} {password}";
+                string message = $"{communicationType} {data}";
                 byte[] messageBytes = Encoding.ASCII.GetBytes(message);
                 stream.Write(messageBytes, 0, messageBytes.Length);
                 MessageBox.Show($"Sent message: {message}");
 
                 byte[] responseBytes = new byte[1024];
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
-                string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
-                clientID = responseMessage;
-                MessageBox.Show($"Recieved response {responseMessage}");
+                responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
+
             } catch (Exception ex) {
                 MessageBox.Show($"An Error Occured: {ex.Message}");
             } finally {
                 MessageBox.Show("Connection closed");
             }
+
+
+            return responseMessage;
+        }
+
+        static string CreateUser(string username, string email, string password) {
+            return CreateCommunication(TypeOfCommunication.RegisterUser, $"{username} {email} {password}");
         }
 
         // TODO get ID from Username
-        static string getID(string username) {
-            throw new NotImplementedException();
+        static string GetID(string username) {
+            return CreateCommunication(TypeOfCommunication.GetID, username);
         }
 
-        static void deleteUser() {
-            try {
-                IPAddress ipAddress = IPAddress.Parse("127.0.0.1"); // Connect to local host
-                int port = 7256;
-
-                string id = getID("a");
-
-                TcpClient client = new TcpClient(ipAddress.ToString(), port);
-                MessageBox.Show($"Connected to server on {ipAddress}:{port}");
-
-                NetworkStream stream = client.GetStream();
-
-                string message = $"DELETE {id}";
-                byte[] messageBytes = Encoding.ASCII.GetBytes(message);
-                stream.Write(messageBytes, 0, messageBytes.Length);
-
-                byte[] responseBytes = new byte[1024];
-                int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
-                string responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
-                MessageBox.Show($"Recieved response {responseMessage}");
-            } catch (Exception ex) {
-                MessageBox.Show($"An Error Occured: {ex.Message}");
-
-            } finally {
-                MessageBox.Show("Connection closed");
-            }
+        static void DeleteUser(string userID) {
+            CreateCommunication(TypeOfCommunication.DeleteUser, userID);
         }
 
 
@@ -189,7 +171,7 @@ namespace Client {
 
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            createUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, ref clientID);
+            clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             if (clientID != null) {
                 //PrimaryWindow.Content = gridMessages;
             }

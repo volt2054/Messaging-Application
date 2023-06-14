@@ -11,8 +11,6 @@ using System.Diagnostics;
 using Azure.Messaging;
 
 namespace Server {
-
-
     class Server {
 
         // TODO - Loading options from file??
@@ -72,7 +70,7 @@ namespace Server {
 
                 } else if (message.StartsWith("GETUSERID")) {
                     string username = args[1];
-                    responseMessage = getID(username);
+                    responseMessage = GetID(username);
                 } else {
 
                 }
@@ -87,7 +85,7 @@ namespace Server {
             }
         }
 
-        private static string getID(string username) {
+        private static string GetID(string username) {
             string result = "";
             ExecuteDatabaseOperations(connection => {
                 string selectQuery = $"SELECT user_id FROM Users WHERE username = '{username}'";
