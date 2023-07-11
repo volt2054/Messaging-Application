@@ -43,6 +43,8 @@ namespace Client {
             public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
         }
 
+        // TODO Wrap network functions into a class (put in a seperate file asw)
+
         static string CreateCommunication(string communicationType, string data) {
             string responseMessage = "-1"; // FAILED
             try {
@@ -73,7 +75,6 @@ namespace Client {
             return CreateCommunication(TypeOfCommunication.RegisterUser, $"{username} {email} {password}");
         }
 
-        // TODO get ID from Username
         static string GetID(string username) {
             return CreateCommunication(TypeOfCommunication.GetID, username);
         }
@@ -82,36 +83,59 @@ namespace Client {
             CreateCommunication(TypeOfCommunication.DeleteUser, userID);
         }
 
-
         TextBox txt_Username = new TextBox();
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
 
-
-
         public MainWindow() {
             InitializeComponent();
 
+            
+
+            Grid gridLogin = new Grid();
+
+            ColumnDefinition columnDefinitionLogin = new ColumnDefinition();
+            gridLogin.ColumnDefinitions.Add(columnDefinitionLogin);
+
+            RowDefinition rowDefinitionTitleLogin = new RowDefinition();
+            rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
+            RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
+            rowDefinitionUsernameLogin.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionEmailLogin = new RowDefinition();
+            rowDefinitionEmailLogin.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionPasswordLogin = new RowDefinition();
+            rowDefinitionPasswordLogin.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionLoginButton = new RowDefinition();
+            rowDefinitionLoginButton.Height = new GridLength(2, GridUnitType.Star);
+
+            gridLogin.RowDefinitions.Add(rowDefinitionTitleLogin);
+            gridLogin.RowDefinitions.Add(rowDefinitionUsernameLogin);
+            gridLogin.RowDefinitions.Add(rowDefinitionEmailLogin);
+            gridLogin.RowDefinitions.Add(rowDefinitionPasswordLogin);
+            gridLogin.RowDefinitions.Add(rowDefinitionLoginButton);
+
+
+
             Grid gridRegister = new Grid();
 
-            ColumnDefinition columnDefinitionMain = new ColumnDefinition();
-            gridRegister.ColumnDefinitions.Add(columnDefinitionMain);
+            ColumnDefinition columnDefinitionRegister = new ColumnDefinition();
+            gridRegister.ColumnDefinitions.Add(columnDefinitionRegister);
 
-            RowDefinition rowDefinitionTitle = new RowDefinition();
-            rowDefinitionTitle.Height = new GridLength(5, GridUnitType.Star);
-            RowDefinition rowDefinitionUsername = new RowDefinition();
-            rowDefinitionUsername.Height = new GridLength(1, GridUnitType.Star);
-            RowDefinition rowDefinitionEmail = new RowDefinition();
-            rowDefinitionEmail.Height = new GridLength(1, GridUnitType.Star); 
-            RowDefinition rowDefinitionPassword = new RowDefinition();
-            rowDefinitionPassword.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionTitleRegister = new RowDefinition();
+            rowDefinitionTitleRegister.Height = new GridLength(5, GridUnitType.Star);
+            RowDefinition rowDefinitionUsernameRegister = new RowDefinition();
+            rowDefinitionUsernameRegister.Height = new GridLength(1, GridUnitType.Star);
+            RowDefinition rowDefinitionEmailRegister = new RowDefinition();
+            rowDefinitionEmailRegister.Height = new GridLength(1, GridUnitType.Star); 
+            RowDefinition rowDefinitionPasswordRegister = new RowDefinition();
+            rowDefinitionPasswordRegister.Height = new GridLength(1, GridUnitType.Star);
             RowDefinition rowDefinitionRegisterButton = new RowDefinition();
             rowDefinitionRegisterButton.Height = new GridLength(2, GridUnitType.Star);
 
-            gridRegister.RowDefinitions.Add(rowDefinitionTitle);
-            gridRegister.RowDefinitions.Add(rowDefinitionUsername);
-            gridRegister.RowDefinitions.Add(rowDefinitionEmail);
-            gridRegister.RowDefinitions.Add(rowDefinitionPassword);
+            gridRegister.RowDefinitions.Add(rowDefinitionTitleRegister);
+            gridRegister.RowDefinitions.Add(rowDefinitionUsernameRegister);
+            gridRegister.RowDefinitions.Add(rowDefinitionEmailRegister);
+            gridRegister.RowDefinitions.Add(rowDefinitionPasswordRegister);
             gridRegister.RowDefinitions.Add(rowDefinitionRegisterButton);
 
             Label lab_Title = new Label();
@@ -156,19 +180,38 @@ namespace Client {
 
             Grid.SetRow(btn_Register, 4);
 
-            gridRegister.Children.Add(lab_Title);
+            Button btn_Login = new Button();
+            btn_Login.Content = "Login";
+            btn_Login.Width = 150;
+            btn_Login.Height = 50;
+            btn_Login.FontSize = 30;
+
+            Grid.SetRow(btn_Login, 4);
+
+            /*gridRegister.Children.Add(lab_Title);
             gridRegister.Children.Add(txt_Username);
             gridRegister.Children.Add(txt_Email);
             gridRegister.Children.Add(txt_Password);
-            gridRegister.Children.Add(btn_Register);
-            
+            gridRegister.Children.Add(btn_Register);*/
+
+            gridLogin.Children.Add(lab_Title);
+            gridLogin.Children.Add(txt_Username);
+            gridLogin.Children.Add(txt_Email);
+            gridLogin.Children.Add(txt_Password);
+            gridLogin.Children.Add(btn_Login);
+
             btn_Register.Click += Btn_Register_Click;
+            btn_Login.Click += Btn_Login_Click;
 
-            PrimaryWindow.Content = gridRegister;
 
+
+            PrimaryWindow.Content = gridLogin;
 
         }
 
+        private void Btn_Login_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
             clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);

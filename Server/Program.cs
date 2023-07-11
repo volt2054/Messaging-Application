@@ -8,7 +8,6 @@ using System.Net;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
-using Azure.Messaging;
 
 namespace Server {
     class Server {
@@ -52,7 +51,7 @@ namespace Server {
 
                 string responseMessage = "";
                 string[] args = message.Split(" ");
-
+                
 
                 if (message.StartsWith("SEND")) {           // SEND MESSAGES
 
@@ -62,7 +61,7 @@ namespace Server {
                     string password = args[3];
                     responseMessage = InsertNewUser(username, email, password);
                     SelectAll();
-                } else if (message.StartsWith("DELETE")) {  // DELETE MESSAGES
+                } else if (message.StartsWith("DELETE")) {  // DELETE USER
                     string userID = args[1];
                     DeleteUser(userID);
                     SelectAll();
