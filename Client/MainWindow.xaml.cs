@@ -89,7 +89,6 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-
             
 
             Grid gridLogin = new Grid();
