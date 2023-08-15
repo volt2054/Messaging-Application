@@ -13,7 +13,7 @@ namespace Server {
     class Server {
 
         // TODO - Loading options from file??
-        const string DATABASE_FILE_PATH = @"C:\Users\school work\Documents\dev\Messaging-Application\Server\Database.mdf";
+        const string DATABASE_FILE_PATH = @"D:\Users\school work\Documents\dev\Messaging-Application\Server\Database.mdf";
 
         static void Main(string[] args) {
             //Console.WriteLine("Dropping Tables");
