@@ -40,7 +40,7 @@ namespace Server {
             Console.ReadLine();
         }
 
-        
+
         private static void HandleClient(object obj) {
             TcpClient client = (TcpClient)obj;
 
@@ -53,7 +53,7 @@ namespace Server {
 
                 string responseMessage = "";
                 string[] args = message.Split(" ");
-                
+
 
                 if (message.StartsWith("SEND")) {           // SEND MESSAGES
 
@@ -171,12 +171,12 @@ namespace Server {
                     ExecuteNonQuery(connection, command);
 
                 });
-                    Console.WriteLine("Tables dropped successfuly");
+                Console.WriteLine("Tables dropped successfuly");
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
             }
         }
-        
+
 
         static void CreateDatabase() {
             try {
@@ -200,7 +200,7 @@ namespace Server {
         static void CreateTables() {
             try {
 
-                
+
 
                 Console.WriteLine("Creating table users");
 
