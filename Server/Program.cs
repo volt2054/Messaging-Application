@@ -13,11 +13,13 @@ namespace Server {
     class Server {
 
         // TODO - Loading options from file??
-        const string DATABASE_FILE_PATH = @"D:\Users\school work\Documents\dev\Messaging-Application\Server\Database.mdf";
 
         static void Main(string[] args) {
+
+            //CreateDatabase();
+
             //Console.WriteLine("Dropping Tables");
-            //DropTables();
+            DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
 
@@ -151,7 +153,7 @@ namespace Server {
         }
 
         static void ExecuteDatabaseOperations(Action<SqlConnection> databaseOperation) {
-            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={DATABASE_FILE_PATH};Integrated Security=True";
+            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
 
             using (SqlConnection connection = new SqlConnection(connectionString)) {
                 try {
@@ -174,9 +176,32 @@ namespace Server {
                 Console.WriteLine($"An error occured: {ex.Message}");
             }
         }
+        
+
+        static void CreateDatabase() {
+            try {
+                Console.WriteLine("CreatingDatabase");
+                ExecuteDatabaseOperations(connection => {
+                    string command = "CREATE DATABASE messaging_application ON PRIMARY " +
+                    "(NAME = messaging_application, " +
+                    "FILENAME = 'C:\\Users\\ethan\\Documents\\dev\\c#\\Messaging-Application\\database.mdf'," +
+                    "SIZE = 3MB, MAXSIZE = 100MB, FILEGROWTH = 10%) ";
+                    ExecuteNonQuery(connection, command);
+
+                });
+            } catch (SqlException ex) {
+                Console.WriteLine($"An error occured: {ex.Message}");
+            } finally {
+                Console.WriteLine("Database created");
+            }
+        }
+
 
         static void CreateTables() {
             try {
+
+                
+
                 Console.WriteLine("Creating table users");
 
                 ExecuteDatabaseOperations(connection => {
@@ -242,9 +267,11 @@ namespace Server {
                     ExecuteNonQuery(connection, command);
                 });
 
-                Console.WriteLine("Tables created successfully");
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
+            } finally {
+                Console.WriteLine("Tables created successfully");
+
             }
         }
 
