@@ -87,54 +87,15 @@ namespace Client {
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
 
-        Grid gridRegisterOrLogin = new Grid();
-        Grid gridRegister = new Grid();
         Grid gridLogin = new Grid();
 
         public MainWindow() {
             InitializeComponent();
 
 
-
-
-
             if (true) {
 
-                ColumnDefinition colRegister = new ColumnDefinition();
-                colRegister.Width = new GridLength(1, GridUnitType.Star);
-                ColumnDefinition colLogin = new ColumnDefinition();
-                colLogin.Width = new GridLength(1, GridUnitType.Star);
-
-                gridRegisterOrLogin.ColumnDefinitions.Add(colRegister);
-                gridRegisterOrLogin.ColumnDefinitions.Add(colLogin);
-
-                RowDefinition rowDefinitionRegisterOrLogin = new RowDefinition();
-
-                gridRegisterOrLogin.RowDefinitions.Add(rowDefinitionRegisterOrLogin);
-
-                Button btn_RegisterOption = new Button();
-                btn_RegisterOption.Content = "Register";
-                btn_RegisterOption.Width = 150;
-                btn_RegisterOption.Height = 50;
-                btn_RegisterOption.FontSize = 30;
-                btn_RegisterOption.Click += Btn_RegisterOption_Click;
-
-                Grid.SetColumn(btn_RegisterOption, 0);
-
-                Button btn_LoginOption = new Button();
-                btn_LoginOption.Content = "Login";
-                btn_LoginOption.Width = 150;
-                btn_LoginOption.Height = 50;
-                btn_LoginOption.FontSize = 30;
-                btn_LoginOption.Click += Btn_Login_Click;
-
-                Grid.SetColumn(btn_LoginOption, 1);
-
-                gridRegisterOrLogin.Children.Add(btn_RegisterOption);
-                gridRegisterOrLogin.Children.Add(btn_LoginOption);
-
-                ColumnDefinition columnDefinitionLogin = new ColumnDefinition();
-                gridLogin.ColumnDefinitions.Add(columnDefinitionLogin);
+                
 
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
                 rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
@@ -152,28 +113,6 @@ namespace Client {
                 gridLogin.RowDefinitions.Add(rowDefinitionEmailLogin);
                 gridLogin.RowDefinitions.Add(rowDefinitionPasswordLogin);
                 gridLogin.RowDefinitions.Add(rowDefinitionLoginButton);
-
-
-
-                ColumnDefinition columnDefinitionRegister = new ColumnDefinition();
-                gridRegister.ColumnDefinitions.Add(columnDefinitionRegister);
-
-                RowDefinition rowDefinitionTitleRegister = new RowDefinition();
-                rowDefinitionTitleRegister.Height = new GridLength(5, GridUnitType.Star);
-                RowDefinition rowDefinitionUsernameRegister = new RowDefinition();
-                rowDefinitionUsernameRegister.Height = new GridLength(1, GridUnitType.Star);
-                RowDefinition rowDefinitionEmailRegister = new RowDefinition();
-                rowDefinitionEmailRegister.Height = new GridLength(1, GridUnitType.Star);
-                RowDefinition rowDefinitionPasswordRegister = new RowDefinition();
-                rowDefinitionPasswordRegister.Height = new GridLength(1, GridUnitType.Star);
-                RowDefinition rowDefinitionRegisterButton = new RowDefinition();
-                rowDefinitionRegisterButton.Height = new GridLength(2, GridUnitType.Star);
-
-                gridRegister.RowDefinitions.Add(rowDefinitionTitleRegister);
-                gridRegister.RowDefinitions.Add(rowDefinitionUsernameRegister);
-                gridRegister.RowDefinitions.Add(rowDefinitionEmailRegister);
-                gridRegister.RowDefinitions.Add(rowDefinitionPasswordRegister);
-                gridRegister.RowDefinitions.Add(rowDefinitionRegisterButton);
 
                 Label lab_Title = new Label();
                 lab_Title.Content = "Messaging";
@@ -215,7 +154,7 @@ namespace Client {
                 btn_Register.Height = 50;
                 btn_Register.FontSize = 30;
 
-                Grid.SetRow(btn_Register, 4);
+                Grid.SetColumn(btn_Register, 0);
 
                 Button btn_Login = new Button();
                 btn_Login.Content = "Login";
@@ -223,35 +162,44 @@ namespace Client {
                 btn_Login.Height = 50;
                 btn_Login.FontSize = 30;
 
-                Grid.SetRow(btn_Login, 4);
-
-                /*gridRegister.Children.Add(lab_Title);
-                gridRegister.Children.Add(txt_Username);
-                gridRegister.Children.Add(txt_Email);
-                gridRegister.Children.Add(txt_Password);
-                gridRegister.Children.Add(btn_Register);*/
+                Grid.SetColumn(btn_Login, 1);
 
                 gridLogin.Children.Add(lab_Title);
                 gridLogin.Children.Add(txt_Username);
                 gridLogin.Children.Add(txt_Email);
                 gridLogin.Children.Add(txt_Password);
-                gridLogin.Children.Add(btn_Login);
+                
 
                 btn_Register.Click += Btn_Register_Click;
                 btn_Login.Click += Btn_Login_Click;
 
-                PrimaryWindow.Content = gridRegisterOrLogin;
+                Grid gridButtonOptions = new Grid();
+                ColumnDefinition columnDefinitionLoginButton = new ColumnDefinition();
+                ColumnDefinition columnDefinitionRegisterButton = new ColumnDefinition();
+
+                RowDefinition rowDefintionButtons = new RowDefinition();
+
+                gridButtonOptions.ColumnDefinitions.Add(columnDefinitionLoginButton);
+                gridButtonOptions.ColumnDefinitions.Add(columnDefinitionRegisterButton);
+                gridButtonOptions.RowDefinitions.Add(rowDefintionButtons);
+
+                ColumnDefinition columnDefinitionLogin = new ColumnDefinition();
+                gridLogin.ColumnDefinitions.Add(columnDefinitionLogin);
+
+                Grid.SetRow(gridButtonOptions, 4);
+
+                gridButtonOptions.Children.Add(btn_Login);
+                gridButtonOptions.Children.Add(btn_Register);
+
+                gridLogin.Children.Add(gridButtonOptions);
+
+                PrimaryWindow.Content = gridLogin;
 
             } // So I can collapse code
 
         }
 
-        private void Btn_RegisterOption_Click(object sender, RoutedEventArgs e) {
-            PrimaryWindow.Content = gridRegister;
-        }
-
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            PrimaryWindow.Content = gridLogin;
         }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
