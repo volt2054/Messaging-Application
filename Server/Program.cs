@@ -41,6 +41,15 @@ namespace Server {
         }
 
 
+        public class TypeOfCommunication {
+            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
+            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
+            public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
+            public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
+        }
+
         private static void HandleClient(object obj) {
             TcpClient client = (TcpClient)obj;
 
@@ -55,24 +64,24 @@ namespace Server {
                 string[] args = message.Split(" ");
 
 
-                if (message.StartsWith("SEND")) {           // SEND MESSAGES
+                if (message.StartsWith(TypeOfCommunication.SendMessage)) {           // SEND MESSAGES
 
-                } else if (message.StartsWith("CREATE")) {  // CREATE USER
+                } else if (message.StartsWith(TypeOfCommunication.RegisterUser)) {  // CREATE USER
                     string username = args[1];
                     string email = args[2];
                     string password = args[3];
                     responseMessage = InsertNewUser(username, email, password);
                     SelectAll();
-                } else if (message.StartsWith("DELETE")) {  // DELETE USER
+                } else if (message.StartsWith(TypeOfCommunication.DeleteUser)) {  // DELETE USER
                     string userID = args[1];
                     DeleteUser(userID);
                     SelectAll();
-                } else if (message.StartsWith("GET")) {     // FETCH MESSAGES
+                } else if (message.StartsWith(TypeOfCommunication.GetMessages)) {     // FETCH MESSAGES
 
-                } else if (message.StartsWith("GETUSERID")) {
+                } else if (message.StartsWith(TypeOfCommunication.GetID)) {
                     string username = args[1];
                     responseMessage = GetID(username);
-                } else if (message.StartsWith("CHECK")) {
+                } else if (message.StartsWith(TypeOfCommunication.ValidateUser)) {
                     string username = args[1];
                     string email = args[2];
                     string password = args[3];
