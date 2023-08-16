@@ -95,6 +95,9 @@ namespace Client {
 
         Grid gridLogin = new Grid();
 
+        Grid messagingGrid = new Grid();
+
+
         public MainWindow() {
             InitializeComponent();
 
@@ -198,19 +201,135 @@ namespace Client {
 
                 PrimaryWindow.Content = gridLogin;
 
-            } // So I can collapse code 
+            } // So I can collapse code // MAIN LOGIN SCREEN
+
+
+
+
 
         }
 
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            //clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            PrimaryWindow.Content = messagingGrid;
+            InitializeUI();
         }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
-            if (clientID != null) {
-                //PrimaryWindow.Content = gridMessages;
-            }
+            PrimaryWindow.Content = messagingGrid;
+            InitializeUI();
+
+
+            //clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            //if (clientID != null) {
+            //PrimaryWindow.Content = gridMessages;
+            //}
         }
+
+        private void AddSphere(StackPanel parentStackPanel, Color color) {
+            Ellipse ellipse = new Ellipse {
+                Width = 50,
+                Height = 50,
+                Fill = new SolidColorBrush(color)
+            };
+
+            parentStackPanel.Children.Add(ellipse);
+        }
+
+        private void AddBoxWithIconAndText(StackPanel parentStackPanel, string iconPath, string iconText) {
+            StackPanel stackPanel = new StackPanel {
+                Orientation = Orientation.Horizontal
+            };
+
+            Image icon = new Image {
+                Source = new BitmapImage(new Uri(iconPath, UriKind.Relative)),
+                Width = 30,
+                Height = 30
+            };
+
+            TextBlock textBlock = new TextBlock {
+                Text = iconText,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+
+            stackPanel.Children.Add(icon);
+            stackPanel.Children.Add(textBlock);
+
+            parentStackPanel.Children.Add(stackPanel);
+        }
+
+        private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message) {
+            StackPanel messageStackPanel = new StackPanel {
+                Orientation = Orientation.Horizontal
+            };
+
+            Ellipse ellipse = new Ellipse {
+                Width = 25,
+                Height = 25,
+                Fill = new SolidColorBrush(color)
+            };
+
+            StackPanel usernameAndMessageStackPanel = new StackPanel {
+                Orientation = Orientation.Vertical
+            };
+
+            TextBlock usernameTextBlock = new TextBlock {
+                Text = username,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(5, 0, 0, 3)
+            };
+
+            TextBlock messageTextBlock = new TextBlock {
+                Text = message,
+                Margin = new Thickness(5, 0, 0, 10)
+            };
+
+            usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
+            usernameAndMessageStackPanel.Children.Add(messageTextBlock);
+
+            messageStackPanel.Children.Add(ellipse);
+            messageStackPanel.Children.Add(usernameAndMessageStackPanel);
+
+            parentStackPanel.Children.Add(messageStackPanel);
+        }
+
+        private void InitializeUI() {
+            Content = messagingGrid;
+
+            messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3, GridUnitType.Star) });
+            messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10, GridUnitType.Star) });
+
+            // First Column: Circles
+            StackPanel circleStackPanel = new StackPanel();
+            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = circleStackPanel };
+            messagingGrid.Children.Add(circleScrollViewer);
+            Grid.SetColumn(circleScrollViewer, 0);
+
+            AddSphere(circleStackPanel, Colors.Blue);
+            AddSphere(circleStackPanel, Colors.Red);
+
+            // Second Column: Boxes with Icons and Text
+            StackPanel boxStackPanel = new StackPanel();
+            ScrollViewer boxScrollViewer = new ScrollViewer() { Content = boxStackPanel };
+            messagingGrid.Children.Add(boxScrollViewer);
+            Grid.SetColumn(boxScrollViewer, 1);
+
+            AddBoxWithIconAndText(boxStackPanel, "icon.png", "Icon 1 Text");
+            AddBoxWithIconAndText(boxStackPanel, "icon.png", "Icon 2 Text");
+
+            // Third Column: Message Container with Text Box
+            StackPanel messageStackPanel = new StackPanel();
+            ScrollViewer messageScrollViewer = new ScrollViewer() { Content = messageStackPanel };
+            messagingGrid.Children.Add(messageScrollViewer);
+            Grid.SetColumn(messageScrollViewer, 2);
+
+            AddMessage(messageStackPanel, Colors.Blue, "Username1", "Message 1");
+            AddMessage(messageStackPanel, Colors.Red, "Username2", "Message 2");
+
+            TextBox textBox = new TextBox();
+            messageStackPanel.Children.Add(textBox);
+        }
+
     }
 }
