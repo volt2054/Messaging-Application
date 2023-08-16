@@ -72,8 +72,11 @@ namespace Server {
                 } else if (message.StartsWith("GETUSERID")) {
                     string username = args[1];
                     responseMessage = GetID(username);
-                } else {
-
+                } else if (message.StartsWith("CHECK")) {
+                    string username = args[1];
+                    string email = args[2];
+                    string password = args[3];
+                    if (CheckUser(username, email, password)) { responseMessage = GetID(username); } else { responseMessage = "Bad Password"; }
                 }
 
                 byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
@@ -113,7 +116,7 @@ namespace Server {
         static string InsertNewUser(string username, string email, string password) {
             ExecuteDatabaseOperations(connection => {
                 string insertQuery = $"INSERT INTO Users (username, email, password) VALUES('{username}', '{email}', '{password}')";
-                ExecuteQuery(connection, insertQuery);
+                ExecuteNonQuery(connection, insertQuery);
             });
 
             List<string> result = new List<string>();
@@ -125,6 +128,19 @@ namespace Server {
             });
 
             return result.Last();
+        }
+
+        static bool CheckUser(string username, string email, string password) {
+            List<string> result = new List<string>();
+
+            ExecuteDatabaseOperations(connection => {
+                string searchQuery = $"SELECT password FROM USERS WHERE email = '{email}' OR username = '{username}'";
+                result = ExecuteQuery(connection, searchQuery);
+            });
+
+            if (result.Last() != password) return false;
+
+            return true;
         }
 
 

@@ -61,8 +61,10 @@ namespace Client {
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
                 responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
 
+                MessageBox.Show(responseMessage);
+
             } catch (Exception ex) {
-                MessageBox.Show($"An Error Occured: {ex.Message}");
+                MessageBox.Show($"Error Occured Creating Communication: {ex.Message}");
             } finally {
                 MessageBox.Show("Connection closed");
             }
@@ -73,6 +75,10 @@ namespace Client {
 
         static string CreateUser(string username, string email, string password) {
             return CreateCommunication(TypeOfCommunication.RegisterUser, $"{username} {email} {password}");
+        }
+
+        static string VerifyUser(string username, string email, string password) {
+            return CreateCommunication(TypeOfCommunication.ValidateUser, $"{username} {email} {password}");
         }
 
         static string GetID(string username) {
@@ -94,9 +100,6 @@ namespace Client {
 
 
             if (true) {
-
-                
-
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
                 rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
                 RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
@@ -195,11 +198,12 @@ namespace Client {
 
                 PrimaryWindow.Content = gridLogin;
 
-            } // So I can collapse code
+            } // So I can collapse code 
 
         }
 
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
+            clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
         }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
