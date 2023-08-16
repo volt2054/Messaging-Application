@@ -226,7 +226,7 @@ namespace Client {
             //}
         }
 
-        private void AddSphere(StackPanel parentStackPanel, Color color) {
+        private void AddServerIcon(StackPanel parentStackPanel, Color color) {
             Ellipse ellipse = new Ellipse {
                 Width = 50,
                 Height = 50,
@@ -236,15 +236,17 @@ namespace Client {
             parentStackPanel.Children.Add(ellipse);
         }
 
-        private void AddBoxWithIconAndText(StackPanel parentStackPanel, string iconPath, string iconText) {
+        private void AddChatElement(StackPanel parentStackPanel, string iconPath, string iconText) {
+
             StackPanel stackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
+            //iconPath = @"C:\Users\ethan\Documents\dev\c#\Messaging-Application\Client\icon.png";
             Image icon = new Image {
                 Source = new BitmapImage(new Uri(iconPath, UriKind.Relative)),
-                Width = 30,
-                Height = 30
+                Width = 24,
+                Height = 24
             };
 
             TextBlock textBlock = new TextBlock {
@@ -281,7 +283,9 @@ namespace Client {
 
             TextBlock messageTextBlock = new TextBlock {
                 Text = message,
-                Margin = new Thickness(5, 0, 0, 10)
+                Margin = new Thickness(5, 0, 0, 10),
+                //Width = parentStackPanel.Width,
+                TextWrapping = TextWrapping.Wrap
             };
 
             usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
@@ -292,6 +296,9 @@ namespace Client {
 
             parentStackPanel.Children.Add(messageStackPanel);
         }
+
+        StackPanel messageStackPanel;
+        ScrollViewer messageScrollViewer;
 
         private void InitializeUI() {
             Content = messagingGrid;
@@ -306,8 +313,8 @@ namespace Client {
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddSphere(circleStackPanel, Colors.Blue);
-            AddSphere(circleStackPanel, Colors.Red);
+            AddServerIcon(circleStackPanel, Colors.Blue);
+            AddServerIcon(circleStackPanel, Colors.Red);
 
             // Second Column: Boxes with Icons and Text
             StackPanel boxStackPanel = new StackPanel();
@@ -315,21 +322,49 @@ namespace Client {
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
 
-            AddBoxWithIconAndText(boxStackPanel, "icon.png", "Icon 1 Text");
-            AddBoxWithIconAndText(boxStackPanel, "icon.png", "Icon 2 Text");
+            AddChatElement(boxStackPanel, "/images/icon.png", "Text");
+            AddChatElement(boxStackPanel, "/images/icon.png", "Text");
+
 
             // Third Column: Message Container with Text Box
-            StackPanel messageStackPanel = new StackPanel();
-            ScrollViewer messageScrollViewer = new ScrollViewer() { Content = messageStackPanel };
-            messagingGrid.Children.Add(messageScrollViewer);
-            Grid.SetColumn(messageScrollViewer, 2);
+             messageStackPanel = new StackPanel();
+
+            TextBox messageBox = new TextBox();
+            messageBox.Height = 30;
+            messageBox.TextWrapping = TextWrapping.Wrap;
+            messageBox.VerticalAlignment = VerticalAlignment.Bottom;
+            messageBox.KeyDown += TextBox_KeyDown;
+
+            StackPanel messageContainer = new StackPanel(); // Container for messageStackPanel and messageBox
+            messageContainer.Children.Add(messageStackPanel);
+            messageContainer.Children.Add(messageBox);
+
+            messageScrollViewer = new ScrollViewer();
+            messageScrollViewer.Content = messageContainer;
+
+            Grid messageGrid = new Grid();
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Messages
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // TextBox
+            messageGrid.Children.Add(messageScrollViewer);
+            Grid.SetRow(messageScrollViewer, 0);
+
+            messagingGrid.Children.Add(messageGrid);
+            Grid.SetColumn(messageGrid, 2);
 
             AddMessage(messageStackPanel, Colors.Blue, "Username1", "Message 1");
             AddMessage(messageStackPanel, Colors.Red, "Username2", "Message 2");
 
-            TextBox textBox = new TextBox();
-            messageStackPanel.Children.Add(textBox);
         }
 
+        private void TextBox_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Key == Key.Enter) {
+                TextBox textBox = sender as TextBox;
+                if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
+                    AddMessage(messageStackPanel, Colors.Black, "You", textBox.Text);
+                    messageScrollViewer.ScrollToEnd();
+                    textBox.Clear();
+                }
+            }
+        }
     }
 }
