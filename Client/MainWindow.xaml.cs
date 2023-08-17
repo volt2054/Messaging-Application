@@ -261,6 +261,7 @@ namespace Client {
         }
 
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message) {
+
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
@@ -272,7 +273,8 @@ namespace Client {
             };
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
-                Orientation = Orientation.Vertical
+                Orientation = Orientation.Vertical,
+                Width = parentStackPanel.ActualWidth - 20
             };
 
             TextBlock usernameTextBlock = new TextBlock {
@@ -284,7 +286,7 @@ namespace Client {
             TextBlock messageTextBlock = new TextBlock {
                 Text = message,
                 Margin = new Thickness(5, 0, 0, 10),
-                //Width = parentStackPanel.Width,
+                MaxHeight = 100,
                 TextWrapping = TextWrapping.Wrap
             };
 
@@ -327,33 +329,29 @@ namespace Client {
 
 
             // Third Column: Message Container with Text Box
-             messageStackPanel = new StackPanel();
+            messageStackPanel = new StackPanel();
 
-            TextBox messageBox = new TextBox();
-            messageBox.Height = 30;
-            messageBox.TextWrapping = TextWrapping.Wrap;
-            messageBox.VerticalAlignment = VerticalAlignment.Bottom;
+            TextBox messageBox = new TextBox {
+                Height = 30,
+                TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Bottom,
+            };
             messageBox.KeyDown += TextBox_KeyDown;
 
-            StackPanel messageContainer = new StackPanel(); // Container for messageStackPanel and messageBox
-            messageContainer.Children.Add(messageStackPanel);
-            messageContainer.Children.Add(messageBox);
-
             messageScrollViewer = new ScrollViewer();
-            messageScrollViewer.Content = messageContainer;
+            messageScrollViewer.Content = messageStackPanel;
 
             Grid messageGrid = new Grid();
-            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Messages
-            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // TextBox
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // TextBox
             messageGrid.Children.Add(messageScrollViewer);
+            messageGrid.Children.Add(messageBox);
+
             Grid.SetRow(messageScrollViewer, 0);
+            Grid.SetRow(messageBox, 1);
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
-
-            AddMessage(messageStackPanel, Colors.Blue, "Username1", "Message 1");
-            AddMessage(messageStackPanel, Colors.Red, "Username2", "Message 2");
-
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
