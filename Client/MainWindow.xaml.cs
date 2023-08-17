@@ -346,6 +346,7 @@ namespace Client {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
+            messageScrollViewer.ScrollChanged += MessageScrollViewer_ScrollChanged;
 
 
             Grid messageGrid = new Grid();
@@ -359,6 +360,13 @@ namespace Client {
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
+        }
+
+        private void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
+            if (e.VerticalOffset == 0) {
+                // Load earlier messages
+            }
+            
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
