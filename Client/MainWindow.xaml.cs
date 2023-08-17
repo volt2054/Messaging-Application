@@ -297,6 +297,8 @@ namespace Client {
             messageStackPanel.Children.Add(usernameAndMessageStackPanel);
 
             parentStackPanel.Children.Add(messageStackPanel);
+            //parentStackPanel.Children.Insert(0, messageStackPanel); THIS ADDS AT BEGINNING USE LATER WHEN FETCHING MESSAGES
+
         }
 
         StackPanel messageStackPanel;
@@ -330,6 +332,7 @@ namespace Client {
 
             // Third Column: Message Container with Text Box
             messageStackPanel = new StackPanel();
+            messageStackPanel.VerticalAlignment = VerticalAlignment.Bottom;
 
             TextBox messageBox = new TextBox {
                 Height = 30,
@@ -338,8 +341,12 @@ namespace Client {
             };
             messageBox.KeyDown += TextBox_KeyDown;
 
-            messageScrollViewer = new ScrollViewer();
-            messageScrollViewer.Content = messageStackPanel;
+            messageScrollViewer = new ScrollViewer() {
+                Content = messageStackPanel,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+            };
+
 
             Grid messageGrid = new Grid();
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
