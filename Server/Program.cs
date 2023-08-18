@@ -44,7 +44,7 @@ namespace Server {
 
         public class TypeOfCommunication {
             public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNELID) RETURNS WHETHER SUCCESSFUL
-            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
+            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
             public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
             public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
@@ -78,7 +78,9 @@ namespace Server {
                     DeleteUser(userID);
                     SelectAll();
                 } else if (message.StartsWith(TypeOfCommunication.GetMessages)) {     // FETCH MESSAGES
-
+                    string channel = args[1];
+                    string message_from = args[2];
+                    responseMessage = FetchMessages(channel, message_from).ToString(); ;
                 } else if (message.StartsWith(TypeOfCommunication.GetID)) {
                     string username = args[1];
                     responseMessage = GetID(username);
@@ -97,6 +99,15 @@ namespace Server {
                 client.Close();
                 Console.WriteLine("Client disconnected");
             }
+        }
+
+        private static List<string> FetchMessages(string channel, string message_from) {
+            List<string> result;
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = $"SELECT message_content FROM Messages WHERE channel_id = '{channel}";
+                result = ExecuteQuery(connection, selectQuery);
+            });
+            return result;
         }
 
         private static string GetID(string username) {
@@ -314,7 +325,7 @@ namespace Server {
                 }
             }
         }
-        static List<string> ExecuteQuery(SqlConnection connection, string sql) {
+        static List<string> ExecuteQuery (SqlConnection connection, string sql) {
             List<string> resultList = new List<string>();
             using (SqlCommand command = new SqlCommand(sql, connection)) {
                 try {
