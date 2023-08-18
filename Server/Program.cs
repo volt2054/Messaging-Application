@@ -19,14 +19,14 @@ namespace Server {
 
         static void Main(string[] args) {
 
-            //CreateDatabase();
+            CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
 
-            CreateChannel("test channel", -1);
+            CreateChannel("test channel", "-1");
 
             bool isRunning = true;
 
@@ -248,7 +248,7 @@ namespace Server {
         static void DropTables() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users; DROP TABLE Messages";
+                    string command = "DROP TABLE Users; DROP TABLE Messages; DROP TABLE Channels";
                     ExecuteNonQuery(connection, command);
 
                 });
@@ -258,18 +258,17 @@ namespace Server {
             }
         }
 
-        static void CreateChannel(string channel_name, int server_id) {
+        static void CreateChannel(string channel_name, string server_id) {
             string result = "";
             channel_name = SanitizeInput(channel_name);
 
-            string server_id_corrected;
 
-            if (server_id != -1) {
-                server_id_corrected = ", " + server_id.ToString();
-            } else server_id_corrected = "";
+            if (server_id == "-1") {
+                server_id = "NULL";
+            }
 
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Channels (channel_name${server_id_corrected}) VALUES ('{channel_name}'{server_id_corrected})";
+                string insertQuery = $"INSERT INTO Channels (channel_name, server_id) VALUES ('{channel_name}', {server_id})";
                 Console.WriteLine(insertQuery);
                 ExecuteNonQuery(connection, insertQuery);
             });

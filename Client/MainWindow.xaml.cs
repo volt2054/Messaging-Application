@@ -118,7 +118,7 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            string[] testd = { "test", "2", "1" };
+            string[] testd = { "test", "1", "1" };
             CreateCommunication(TypeOfCommunication.SendMessage, testd);
 
             if (true) {
