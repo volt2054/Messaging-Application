@@ -13,6 +13,7 @@ namespace Server {
     class Server {
 
         // TODO - Loading options from file??
+        const string DELIMITER = "|< delimiter >|"; // replace with something else
 
         static void Main(string[] args) {
 
@@ -42,7 +43,7 @@ namespace Server {
 
 
         public class TypeOfCommunication {
-            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
+            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNELID) RETURNS WHETHER SUCCESSFUL
             public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
             public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
@@ -61,7 +62,7 @@ namespace Server {
                 Console.WriteLine("Recieved message from {0}: {1}", client.Client.RemoteEndPoint, message);
 
                 string responseMessage = "";
-                string[] args = message.Split(" ");
+                string[] args = message.Split(DELIMITER);
 
 
                 if (message.StartsWith(TypeOfCommunication.SendMessage)) {           // SEND MESSAGES

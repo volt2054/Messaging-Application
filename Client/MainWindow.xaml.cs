@@ -27,7 +27,11 @@ namespace Client {
     /// 
 
 
+
     public partial class MainWindow : Window {
+
+        // TODO - Loading options from file??
+        const string DELIMITER = "|< delimiter >|"; // replace with something else
 
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
@@ -45,14 +49,18 @@ namespace Client {
 
         // TODO Wrap network functions into a class (put in a seperate file asw)
 
-        static string CreateCommunication(string communicationType, string data) {
+        static string CreateCommunication(string communicationType, string[] data) {
             string responseMessage = "-1"; // FAILED
             try {
                 TcpClient client = new(IP_ADDRESS, PORT);
                 MessageBox.Show($"Connected to server on {IP_ADDRESS}:{PORT}");
 
                 NetworkStream stream = client.GetStream();
-                string message = $"{communicationType} {data}";
+                string message = $"{communicationType}";
+                for (int i = 0; i<data.Length; i++) {
+                    message += DELIMITER;
+                    message += data[i];
+                }
                 byte[] messageBytes = Encoding.ASCII.GetBytes(message);
                 stream.Write(messageBytes, 0, messageBytes.Length);
                 MessageBox.Show($"Sent message: {message}");
@@ -74,19 +82,23 @@ namespace Client {
         }
 
         static string CreateUser(string username, string email, string password) {
-            return CreateCommunication(TypeOfCommunication.RegisterUser, $"{username} {email} {password}");
+            string[] data = { username, email, password };
+            return CreateCommunication(TypeOfCommunication.RegisterUser, data);
         }
 
         static string VerifyUser(string username, string email, string password) {
-            return CreateCommunication(TypeOfCommunication.ValidateUser, $"{username} {email} {password}");
+            string[] data = { username, email, password };
+            return CreateCommunication(TypeOfCommunication.ValidateUser, data);
         }
 
         static string GetID(string username) {
-            return CreateCommunication(TypeOfCommunication.GetID, username);
+            string[] data = { username };
+            return CreateCommunication(TypeOfCommunication.GetID, data);
         }
 
         static void DeleteUser(string userID) {
-            CreateCommunication(TypeOfCommunication.DeleteUser, userID);
+            string[] data = { userID };
+            CreateCommunication(TypeOfCommunication.DeleteUser, data);
         }
 
         TextBox txt_Username = new TextBox();
@@ -100,7 +112,6 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-
 
             if (true) {
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
@@ -203,14 +214,10 @@ namespace Client {
 
             } // So I can collapse code // MAIN LOGIN SCREEN
 
-
-
-
-
         }
 
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            //clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             PrimaryWindow.Content = messagingGrid;
             InitializeUI();
         }
@@ -242,7 +249,6 @@ namespace Client {
                 Orientation = Orientation.Horizontal
             };
 
-            //iconPath = @"C:\Users\ethan\Documents\dev\c#\Messaging-Application\Client\icon.png";
             Image icon = new Image {
                 Source = new BitmapImage(new Uri(iconPath, UriKind.Relative)),
                 Width = 24,
