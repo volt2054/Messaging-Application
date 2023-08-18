@@ -8,21 +8,25 @@ using System.Net;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
+using Azure.Messaging;
+using System.Threading.Channels;
 
 namespace Server {
     class Server {
 
         // TODO - Loading options from file??
-        const string DELIMITER = "|< delimiter >|"; // replace with something else
+        const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
         static void Main(string[] args) {
 
-            //CreateDatabase();
+            CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
+
+            CreateChannel("test channel", "-1");
 
             bool isRunning = true;
 
@@ -43,8 +47,8 @@ namespace Server {
 
 
         public class TypeOfCommunication {
-            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNELID) RETURNS WHETHER SUCCESSFUL
-            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
+            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNEL ID + USER ID) RETURNS WHETHER SUCCESSFUL
+            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID) RETURNS RECENTLY SENT MESSAGES
             public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
             public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
@@ -66,6 +70,10 @@ namespace Server {
 
 
                 if (message.StartsWith(TypeOfCommunication.SendMessage)) {           // SEND MESSAGES
+                    string message_content = args[1];
+                    string channel = args[2];
+                    string user = args[3];
+                    responseMessage = InsertNewMessage(message_content, channel, user);
 
                 } else if (message.StartsWith(TypeOfCommunication.RegisterUser)) {  // CREATE USER
                     string username = args[1];
@@ -98,6 +106,53 @@ namespace Server {
             } finally {
                 client.Close();
                 Console.WriteLine("Client disconnected");
+            }
+        }
+
+        private static string SanitizeInput(string input) { // temporary will use paramaterized sanitization laterwith .AddWithValue
+            string sanitizedInput = input
+                .Replace("'", "''")
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("<", "")
+                .Replace(">", "")
+                .Replace("&", "")
+                .Replace(";", "")
+                .Replace("--", "")
+                .Replace("/*", "")
+                .Replace("*/", "");
+
+
+            return sanitizedInput;
+        }
+
+        private static string InsertNewMessage(string message_content, string channel, string user) {
+            string result = "";
+            message_content = SanitizeInput(message_content);
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES ('{message_content}', {channel}, {user})";
+                Console.WriteLine(insertQuery);
+                ExecuteNonQuery(connection, insertQuery);
+            });
+
+
+            SelectAllMessages();
+
+
+            return result;
+        }
+
+        static void SelectAllMessages() {
+            List<string> result = new List<string>();
+
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT * FROM Messages";
+                result = ExecuteQuery(connection, selectQuery);
+            });
+
+            foreach (string row in result) {
+                Console.WriteLine(row);
             }
         }
 
@@ -204,7 +259,7 @@ namespace Server {
         static void DropTables() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users; DROP TABLE Messages";
+                    string command = "DROP TABLE Users; DROP TABLE Messages; DROP TABLE Channels";
                     ExecuteNonQuery(connection, command);
 
                 });
@@ -212,6 +267,23 @@ namespace Server {
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
             }
+        }
+
+        static void CreateChannel(string channel_name, string server_id) {
+            string result = "";
+            channel_name = SanitizeInput(channel_name);
+
+
+            if (server_id == "-1") {
+                server_id = "NULL";
+            }
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Channels (channel_name, server_id) VALUES ('{channel_name}', {server_id})";
+                Console.WriteLine(insertQuery);
+                ExecuteNonQuery(connection, insertQuery);
+            });
+
         }
 
 
@@ -277,7 +349,7 @@ namespace Server {
                     "CREATE TABLE [dbo].[Channels] (" +
                     "   [channel_id]       INT            NOT NULL IDENTITY(1,1)," +
                     "   [channel_name]     VARCHAR (255)  NOT NULL," +
-                    "   [server_id]        INT            NOT NULL," +
+                    "   [server_id]        INT            NULL," +
                     "   [date_created]     DATETIME       NOT NULL DEFAULT(getdate())," +
                     "   PRIMARY KEY CLUSTERED ([channel_id] ASC)," +
                     "   FOREIGN KEY (server_id) REFERENCES Servers(server_id)" +

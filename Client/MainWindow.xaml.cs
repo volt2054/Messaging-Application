@@ -31,7 +31,7 @@ namespace Client {
     public partial class MainWindow : Window {
 
         // TODO - Loading options from file??
-        const string DELIMITER = "|< delimiter >|"; // replace with something else
+        const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
@@ -39,7 +39,7 @@ namespace Client {
 
         // C# doesnt support string enums
         public class TypeOfCommunication {
-            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT) RETURNS WHETHER SUCCESSFUL
+            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNEL ID + USER ID) RETURNS WHETHER SUCCESSFUL
             public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
             public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
@@ -101,6 +101,11 @@ namespace Client {
             CreateCommunication(TypeOfCommunication.DeleteUser, data);
         }
 
+        static void SendMessage(string message, string channelID, string clientID) {
+            string[] data = { message, channelID, clientID };
+            CreateCommunication(TypeOfCommunication.SendMessage, data);
+        }
+
         TextBox txt_Username = new TextBox();
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
@@ -112,6 +117,9 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
+
+            string[] testd = { "test", "1", "1" };
+            CreateCommunication(TypeOfCommunication.SendMessage, testd);
 
             if (true) {
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
