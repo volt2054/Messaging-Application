@@ -81,7 +81,9 @@ namespace Server.Database {
             return result;
         }
 
-        public static int CreateDMChannel(int user1, int user2) {
+        public static string CreateDMChannel(string user1s, string user2s) {
+            int user1 = Convert.ToInt32(user1s);
+            int user2 = Convert.ToInt32(user2s);
             string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
 
             int channelID = -1;
@@ -92,7 +94,7 @@ namespace Server.Database {
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            return channelID;
+            return channelID.ToString();
         }
 
         public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {

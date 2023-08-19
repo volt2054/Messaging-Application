@@ -31,8 +31,6 @@ namespace Server {
             Console.WriteLine("Creating Tables");
             CreateTables();
 
-            CreateChannel("test channel", "-1");
-
             bool isRunning = true;
 
             TcpListener listener;
@@ -67,39 +65,43 @@ namespace Server {
                 string[] args = message.Split(DELIMITER);
 
 
-                if (message.StartsWith(TypeOfCommunication.SendMessage)) {           // SEND MESSAGES
+                if (args[0] == TypeOfCommunication.SendMessage) {           // SEND MESSAGES
                     string message_content = args[1];
                     string channel = args[2];
                     string user = args[3];
                     responseMessage = InsertNewMessage(message_content, channel, user);
 
-                } else if (message.StartsWith(TypeOfCommunication.RegisterUser)) {  // CREATE USER
+                } else if (args[0] == TypeOfCommunication.RegisterUser) {  // CREATE USER
                     string username = args[1];
                     string email = args[2];
                     string password = args[3];
                     responseMessage = Convert.ToString(InsertNewUser(username, email, password));
                     SelectAll();
-                } else if (message.StartsWith(TypeOfCommunication.DeleteUser)) {  // DELETE USER
+                } else if (args[0] == TypeOfCommunication.DeleteUser) {  // DELETE USER
                     string userID = args[1];
                     DeleteUser(userID);
                     SelectAll();
-                } else if (message.StartsWith(TypeOfCommunication.GetMessages)) {     // FETCH MESSAGES
+                } else if (args[0] == TypeOfCommunication.GetMessages) {     // FETCH MESSAGES
                     string channel = args[1];
                     string message_from = args[2];
                     responseMessage = FetchMessages(channel, message_from).ToString(); ;
-                } else if (message.StartsWith(TypeOfCommunication.GetID)) {
+                } else if (args[0] == TypeOfCommunication.GetID) {
                     string username = args[1];
                     responseMessage = GetID(username);
-                } else if (message.StartsWith(TypeOfCommunication.ValidateUser)) {
+                } else if (args[0] == TypeOfCommunication.ValidateUser) {
                     string username = args[1];
                     string email = args[2];
                     string password = args[3];
                     if (CheckUser(username, email, password)) { responseMessage = GetID(username); } else { responseMessage = "Bad Password"; }
-                } else if (message.StartsWith(TypeOfCommunication.FetchChannels)) {
+                } else if (args[0] == TypeOfCommunication.FetchChannels) {
                     string userID = args[1];
                     List<string> userChannels = FetchUserChannels(userID);
                     byte[] channelsData = SerializeList(userChannels);
                     responseMessage = Convert.ToBase64String(channelsData);
+                } else if (args[0] == TypeOfCommunication.CreateDMChannel) {
+                    string user1 = args[1];
+                    string user2 = args[2];
+                    responseMessage = CreateDMChannel(user1, user2);
                 }
 
                 byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);

@@ -178,7 +178,9 @@ namespace Server.Database {
 
             using (SqlConnection connection = new SqlConnection(connectionString)) {
                 try {
+                    connection.Open();
                     databaseOperation(connection);
+                    connection.Close();
                 } catch {
                     Console.WriteLine("Error");
                 }
@@ -188,13 +190,10 @@ namespace Server.Database {
         public static void ExecuteNonQuery(SqlConnection connection, string sql) {
             using (SqlCommand command = new SqlCommand(sql, connection)) {
                 try {
-                    connection.Open();
                     int rowsAffected = command.ExecuteNonQuery();
                     Console.WriteLine("Rows Affected: " + rowsAffected);
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
                 }
             }
         }
@@ -202,13 +201,10 @@ namespace Server.Database {
         public static void ExecuteNonQuery(SqlConnection connection, SqlCommand command) {
             using (command) {
                 try {
-                    connection.Open();
                     int rowsAffected = command.ExecuteNonQuery();
                     Console.WriteLine("Rows Affected: " + rowsAffected);
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
                 }
             }
         }
@@ -216,7 +212,6 @@ namespace Server.Database {
             List<string> resultList = new List<string>();
             using (SqlCommand command = new SqlCommand(sql, connection)) {
                 try {
-                    connection.Open();
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read()) {
                         string rowString = "";
@@ -228,8 +223,6 @@ namespace Server.Database {
                     reader.Close();
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
                 }
             }
             return resultList;
@@ -239,7 +232,6 @@ namespace Server.Database {
             List<string> resultList = new List<string>();
             using (command) {
                 try {
-                    connection.Open();
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read()) {
                         string rowString = "";
@@ -251,8 +243,6 @@ namespace Server.Database {
                     reader.Close();
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
                 }
             }
             return resultList;

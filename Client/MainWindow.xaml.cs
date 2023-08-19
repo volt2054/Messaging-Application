@@ -104,6 +104,11 @@ namespace Client {
             CreateCommunication(TypeOfCommunication.SendMessage, data);
         }
 
+        static string CreateDMChannel(string user1, string user2) {
+            string[] data = { user1, user2 };
+            return CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
+        }
+
         static List<string> FetchChannels(string userID) {
             string[] data = { userID };
             string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
@@ -129,8 +134,16 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            string[] testd = { "test", "1", "1" };
-            CreateCommunication(TypeOfCommunication.SendMessage, testd);
+            
+
+            string user1 = CreateUser("testuser1", "testemail1", "testpassword1");
+            string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
+
+            string channel = CreateDMChannel(user1, user2);
+
+            SendMessage("test message", channel, user1);
+            SendMessage("test message2", channel, user2);
+
 
             if (true) {
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
