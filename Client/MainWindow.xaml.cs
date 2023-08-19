@@ -445,6 +445,7 @@ namespace Client {
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                messageScrollViewer.ScrollToBottom();
             }
 
             messageFetchTimer = new DispatcherTimer();
@@ -468,9 +469,6 @@ namespace Client {
                 }
             }
         }
-
-
-
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
