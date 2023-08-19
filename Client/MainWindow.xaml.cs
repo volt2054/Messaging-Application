@@ -115,9 +115,6 @@ namespace Client {
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
-            foreach (string[] channel in userChannels) {
-                MessageBox.Show(channel[0] + ": " + channel[1]);
-            }
 
             return userChannels;
         }
@@ -134,7 +131,6 @@ namespace Client {
         static List<string[]> FetchMessages(string channelID, string messageID) {
             string[] data = { channelID, messageID };
             string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
-            MessageBox.Show(response);
             
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
@@ -430,8 +426,6 @@ namespace Client {
             }
 
             foreach (string[] message in FetchMessages(CurrentChannelID, "2000")) {
-                MessageBox.Show(message[0]);
-                MessageBox.Show(message[1]);
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
             }
         }
