@@ -21,6 +21,7 @@ using System.Net.Http;
 
 using SharedLibrary;
 using static SharedLibrary.Serialization;
+using System.Windows.Threading;
 
 namespace Client {
 
@@ -33,15 +34,18 @@ namespace Client {
 
     public partial class MainWindow : Window {
 
+
         // TODO - Loading options from file??
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
         string clientID;
+        private DispatcherTimer messageFetchTimer;
 
         string CurrentChannelID;
         string CurrentServerID;
+        string CurrentMessage;
 
         
 
@@ -128,8 +132,8 @@ namespace Client {
             return userChannels;
         }
 
-        static List<string[]> FetchMessages(string channelID, string messageID) {
-            string[] data = { channelID, messageID };
+        static List<string[]> FetchMessages(string channelID, string messageID, string before) {
+            string[] data = { channelID, messageID, before };
             string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
             
             byte[] dataBytes = Convert.FromBase64String(response);
@@ -161,7 +165,7 @@ namespace Client {
 
             clientID = user1;
 
-            for (int i = 0; i<10; ++i) {
+            for (int i = 0; i<5; ++i) {
                 SendMessage("test message", channel, user1);
                 SendMessage("test message2", channel, user2);
             }
@@ -274,12 +278,12 @@ namespace Client {
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
             //clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             PrimaryWindow.Content = messagingGrid;
-            InitializeUI();
+            InitializeMessagingUI();
         }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
             PrimaryWindow.Content = messagingGrid;
-            InitializeUI();
+            InitializeMessagingUI();
 
 
             //clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
@@ -369,12 +373,13 @@ namespace Client {
             parentStackPanel.Children.Add(messageStackPanel);
             //parentStackPanel.Children.Insert(0, messageStackPanel); THIS ADDS AT BEGINNING USE LATER WHEN FETCHING MESSAGES
 
+            messageScrollViewer.ScrollToEnd();
         }
 
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
 
-        private void InitializeUI() {
+        private void InitializeMessagingUI() {
             Content = messagingGrid;
 
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
@@ -430,7 +435,20 @@ namespace Client {
                 AddChatElement(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
             }
 
-            foreach (string[] message in FetchMessages(CurrentChannelID, "2000")) {
+            foreach (string[] message in FetchMessages(CurrentChannelID, "1000", "true")) {
+                if (Convert.ToInt32(CurrentMessage) < Convert.ToInt32(message[2])) { CurrentMessage = message[2]; }
+                AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
+            }
+
+            messageFetchTimer = new DispatcherTimer();
+            messageFetchTimer.Interval = TimeSpan.FromSeconds(1);
+            messageFetchTimer.Tick += MessageFetchTimer_Tick;
+            messageFetchTimer.Start();
+        }
+
+        private void MessageFetchTimer_Tick(object? sender, EventArgs e) {
+            foreach (string[] message in FetchMessages(CurrentChannelID, CurrentMessage, "false")) {
+                CurrentMessage = message[2];
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
             }
         }
@@ -448,7 +466,6 @@ namespace Client {
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
                     AddMessage(messageStackPanel, Colors.Black, "You", textBox.Text);
                     SendMessage(textBox.Text, CurrentChannelID, clientID);
-                    messageScrollViewer.ScrollToEnd();
                     textBox.Clear();
                 }
             }

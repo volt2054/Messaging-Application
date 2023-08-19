@@ -33,15 +33,16 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchMessages(string channelID, string messageID) {
+        public static List<string[]> FetchMessages(string channelID, string messageID, bool fetchBefore, int count) {
             List<string[]> messages = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP 10 user_id, message_content " +
+                    "SELECT TOP " + count + " user_id, message_content, message_id " +
                     "FROM Messages " +
-                    "WHERE channel_id = @ChannelID AND message_id < @MessageID " +
-                    "ORDER BY message_id DESC";
+                    "WHERE channel_id = @ChannelID AND " +
+                    (fetchBefore ? "message_id < @MessageID" : "message_id > @MessageID") +
+                    " ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", channelID);
@@ -50,7 +51,7 @@ namespace Server.Database {
                 messages = ExecuteQuery<string[]>(connection, command);
             });
 
-            foreach(string[] row in messages) {
+            foreach (string[] row in messages) {
                 Console.WriteLine(row[0] + ": " + row[1]);
             }
 

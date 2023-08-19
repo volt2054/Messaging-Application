@@ -101,7 +101,8 @@ namespace Server {
                 } else if (args[0] == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                     string channel = args[1];
                     string message_from = args[2];
-                    List<string[]> messageList = FetchMessages(channel, message_from);
+                    bool before = (args[3] == "true");
+                    List<string[]> messageList = FetchMessages(channel, message_from, before, 10);
 
                     
 
