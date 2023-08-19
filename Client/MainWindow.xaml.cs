@@ -159,8 +159,13 @@ namespace Client {
             string channel = CreateDMChannel(user1, user2);
             CurrentChannelID = channel;
 
-            SendMessage("test message", channel, user1);
-            SendMessage("test message2", channel, user2);
+            clientID = user1;
+
+            for (int i = 0; i<10; ++i) {
+                SendMessage("test message", channel, user1);
+                SendMessage("test message2", channel, user2);
+            }
+            
 
 
             if (true) {
@@ -267,7 +272,7 @@ namespace Client {
         }
 
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            //clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             PrimaryWindow.Content = messagingGrid;
             InitializeUI();
         }
@@ -339,7 +344,7 @@ namespace Client {
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
                 Orientation = Orientation.Vertical,
-                Width = parentStackPanel.ActualWidth - 20
+                Width = parentStackPanel.Width - 20
             };
 
             TextBlock usernameTextBlock = new TextBlock {
@@ -442,7 +447,7 @@ namespace Client {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
                     AddMessage(messageStackPanel, Colors.Black, "You", textBox.Text);
-                    SendMessage(textBox.Text, "0", clientID);
+                    SendMessage(textBox.Text, CurrentChannelID, clientID);
                     messageScrollViewer.ScrollToEnd();
                     textBox.Clear();
                 }

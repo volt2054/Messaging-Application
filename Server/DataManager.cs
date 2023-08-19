@@ -38,7 +38,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP 50 user_id, message_content " +
+                    "SELECT TOP 10 user_id, message_content " +
                     "FROM Messages " +
                     "WHERE channel_id = @ChannelID AND message_id < @MessageID " +
                     "ORDER BY message_id DESC";

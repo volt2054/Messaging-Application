@@ -15,6 +15,7 @@ using static SharedLibrary.Serialization;
 
 using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
+using System.Threading.Channels;
 
 namespace Server {
     
@@ -24,8 +25,23 @@ namespace Server {
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
         static void Main(string[] args) {
-
             CreateDatabase();
+
+            ExecuteDatabaseOperations(connection => {
+                string del = "DELETE FROM Messages";
+                ExecuteNonQuery(connection, del);
+            });
+
+            ExecuteDatabaseOperations(connection => {
+                string del = "DELETE FROM Users";
+                ExecuteNonQuery(connection, del);
+            });
+            ExecuteDatabaseOperations(connection => {
+                string del = "DELETE FROM Channels";
+                ExecuteNonQuery(connection, del);
+            });
+
+            
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
