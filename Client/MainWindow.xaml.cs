@@ -45,9 +45,10 @@ namespace Client {
 
         string CurrentChannelID;
         string CurrentServerID;
-        string CurrentMessage;
+        string NewestMessage = int.MinValue.ToString();
+        string OldestMessage = int.MaxValue.ToString();
 
-        
+
 
         // TODO Wrap network functions into a class (put in a seperate file asw)
 
@@ -59,7 +60,7 @@ namespace Client {
 
                 NetworkStream stream = client.GetStream();
                 string message = $"{communicationType}";
-                for (int i = 0; i<data.Length; i++) {
+                for (int i = 0; i < data.Length; i++) {
                     message += DELIMITER;
                     message += data[i];
                 }
@@ -135,7 +136,7 @@ namespace Client {
         static List<string[]> FetchMessages(string channelID, string messageID, string before) {
             string[] data = { channelID, messageID, before };
             string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
-            
+
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
 
@@ -155,7 +156,7 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            
+
 
             string user1 = CreateUser("Username", "Email", "Password");
             string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
@@ -165,11 +166,11 @@ namespace Client {
 
             clientID = user1;
 
-            for (int i = 0; i<5; ++i) {
-                SendMessage("test message", channel, user1);
-                SendMessage("test message2", channel, user2);
+            for (int i = 0; i < 500; ++i) {
+                SendMessage($"test message {i}", channel, user1);
+                SendMessage($"test message2 {i}", channel, user2);
             }
-            
+
 
 
             if (true) {
@@ -244,7 +245,7 @@ namespace Client {
                 gridLogin.Children.Add(txt_Username);
                 gridLogin.Children.Add(txt_Email);
                 gridLogin.Children.Add(txt_Password);
-                
+
 
                 btn_Register.Click += Btn_Register_Click;
                 btn_Login.Click += Btn_Login_Click;
@@ -334,7 +335,7 @@ namespace Client {
             parentStackPanel.Children.Add(stackPanel);
         }
 
-        private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message) {
+        private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
 
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
@@ -370,10 +371,14 @@ namespace Client {
             messageStackPanel.Children.Add(ellipse);
             messageStackPanel.Children.Add(usernameAndMessageStackPanel);
 
-            parentStackPanel.Children.Add(messageStackPanel);
-            //parentStackPanel.Children.Insert(0, messageStackPanel); THIS ADDS AT BEGINNING USE LATER WHEN FETCHING MESSAGES
+            if (before) {
+                double newContentHeight = 50;
+                double currentVerticalOffset = messageScrollViewer.VerticalOffset;
+                parentStackPanel.Children.Insert(0, messageStackPanel);
+                messageScrollViewer.ScrollToVerticalOffset(currentVerticalOffset + newContentHeight);
+            } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
 
-            messageScrollViewer.ScrollToEnd();
+
         }
 
         StackPanel messageStackPanel;
@@ -435,9 +440,11 @@ namespace Client {
                 AddChatElement(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
             }
 
-            foreach (string[] message in FetchMessages(CurrentChannelID, "1000", "true")) {
-                if (Convert.ToInt32(CurrentMessage) < Convert.ToInt32(message[2])) { CurrentMessage = message[2]; }
-                AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
+            foreach (string[] message in FetchMessages(CurrentChannelID, "10000000", "true")) {
+                messageScrollViewer.ScrollToEnd();
+                if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
+                if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
             }
 
             messageFetchTimer = new DispatcherTimer();
@@ -447,24 +454,28 @@ namespace Client {
         }
 
         private void MessageFetchTimer_Tick(object? sender, EventArgs e) {
-            foreach (string[] message in FetchMessages(CurrentChannelID, CurrentMessage, "false")) {
-                CurrentMessage = message[2];
-                AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
+            foreach (string[] message in FetchMessages(CurrentChannelID, NewestMessage, "false")) {
+                NewestMessage = message[2];
+                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], false);
             }
         }
 
         private void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
             if (e.VerticalOffset == 0) {
-                // Load earlier messages
+                foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+                    if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                }
             }
-            
         }
+
+
+
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
-                    AddMessage(messageStackPanel, Colors.Black, "You", textBox.Text);
                     SendMessage(textBox.Text, CurrentChannelID, clientID);
                     textBox.Clear();
                 }
@@ -472,3 +483,5 @@ namespace Client {
         }
     }
 }
+
+

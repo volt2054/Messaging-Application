@@ -55,7 +55,7 @@ namespace Server {
 
             while (isRunning) {
                 TcpClient client = listener.AcceptTcpClient();
-                Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
+                //Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
 
                 Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
                 clientThread.Start(client);
@@ -76,7 +76,7 @@ namespace Server {
                 byte[] buffer = new byte[1024];
                 int bytesRead = stream.Read(buffer, 0, buffer.Length);
                 string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                Console.WriteLine("Recieved message from {0}: {1}", client.Client.RemoteEndPoint, message);
+                //Console.WriteLine("Recieved message from {0}: {1}", client.Client.RemoteEndPoint, message);
 
                 string responseMessage = "";
                 string[] args = message.Split(DELIMITER);
@@ -130,10 +130,10 @@ namespace Server {
                 byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
                 stream.Write(responseBytes, 0, responseBytes.Length);
             } catch (Exception ex) {
-                Console.WriteLine("Error handling client: {0}", ex.Message);
+                //Console.WriteLine("Error handling client: {0}", ex.Message);
             } finally {
                 client.Close();
-                Console.WriteLine("Client disconnected");
+                //Console.WriteLine("Client disconnected");
             }
         }
 
