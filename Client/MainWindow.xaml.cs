@@ -20,6 +20,7 @@ using System.IO;
 using System.Net.Http;
 
 using SharedLibrary;
+using static SharedLibrary.Serialization;
 
 namespace Client {
 
@@ -38,6 +39,9 @@ namespace Client {
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
         string clientID;
+
+        string channelID;
+        string serverID;
 
         
 
@@ -98,6 +102,19 @@ namespace Client {
         static void SendMessage(string message, string channelID, string clientID) {
             string[] data = { message, channelID, clientID };
             CreateCommunication(TypeOfCommunication.SendMessage, data);
+        }
+
+        static List<string> FetchChannels(string userID) {
+            string[] data = { userID };
+            string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string> userChannels = DeserializeList(dataBytes);
+
+            foreach (string channel in userChannels) {
+                MessageBox.Show("User is in channel: " + channel);
+            }
+
+            return userChannels;
         }
 
         TextBox txt_Username = new TextBox();
@@ -382,6 +399,7 @@ namespace Client {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
                     AddMessage(messageStackPanel, Colors.Black, "You", textBox.Text);
+                    SendMessage(textBox.Text, "0", clientID);
                     messageScrollViewer.ScrollToEnd();
                     textBox.Clear();
                 }

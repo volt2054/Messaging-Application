@@ -87,6 +87,69 @@ namespace Server.Database {
                     ExecuteNonQuery(connection, command);
                 });
 
+                Console.WriteLine("Creating table roles");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[Roles] (" +
+                    "   [role_id]           INT         NOT NULL IDENTITY(1,1)," +
+                    "   [role_name]         VARCHAR(255) NOT NULL," +
+                    "   [server_id]         INT         NOT NULL," +
+                    "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY CLUSTERED ([role_id] ASC)," +
+                    "   FOREIGN KEY (server_id) REFERENCES Servers(server_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+                Console.WriteLine("Creating table user_servers");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[UserServers] (" +
+                    "   [user_id]           INT         NOT NULL," +
+                    "   [server_id]         INT         NOT NULL," +
+                    "   [date_joined]       DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY ([user_id], [server_id])," +
+                    "   FOREIGN KEY (user_id) REFERENCES Users(user_id)," +
+                    "   FOREIGN KEY (server_id) REFERENCES Servers(server_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+                Console.WriteLine("Creating table channel_roles");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[ChannelRoles] (" +
+                    "   [channel_id]        INT         NOT NULL," +
+                    "   [role_id]           INT         NOT NULL," +
+                    "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY ([channel_id], [role_id])," +
+                    "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
+                    "   FOREIGN KEY (role_id) REFERENCES Roles(role_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+                Console.WriteLine("Creating table user_channel_roles");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[UserChannelRoles] (" +
+                    "   [user_id]           INT         NOT NULL," +
+                    "   [channel_id]        INT         NOT NULL," +
+                    "   [role_id]           INT         NOT NULL," +
+                    "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY ([user_id], [channel_id], [role_id])," +
+                    "   FOREIGN KEY (user_id) REFERENCES Users(user_id)," +
+                    "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
+                    "   FOREIGN KEY (role_id) REFERENCES Roles(role_id)" +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
             } finally {

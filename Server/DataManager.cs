@@ -9,6 +9,7 @@ using Microsoft.Data.SqlClient;
 
 
 using static Server.Database.DatabaseManager;
+using System.Threading.Channels;
 
 namespace Server.Database {
     public class DataManager {
@@ -61,6 +62,51 @@ namespace Server.Database {
             return result;
         }
 
+        public static List<string> FetchUserChannels(string userID) {
+            List<string> result = new List<string>();
+
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                    "SELECT c.channel_name " +
+                    "FROM Channels c " +
+                    "INNER JOIN UserServers us ON c.server_id = us.server_id " +
+                    "WHERE us.user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                result = ExecuteQuery(connection, command);
+            });
+
+            return result;
+        }
+
+        public static int CreateDMChannel(int user1, int user2) {
+            string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
+
+            int channelID = -1;
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ChannelName", dmChannelName);
+                channelID = Convert.ToInt32(command.ExecuteScalar());
+            });
+
+            return channelID;
+        }
+
+        public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES (@MessageContent, @ChannelID, @UserID)";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@MessageContent", messageContent);
+                command.Parameters.AddWithValue("@ChannelID", channelID);
+                command.Parameters.AddWithValue("@UserID", userID);
+                ExecuteNonQuery(connection, command);
+            });
+        }
+
+
         public static string GetID(string username) {
             string result = "";
 
@@ -97,27 +143,18 @@ namespace Server.Database {
             });
         }
 
-        public static string InsertNewUser(string username, string email, string password) {
-            string userID = "";
+        public static int InsertNewUser(string username, string email, string password) {
+            int userID = -1;
 
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password)";
+                string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password); SELECT SCOPE_IDENTITY();";
 
                 SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
                 insertCommand.Parameters.AddWithValue("@Username", username);
                 insertCommand.Parameters.AddWithValue("@Email", email);
                 insertCommand.Parameters.AddWithValue("@Password", password);
 
-                ExecuteNonQuery(connection, insertCommand);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
-                SqlCommand selectCommand = new SqlCommand(selectQuery, connection);
-                selectCommand.Parameters.AddWithValue("@Username", username);
-
-                List<string> result = ExecuteQuery(connection, selectCommand);
-                userID = result.Last();
+                userID = Convert.ToInt32(insertCommand.ExecuteScalar());
             });
 
             return userID;

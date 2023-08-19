@@ -11,6 +11,7 @@ using System.Diagnostics;
 
 
 using SharedLibrary;
+using static SharedLibrary.Serialization;
 
 using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
@@ -76,7 +77,7 @@ namespace Server {
                     string username = args[1];
                     string email = args[2];
                     string password = args[3];
-                    responseMessage = InsertNewUser(username, email, password);
+                    responseMessage = Convert.ToString(InsertNewUser(username, email, password));
                     SelectAll();
                 } else if (message.StartsWith(TypeOfCommunication.DeleteUser)) {  // DELETE USER
                     string userID = args[1];
@@ -94,6 +95,11 @@ namespace Server {
                     string email = args[2];
                     string password = args[3];
                     if (CheckUser(username, email, password)) { responseMessage = GetID(username); } else { responseMessage = "Bad Password"; }
+                } else if (message.StartsWith(TypeOfCommunication.FetchChannels)) {
+                    string userID = args[1];
+                    List<string> userChannels = FetchUserChannels(userID);
+                    byte[] channelsData = SerializeList(userChannels);
+                    responseMessage = Convert.ToBase64String(channelsData);
                 }
 
                 byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);

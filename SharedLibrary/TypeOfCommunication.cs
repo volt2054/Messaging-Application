@@ -7,6 +7,7 @@ namespace SharedLibrary {
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
             public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
             public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
+            public static readonly string FetchChannels = "FETCHCHANNELS"; // (FETCHCHANNELS + USERID) RETURNS LIST OF CHANNELS
         }
     
 }
