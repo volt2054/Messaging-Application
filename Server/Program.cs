@@ -17,6 +17,7 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 namespace Server {
+    
     class Server {
 
         // TODO - Loading options from file??
@@ -84,7 +85,10 @@ namespace Server {
                 } else if (args[0] == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                     string channel = args[1];
                     string message_from = args[2];
-                    List<string> messageList = FetchMessages(channel, message_from);
+                    List<string[]> messageList = FetchMessages(channel, message_from);
+
+                    
+
                     byte[] messageData = SerializeList(messageList);
                     responseMessage = Convert.ToBase64String(messageData);
                 } else if (args[0] == TypeOfCommunication.GetID) {
@@ -95,9 +99,9 @@ namespace Server {
                     string email = args[2];
                     string password = args[3];
                     if (CheckUser(username, email, password)) { responseMessage = GetID(username); } else { responseMessage = "Bad Password"; }
-                } else if (args[0] == TypeOfCommunication.FetchChannels) {
+                } else if (args[0] == TypeOfCommunication.FetchChannels) { //TODO FETCH SERVER CHANNELS
                     string userID = args[1];
-                    List<string> userChannels = FetchUserChannels(userID);
+                    List<string[]> userChannels = FetchUserDMs(userID);
                     byte[] channelsData = SerializeList(userChannels);
                     responseMessage = Convert.ToBase64String(channelsData);
                 } else if (args[0] == TypeOfCommunication.CreateDMChannel) {

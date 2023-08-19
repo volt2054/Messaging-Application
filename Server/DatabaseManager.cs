@@ -208,17 +208,21 @@ namespace Server.Database {
                 }
             }
         }
-        public static List<string> ExecuteQuery(SqlConnection connection, string sql) {
-            List<string> resultList = new List<string>();
+        public static List<T> ExecuteQuery<T>(SqlConnection connection, string sql) {
+            List<T> resultList = new List<T>();
             using (SqlCommand command = new SqlCommand(sql, connection)) {
                 try {
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read()) {
-                        string rowString = "";
-                        for (int i = 0; i < reader.FieldCount; i++) {
-                            rowString += reader[i].ToString() + ",";
+                        if (typeof(T) == typeof(string[])) {
+                            string[] rowValues = new string[reader.FieldCount];
+                            for (int i = 0; i < reader.FieldCount; i++) {
+                                rowValues[i] = reader[i].ToString();
+                            }
+                            resultList.Add((T)(object)rowValues);
+                        } else if (typeof(T) == typeof(string)) {
+                            resultList.Add((T)(object)reader[0].ToString());
                         }
-                        resultList.Add(rowString.TrimEnd(','));
                     }
                     reader.Close();
                 } catch (Exception e) {
@@ -228,17 +232,21 @@ namespace Server.Database {
             return resultList;
         }
 
-        public static List<string> ExecuteQuery(SqlConnection connection, SqlCommand command) {
-            List<string> resultList = new List<string>();
+        public static List<T> ExecuteQuery<T>(SqlConnection connection, SqlCommand command) {
+            List<T> resultList = new List<T>();
             using (command) {
                 try {
                     SqlDataReader reader = command.ExecuteReader();
                     while (reader.Read()) {
-                        string rowString = "";
-                        for (int i = 0; i < reader.FieldCount; i++) {
-                            rowString += reader[i].ToString() + ",";
+                        if (typeof(T) == typeof(string[])) {
+                            string[] rowValues = new string[reader.FieldCount];
+                            for (int i = 0; i < reader.FieldCount; i++) {
+                                rowValues[i] = reader[i].ToString();
+                            }
+                            resultList.Add((T)(object)rowValues);
+                        } else if (typeof(T) == typeof(string)) {
+                            resultList.Add((T)(object)reader[0].ToString());
                         }
-                        resultList.Add(rowString.TrimEnd(','));
                     }
                     reader.Close();
                 } catch (Exception e) {

@@ -29,30 +29,16 @@ namespace Server.Database {
                 ExecuteNonQuery(connection, command);
             });
 
-            SelectAllMessages();
 
             return result;
         }
 
-        public static void SelectAllMessages() {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Messages";
-                result = ExecuteQuery(connection, selectQuery);
-            });
-
-            foreach (string row in result) {
-                Console.WriteLine(row);
-            }
-        }
-
-        public static List<string> FetchMessages(string channelID, string messageID) {
-            List<string> messages = new List<string>();
+        public static List<string[]> FetchMessages(string channelID, string messageID) {
+            List<string[]> messages = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP 50 message_content " +
+                    "SELECT TOP 50 user_id, message_content " +
                     "FROM Messages " +
                     "WHERE channel_id = @ChannelID AND message_id < @MessageID " +
                     "ORDER BY message_id DESC";
@@ -61,34 +47,36 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@ChannelID", channelID);
                 command.Parameters.AddWithValue("@MessageID", messageID);
 
-                messages = ExecuteQuery(connection, command);
+                messages = ExecuteQuery<string[]>(connection, command);
             });
 
-            foreach(string row in messages) {
-                Console.WriteLine(row);
+            foreach(string[] row in messages) {
+                Console.WriteLine(row[0] + ": " + row[1]);
             }
 
             return messages;
         }
 
-        public static List<string> FetchUserChannels(string userID) {
-            List<string> result = new List<string>();
+        public static List<string[]> FetchUserDMs(string userID) {
+            List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT c.channel_name " +
-                    "FROM Channels c " +
-                    "INNER JOIN UserServers us ON c.server_id = us.server_id " +
-                    "WHERE us.user_id = @UserID";
+                    "SELECT channel_id, channel_name " +
+                    "FROM Channels " +
+                    "WHERE channel_name LIKE @ChannelName AND server_id IS NULL";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@UserID", userID);
+                command.Parameters.AddWithValue("@ChannelName", "DM_%" + userID + "%");
 
-                result = ExecuteQuery(connection, command);
+                result = ExecuteQuery<string[]>(connection, command);
             });
 
             return result;
         }
+
+       
+
 
         public static string CreateDMChannel(string user1s, string user2s) {
             int user1 = Convert.ToInt32(user1s);
@@ -127,7 +115,7 @@ namespace Server.Database {
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@Username", username);
 
-                List<string> queryResult = ExecuteQuery(connection, command);
+                List<string> queryResult = ExecuteQuery<string>(connection, command);
                 result = queryResult.First();
             });
 
@@ -181,7 +169,7 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@Email", email);
                 command.Parameters.AddWithValue("@Username", username);
 
-                List<string> result = ExecuteQuery(connection, command);
+                List<string> result = ExecuteQuery<string>(connection, command);
 
                 if (result.Count > 0 && result.Last() == password) {
                     isValidUser = true;
@@ -215,7 +203,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery = "SELECT * FROM Users";
-                result = ExecuteQuery(connection, selectQuery);
+                result = ExecuteQuery<string>(connection, selectQuery);
             });
 
             foreach (string row in result) {

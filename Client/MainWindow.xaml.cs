@@ -40,8 +40,8 @@ namespace Client {
         const string IP_ADDRESS = "127.0.0.1";
         string clientID;
 
-        string channelID;
-        string serverID;
+        string CurrentChannelID;
+        string CurrentServerID;
 
         
 
@@ -51,7 +51,7 @@ namespace Client {
             string responseMessage = "-1"; // FAILED
             try {
                 TcpClient client = new(IP_ADDRESS, PORT);
-                MessageBox.Show($"Connected to server on {IP_ADDRESS}:{PORT}");
+                //MessageBox.Show($"Connected to server on {IP_ADDRESS}:{PORT}");
 
                 NetworkStream stream = client.GetStream();
                 string message = $"{communicationType}";
@@ -61,18 +61,18 @@ namespace Client {
                 }
                 byte[] messageBytes = Encoding.ASCII.GetBytes(message);
                 stream.Write(messageBytes, 0, messageBytes.Length);
-                MessageBox.Show($"Sent message: {message}");
+                //MessageBox.Show($"Sent message: {message}");
 
                 byte[] responseBytes = new byte[1024];
                 int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
                 responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
 
-                MessageBox.Show(responseMessage);
+                //MessageBox.Show(responseMessage);
 
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occured Creating Communication: {ex.Message}");
             } finally {
-                MessageBox.Show("Connection closed");
+
             }
 
 
@@ -109,25 +109,35 @@ namespace Client {
             return CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
         }
 
-        static List<string> FetchChannels(string userID) {
+        static List<string[]> FetchDMs(string userID) {
             string[] data = { userID };
             string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> userChannels = DeserializeList(dataBytes);
+            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
-            foreach (string channel in userChannels) {
-                MessageBox.Show("User is in channel: " + channel);
+            foreach (string[] channel in userChannels) {
+                MessageBox.Show(channel[0] + ": " + channel[1]);
             }
 
             return userChannels;
         }
 
-        static List<string> FetchMessages(string channelID, string messageID) {
+        static List<string[]> FetchChannels(string userID, string serverID) {
+            string[] data = { userID, serverID };
+            string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
+            return userChannels;
+        }
+
+        static List<string[]> FetchMessages(string channelID, string messageID) {
             string[] data = { channelID, messageID };
             string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
+            MessageBox.Show(response);
+            
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> messageList = DeserializeList(dataBytes);
+            List<string[]> messageList = DeserializeList<string[]>(dataBytes);
 
             return messageList;
 
@@ -147,11 +157,11 @@ namespace Client {
 
             
 
-            string user1 = CreateUser("testuser1", "testemail1", "testpassword1");
+            string user1 = CreateUser("Username", "Email", "Password");
             string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
 
             string channel = CreateDMChannel(user1, user2);
-            channelID = channel;
+            CurrentChannelID = channel;
 
             SendMessage("test message", channel, user1);
             SendMessage("test message2", channel, user2);
@@ -277,20 +287,29 @@ namespace Client {
             //}
         }
 
-        private void AddServerIcon(StackPanel parentStackPanel, Color color) {
+        private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
             Ellipse ellipse = new Ellipse {
                 Width = 50,
                 Height = 50,
-                Fill = new SolidColorBrush(color)
+                Fill = new SolidColorBrush(color),
+                Tag = serverID
             };
+
+            ellipse.MouseLeftButtonDown += ServerIcon_Click;
+
 
             parentStackPanel.Children.Add(ellipse);
         }
 
-        private void AddChatElement(StackPanel parentStackPanel, string iconPath, string iconText) {
+        private void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void AddChatElement(StackPanel parentStackPanel, string iconPath, string iconText, string channelID) {
 
             StackPanel stackPanel = new StackPanel {
-                Orientation = Orientation.Horizontal
+                Orientation = Orientation.Horizontal,
+                Tag = channelID
             };
 
             Image icon = new Image {
@@ -367,18 +386,13 @@ namespace Client {
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddServerIcon(circleStackPanel, Colors.Blue);
-            AddServerIcon(circleStackPanel, Colors.Red);
+            AddServerIcon(circleStackPanel, Colors.Black, "-1"); // This is where we will access DMs from
 
             // Second Column: Boxes with Icons and Text
             StackPanel boxStackPanel = new StackPanel();
             ScrollViewer boxScrollViewer = new ScrollViewer() { Content = boxStackPanel };
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
-
-            AddChatElement(boxStackPanel, "/images/icon.png", "Text");
-            AddChatElement(boxStackPanel, "/images/icon.png", "Text");
-
 
             // Third Column: Message Container with Text Box
             messageStackPanel = new StackPanel();
@@ -411,9 +425,14 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            foreach (string row in FetchMessages(channelID, "2000")) {
-                AddMessage(messageStackPanel, Colors.Black, "test:", row);
+            foreach (string[] channel in FetchDMs(clientID)) {
+                AddChatElement(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
+            }
 
+            foreach (string[] message in FetchMessages(CurrentChannelID, "2000")) {
+                MessageBox.Show(message[0]);
+                MessageBox.Show(message[1]);
+                AddMessage(messageStackPanel, Colors.Black, message[0], message[1]);
             }
         }
 

@@ -9,30 +9,50 @@ using System.IO;
 
 namespace SharedLibrary {
     public class Serialization {
-        public static byte[] SerializeList(List<string> list) {
+        public static byte[] SerializeList<T>(List<T> list) {
             using (MemoryStream memoryStream = new MemoryStream()) {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream)) {
                     writer.Write(list.Count);
-                    foreach (string item in list) {
-                        writer.Write(item);
+                    foreach (T item in list) {
+                        if (typeof(T) == typeof(string)) {
+                            writer.Write((string)(object)item);
+                        } else if (typeof(T) == typeof(string[])) {
+                            string[] arrayItem = (string[])(object)item;
+                            writer.Write(arrayItem.Length);
+                            foreach (string str in arrayItem) {
+                                writer.Write(str);
+                            }
+                        }
+                        // Add more cases here if needed for different types
                     }
                 }
                 return memoryStream.ToArray();
             }
         }
 
-        public static List<string> DeserializeList(byte[] data) {
-            List<string> list = new List<string>();
+        public static List<T> DeserializeList<T>(byte[] data) {
+            List<T> list = new List<T>();
             using (MemoryStream memoryStream = new MemoryStream(data)) {
                 using (BinaryReader reader = new BinaryReader(memoryStream)) {
                     int count = reader.ReadInt32();
                     for (int i = 0; i < count; i++) {
-                        string channel = reader.ReadString();
-                        list.Add(channel);
+                        if (typeof(T) == typeof(string)) {
+                            string item = reader.ReadString();
+                            list.Add((T)(object)item);
+                        } else if (typeof(T) == typeof(string[])) {
+                            int arrayLength = reader.ReadInt32();
+                            string[] arrayItem = new string[arrayLength];
+                            for (int j = 0; j < arrayLength; j++) {
+                                arrayItem[j] = reader.ReadString();
+                            }
+                            list.Add((T)(object)arrayItem);
+                        }
+                        // Add more cases here if needed for different types
                     }
                 }
             }
             return list;
         }
+
     }
 }
