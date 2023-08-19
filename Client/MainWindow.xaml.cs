@@ -19,6 +19,8 @@ using System.Net;
 using System.IO;
 using System.Net.Http;
 
+using SharedLibrary;
+
 namespace Client {
 
     /// <summary>
@@ -37,15 +39,7 @@ namespace Client {
         const string IP_ADDRESS = "127.0.0.1";
         string clientID;
 
-        // C# doesnt support string enums
-        public class TypeOfCommunication {
-            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNEL ID + USER ID) RETURNS WHETHER SUCCESSFUL
-            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
-            public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
-            public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
-        }
+        
 
         // TODO Wrap network functions into a class (put in a seperate file asw)
 

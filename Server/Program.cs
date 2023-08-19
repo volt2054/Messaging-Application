@@ -8,8 +8,12 @@ using System.Net;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
-using Azure.Messaging;
-using System.Threading.Channels;
+
+
+using SharedLibrary;
+
+using static Server.Database.DatabaseManager;
+using static Server.Database.DataManager;
 
 namespace Server {
     class Server {
@@ -46,14 +50,7 @@ namespace Server {
         }
 
 
-        public class TypeOfCommunication {
-            public static readonly string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNEL ID + USER ID) RETURNS WHETHER SUCCESSFUL
-            public static readonly string GetMessages = "GET"; // (GET + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
-            public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
-            public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
-        }
+        
 
         private static void HandleClient(object obj) {
             TcpClient client = (TcpClient)obj;
@@ -110,375 +107,22 @@ namespace Server {
         }
 
 
-        private static string InsertNewMessage(string message_content, string channel, string user) {
-            string result = "";
+        
 
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
-                                     "VALUES (@MessageContent, @Channel, @User)";
+        
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", message_content);
-                command.Parameters.AddWithValue("@Channel", channel);
-                command.Parameters.AddWithValue("@User", user);
 
-                ExecuteNonQuery(connection, command);
-            });
+        
+        
 
-            SelectAllMessages();
 
-            return result;
-        }
 
-        static void SelectAllMessages() {
-            List<string> result = new List<string>();
+        
 
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Messages";
-                result = ExecuteQuery(connection, selectQuery);
-            });
 
-            foreach (string row in result) {
-                Console.WriteLine(row);
-            }
-        }
+        
+        
 
-        private static List<string> FetchMessages(string channel, string message_from) {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT message_content FROM Messages WHERE channel_id = @Channel";
-
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Channel", channel);
-
-                result = ExecuteQuery(connection, command);
-            });
-
-            return result;
-        }
-
-        private static string GetID(string username) {
-            string result = "";
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
-
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Username", username);
-
-                List<string> queryResult = ExecuteQuery(connection, command);
-                result = queryResult.FirstOrDefault();
-            });
-
-            return result;
-        }
-
-
-        private static void StartServer(out TcpListener listener) {
-            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-            int port = 7256;
-            listener = new TcpListener(ipAddress, port);
-            listener.Start();
-            Console.WriteLine("Server started");
-        }
-
-        static void DeleteUser(string userID) {
-            ExecuteDatabaseOperations(connection => {
-                string deleteQuery = "DELETE FROM Users WHERE user_id = @UserID";
-
-                SqlCommand command = new SqlCommand(deleteQuery, connection);
-                command.Parameters.AddWithValue("@UserID", userID);
-
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
-        static string InsertNewUser(string username, string email, string password) {
-            string userID = "";
-
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password)";
-
-                SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
-                insertCommand.Parameters.AddWithValue("@Username", username);
-                insertCommand.Parameters.AddWithValue("@Email", email);
-                insertCommand.Parameters.AddWithValue("@Password", password);
-
-                ExecuteNonQuery(connection, insertCommand);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
-                SqlCommand selectCommand = new SqlCommand(selectQuery, connection);
-                selectCommand.Parameters.AddWithValue("@Username", username);
-
-                List<string> result = ExecuteQuery(connection, selectCommand);
-                userID = result.Last();
-            });
-
-            return userID;
-        }
-
-
-        static bool CheckUser(string username, string email, string password) {
-            bool isValidUser = false;
-
-            ExecuteDatabaseOperations(connection => {
-                string searchQuery = "SELECT password FROM USERS WHERE email = @Email OR username = @Username";
-                SqlCommand command = new SqlCommand(searchQuery, connection);
-                command.Parameters.AddWithValue("@Email", email);
-                command.Parameters.AddWithValue("@Username", username);
-
-                List<string> result = ExecuteQuery(connection, command);
-
-                if (result.Count > 0 && result.Last() == password) {
-                    isValidUser = true;
-                }
-            });
-
-            return isValidUser;
-        }
-
-
-        static void SelectAll() {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Users";
-                result = ExecuteQuery(connection, selectQuery);
-            });
-
-            foreach (string row in result) {
-                Console.WriteLine(row);
-            }
-        }
-
-        static void TestDatabaseConnection() {
-            try {
-                ExecuteDatabaseOperations(connection => {
-                    connection.Open();
-                    Console.WriteLine("Successful connection");
-                });
-            } catch (Exception ex) {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-
-        static void ExecuteDatabaseOperations(Action<SqlConnection> databaseOperation) {
-            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
-
-            using (SqlConnection connection = new SqlConnection(connectionString)) {
-                try {
-                    databaseOperation(connection);
-                } catch {
-                    Console.WriteLine("Error");
-                }
-            }
-        }
-
-        static void DropTables() {
-            try {
-                ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users; DROP TABLE Messages; DROP TABLE Channels";
-                    ExecuteNonQuery(connection, command);
-
-                });
-                Console.WriteLine("Tables dropped successfuly");
-            } catch (SqlException ex) {
-                Console.WriteLine($"An error occured: {ex.Message}");
-            }
-        }
-
-        static void CreateChannel(string channel_name, string server_id) {
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
-
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", channel_name);
-
-                // If server_id is "-1", set it as NULL; otherwise, set its value
-                if (server_id == "-1") {
-                    command.Parameters.AddWithValue("@ServerID", DBNull.Value);
-                } else {
-                    command.Parameters.AddWithValue("@ServerID", server_id);
-                }
-
-                Console.WriteLine(insertQuery); // For debugging purposes
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
-
-
-        static void CreateDatabase() {
-            try {
-                Console.WriteLine("CreatingDatabase");
-                ExecuteDatabaseOperations(connection => {
-                    string command = "CREATE DATABASE messaging_application ON PRIMARY " +
-                    "(NAME = messaging_application, " +
-                    "FILENAME = 'C:\\Users\\ethan\\Documents\\dev\\c#\\Messaging-Application\\database.mdf'," +
-                    "SIZE = 3MB, MAXSIZE = 100MB, FILEGROWTH = 10%) ";
-                    ExecuteNonQuery(connection, command);
-
-                });
-            } catch (SqlException ex) {
-                Console.WriteLine($"An error occured: {ex.Message}");
-            } finally {
-                Console.WriteLine("Database created");
-            }
-        }
-
-
-        static void CreateTables() {
-            try {
-
-
-
-                Console.WriteLine("Creating table users");
-
-                ExecuteDatabaseOperations(connection => {
-                    string command =
-                    "CREATE TABLE [dbo].[Users] (" +
-                    "   [user_id]       INT           NOT NULL  IDENTITY(1,1)," +
-                    "   [username]      VARCHAR (255) NOT NULL," +
-                    "   [email]         VARCHAR (255) NOT NULL," +
-                    "   [password]      VARCHAR (255) NOT NULL," +
-                    "   [date_created]  DATETIME      NOT NULL DEFAULT(getdate())," +
-                    "   PRIMARY KEY CLUSTERED ([user_id] ASC)" +
-                    ");";
-
-                    ExecuteNonQuery(connection, command);
-                });
-
-                Console.WriteLine("Creating table servers");
-                ExecuteDatabaseOperations(connection => {
-                    string command =
-                    "CREATE TABLE [dbo].[Servers] (" +
-                    "   [server_id]         INT             NOT NULL IDENTITY(1,1)," +
-                    "   [server_name]       VARCHAR (255)   NOT NULL," +
-                    "   [server_owner]      INT             NOT NULL," +
-                    "   [date_created]      DATETIME        NOT NULL DEFAULT(getdate())," +
-                    "   PRIMARY KEY CLUSTERED ([server_id] ASC)," +
-                    "   FOREIGN KEY (server_owner) REFERENCES Users(user_id)" +
-                    ");";
-
-                    ExecuteNonQuery(connection, command);
-
-                });
-
-                Console.WriteLine("Creating table channels ");
-                ExecuteDatabaseOperations(connection => {
-                    string command =
-                    "CREATE TABLE [dbo].[Channels] (" +
-                    "   [channel_id]       INT            NOT NULL IDENTITY(1,1)," +
-                    "   [channel_name]     VARCHAR (255)  NOT NULL," +
-                    "   [server_id]        INT            NULL," +
-                    "   [date_created]     DATETIME       NOT NULL DEFAULT(getdate())," +
-                    "   PRIMARY KEY CLUSTERED ([channel_id] ASC)," +
-                    "   FOREIGN KEY (server_id) REFERENCES Servers(server_id)" +
-                    ");";
-
-                    ExecuteNonQuery(connection, command);
-
-                });
-
-                Console.WriteLine("Creating table messages");
-                ExecuteDatabaseOperations(connection => {
-                    string command =
-                    "CREATE TABLE [dbo].[Messages] (" +
-                    "   [message_id]         INT         NOT NULL IDENTITY(1,1)," +
-                    "   [message_content]    TEXT        NOT NULL," +
-                    "   [channel_id]         INT         NOT NULL," +
-                    "   [user_id]            INT         NOT NULL," +
-                    "   [date_sent]          DATETIME    NOT NULL DEFAULT(getdate())," +
-                    "   PRIMARY KEY CLUSTERED ([message_id] ASC)," +
-                    "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
-                    "   FOREIGN KEY (user_id) REFERENCES Users(user_id)" +
-                    ");";
-
-                    ExecuteNonQuery(connection, command);
-                });
-
-            } catch (SqlException ex) {
-                Console.WriteLine($"An error occured: {ex.Message}");
-            } finally {
-                Console.WriteLine("Tables created successfully");
-
-            }
-        }
-
-        static void ExecuteNonQuery(SqlConnection connection, string sql) {
-            using (SqlCommand command = new SqlCommand(sql, connection)) {
-                try {
-                    connection.Open();
-                    int rowsAffected = command.ExecuteNonQuery();
-                    Console.WriteLine("Rows Affected: " + rowsAffected);
-                } catch (Exception e) {
-                    Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
-                }
-            }
-        }
-
-        static void ExecuteNonQuery(SqlConnection connection, SqlCommand command) {
-            using (command) {
-                try {
-                    connection.Open();
-                    int rowsAffected = command.ExecuteNonQuery();
-                    Console.WriteLine("Rows Affected: " + rowsAffected);
-                } catch (Exception e) {
-                    Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
-                }
-            }
-        }
-        static List<string> ExecuteQuery (SqlConnection connection, string sql) {
-            List<string> resultList = new List<string>();
-            using (SqlCommand command = new SqlCommand(sql, connection)) {
-                try {
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read()) {
-                        string rowString = "";
-                        for (int i = 0; i < reader.FieldCount; i++) {
-                            rowString += reader[i].ToString() + ",";
-                        }
-                        resultList.Add(rowString.TrimEnd(','));
-                    }
-                    reader.Close();
-                } catch (Exception e) {
-                    Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
-                }
-            }
-            return resultList;
-        }
-
-        static List<string> ExecuteQuery(SqlConnection connection, SqlCommand command) {
-            List<string> resultList = new List<string>();
-            using (command) {
-                try {
-                    connection.Open();
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read()) {
-                        string rowString = "";
-                        for (int i = 0; i < reader.FieldCount; i++) {
-                            rowString += reader[i].ToString() + ",";
-                        }
-                        resultList.Add(rowString.TrimEnd(','));
-                    }
-                    reader.Close();
-                } catch (Exception e) {
-                    Console.WriteLine("Error: " + e.Message);
-                } finally {
-                    connection.Close();
-                }
-            }
-            return resultList;
-        }
+        
     }
 }
