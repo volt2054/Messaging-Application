@@ -81,10 +81,12 @@ namespace Server {
                     string userID = args[1];
                     DeleteUser(userID);
                     SelectAll();
-                } else if (args[0] == TypeOfCommunication.GetMessages) {     // FETCH MESSAGES
+                } else if (args[0] == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                     string channel = args[1];
                     string message_from = args[2];
-                    responseMessage = FetchMessages(channel, message_from).ToString(); ;
+                    List<string> messageList = FetchMessages(channel, message_from);
+                    byte[] messageData = SerializeList(messageList);
+                    responseMessage = Convert.ToBase64String(messageData);
                 } else if (args[0] == TypeOfCommunication.GetID) {
                     string username = args[1];
                     responseMessage = GetID(username);

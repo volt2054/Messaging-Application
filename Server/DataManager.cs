@@ -47,19 +47,28 @@ namespace Server.Database {
             }
         }
 
-        public static List<string> FetchMessages(string channel, string message_from) {
-            List<string> result = new List<string>();
+        public static List<string> FetchMessages(string channelID, string messageID) {
+            List<string> messages = new List<string>();
 
             ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT message_content FROM Messages WHERE channel_id = @Channel";
+                string selectQuery =
+                    "SELECT TOP 50 message_content " +
+                    "FROM Messages " +
+                    "WHERE channel_id = @ChannelID AND message_id < @MessageID " +
+                    "ORDER BY message_id DESC";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Channel", channel);
+                command.Parameters.AddWithValue("@ChannelID", channelID);
+                command.Parameters.AddWithValue("@MessageID", messageID);
 
-                result = ExecuteQuery(connection, command);
+                messages = ExecuteQuery(connection, command);
             });
 
-            return result;
+            foreach(string row in messages) {
+                Console.WriteLine(row);
+            }
+
+            return messages;
         }
 
         public static List<string> FetchUserChannels(string userID) {

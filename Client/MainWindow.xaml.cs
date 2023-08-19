@@ -122,6 +122,17 @@ namespace Client {
             return userChannels;
         }
 
+        static List<string> FetchMessages(string channelID, string messageID) {
+
+            string[] data = { channelID, messageID };
+            string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string> messageList = DeserializeList(dataBytes);
+
+            return messageList;
+
+        }
+
         TextBox txt_Username = new TextBox();
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
@@ -140,6 +151,7 @@ namespace Client {
             string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
 
             string channel = CreateDMChannel(user1, user2);
+            channelID = channel;
 
             SendMessage("test message", channel, user1);
             SendMessage("test message2", channel, user2);
@@ -398,6 +410,11 @@ namespace Client {
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
+
+            foreach (string row in FetchMessages(channelID, "2000")) {
+                AddMessage(messageStackPanel, Colors.Black, "test:", row);
+
+            }
         }
 
         private void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
