@@ -40,9 +40,9 @@ namespace Client {
 
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
-        string clientID;
         private DispatcherTimer messageFetchTimer;
 
+        string CurrentUserID;
         string CurrentChannelID;
         string CurrentServerID;
         string NewestMessage = int.MinValue.ToString();
@@ -164,7 +164,7 @@ namespace Client {
             string channel = CreateDMChannel(user1, user2);
             CurrentChannelID = channel;
 
-            clientID = user1;
+            CurrentUserID = user1;
 
             for (int i = 0; i < 500; ++i) {
                 SendMessage($"test message {i}", channel, user1);
@@ -311,9 +311,9 @@ namespace Client {
             throw new NotImplementedException();
         }
 
-        private void AddChatElement(StackPanel parentStackPanel, string iconPath, string iconText, string channelID) {
+        private void AddChannel(StackPanel parentStackPanel, string iconPath, string iconText, string channelID) {
 
-            StackPanel stackPanel = new StackPanel {
+            StackPanel ChannelElement = new StackPanel {
                 Orientation = Orientation.Horizontal,
                 Tag = channelID
             };
@@ -329,10 +329,18 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
-            stackPanel.Children.Add(icon);
-            stackPanel.Children.Add(textBlock);
+            ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
 
-            parentStackPanel.Children.Add(stackPanel);
+            ChannelElement.Children.Add(icon);
+            ChannelElement.Children.Add(textBlock);
+
+            parentStackPanel.Children.Add(ChannelElement);
+        }
+
+        private void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+            StackPanel ChannelElement = sender as StackPanel;
+            CurrentChannelID = (string)ChannelElement.Tag;
+            MessageBox.Show(CurrentChannelID);
         }
 
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
@@ -436,11 +444,11 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            foreach (string[] channel in FetchDMs(clientID)) {
-                AddChatElement(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
+            foreach (string[] channel in FetchDMs(CurrentUserID)) {
+                AddChannel(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
             }
 
-            foreach (string[] message in FetchMessages(CurrentChannelID, "10000000", "true")) {
+            foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -474,7 +482,7 @@ namespace Client {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
-                    SendMessage(textBox.Text, CurrentChannelID, clientID);
+                    SendMessage(textBox.Text, CurrentChannelID, CurrentUserID);
                     textBox.Clear();
                 }
             }
