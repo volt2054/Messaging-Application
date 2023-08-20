@@ -30,6 +30,13 @@ namespace Client {
     /// </summary>
     /// 
 
+    public class SpecialServerIDs {
+        public static readonly string DirectMessages = "-1";
+    }
+    public class SpecialChannelIDs {
+        public static readonly string Friends = "-1";
+    }
+
 
 
     public partial class MainWindow : Window {
@@ -318,7 +325,7 @@ namespace Client {
 
             CurrentServerID = Tag;
 
-            if (Tag == "-1") {
+            if (Tag == SpecialServerIDs.DirectMessages) {
                 foreach (string[] channel in FetchDMs(CurrentUserID)) {
                     AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
                 }
@@ -436,7 +443,7 @@ namespace Client {
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddServerIcon(circleStackPanel, Colors.Black, "-1"); // This is where we will access DMs from
+            AddServerIcon(circleStackPanel, Colors.Black, SpecialServerIDs.DirectMessages); // This is where we will access DMs from
 
             // Second Column: Boxes with Icons and Text
             channeListStackPanel = new StackPanel();
