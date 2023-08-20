@@ -160,15 +160,18 @@ namespace Client {
 
             string user1 = CreateUser("Username", "Email", "Password");
             string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
+            string user3 = CreateUser("testuser3", "testemail3", "testpassword3");
 
             string channel = CreateDMChannel(user1, user2);
+            string channel2 = CreateDMChannel(user1, user3);
             CurrentChannelID = channel;
 
             CurrentUserID = user1;
 
-            for (int i = 0; i < 500; ++i) {
+            for (int i = 0; i < 100; ++i) {
                 SendMessage($"test message {i}", channel, user1);
                 SendMessage($"test message2 {i}", channel, user2);
+                SendMessage($"test {i}", channel2, user3);
             }
 
 
@@ -340,7 +343,18 @@ namespace Client {
         private void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = (string)ChannelElement.Tag;
-            MessageBox.Show(CurrentChannelID);
+
+            messageStackPanel.Children.Clear();
+            OldestMessage = int.MinValue.ToString();
+            OldestMessage = int.MaxValue.ToString();
+
+            foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+                messageScrollViewer.ScrollToEnd();
+                if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
+                if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                messageScrollViewer.ScrollToBottom();
+            }
         }
 
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
