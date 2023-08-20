@@ -5,7 +5,7 @@ namespace SharedLibrary {
             public static readonly string FetchMessages = "FETCHMESSAGES"; // (FETCHMESSAGES + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
         public static readonly string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
-            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS WHETHER SUCCESSFUL
+            public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS USER ID ON SUCCESS OR "BAD PASSWORD" ON FAIL
             public static readonly string DeleteUser = "DELETEUSER"; // (DELETE + USERID) RETURNS WHETHER SUCCESSFUL
             public static readonly string FetchChannels = "FETCHCHANNELS"; // (FETCHCHANNELS + USERID + SERVERID) RETURNS LIST OF CHANNELS
             public static readonly string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCAHNNEL + USERID + USERID) RETURNS CHANNEL ID

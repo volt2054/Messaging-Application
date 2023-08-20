@@ -163,26 +163,6 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-
-
-            string user1 = CreateUser("Username", "Email", "Password");
-            string user2 = CreateUser("testuser2", "testemail2", "testpassword2");
-            string user3 = CreateUser("testuser3", "testemail3", "testpassword3");
-
-            string channel = CreateDMChannel(user1, user2);
-            string channel2 = CreateDMChannel(user1, user3);
-            CurrentChannelID = channel;
-
-            CurrentUserID = user1;
-
-            for (int i = 0; i < 100; ++i) {
-                SendMessage($"test message {i}", channel, user1);
-                SendMessage($"test message2 {i}", channel, user2);
-                SendMessage($"test {i}", channel2, user3);
-            }
-
-
-
             if (true) {
                 RowDefinition rowDefinitionTitleLogin = new RowDefinition();
                 rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
@@ -287,20 +267,23 @@ namespace Client {
         }
 
         private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            //clientID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
-            PrimaryWindow.Content = messagingGrid;
-            InitializeMessagingUI();
+            CurrentUserID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+
+            if(CurrentUserID != "Bad Password") {
+                InitializeMessagingUI();
+            } else {
+                MessageBox.Show("Bad Password");
+            }
+
         }
 
         private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            PrimaryWindow.Content = messagingGrid;
             InitializeMessagingUI();
 
-
-            //clientID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
-            //if (clientID != null) {
-            //PrimaryWindow.Content = gridMessages;
-            //}
+            CurrentUserID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            if (CurrentUserID != null) {
+                InitializeMessagingUI();
+            }
         }
 
         private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
@@ -418,7 +401,7 @@ namespace Client {
             messageStackPanel.Children.Add(usernameAndMessageStackPanel);
 
             if (before) {
-                double newContentHeight = 50;
+                double newContentHeight = 50; // TODO FETCH NEW CONTENT HEIGHT
                 double currentVerticalOffset = messageScrollViewer.VerticalOffset;
                 parentStackPanel.Children.Insert(0, messageStackPanel);
                 messageScrollViewer.ScrollToVerticalOffset(currentVerticalOffset + newContentHeight);
