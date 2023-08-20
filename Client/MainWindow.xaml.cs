@@ -37,6 +37,11 @@ namespace Client {
         public static readonly string Friends = "-1";
     }
 
+    public class Icons {
+        public static readonly string Chat = "/images/chat.png";
+        public static readonly string Friends = "/images/Friends.png";
+    }
+
 
 
     public partial class MainWindow : Window {
@@ -164,28 +169,9 @@ namespace Client {
             InitializeComponent();
 
             IntiializeLoginUI();
-
         }
 
-        private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            CurrentUserID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
-
-            if(CurrentUserID != "Bad Password") {
-                InitializeMessagingUI();
-            } else {
-                MessageBox.Show("Bad Password");
-            }
-
-        }
-
-        private void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            InitializeMessagingUI();
-
-            CurrentUserID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
-            if (CurrentUserID != null) {
-                InitializeMessagingUI();
-            }
-        }
+        
 
         private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
             Ellipse ServerIcon = new Ellipse {
@@ -210,19 +196,37 @@ namespace Client {
             CurrentServerID = Tag;
 
             if (Tag == SpecialServerIDs.DirectMessages) {
+
+                // FRIENDS CHANNEL
+                AddChannel(channeListStackPanel, "Friends", "-1");
+
+
                 foreach (string[] channel in FetchDMs(CurrentUserID)) {
-                    AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
+                    AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             } else {
                 foreach (string[] channel in FetchChannels(CurrentUserID,CurrentServerID)) {
-                    AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
+                    AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             }
             
             
         }
 
-        private void AddChannel(StackPanel parentStackPanel, string iconPath, string iconText, string channelID) {
+        private void AddChannel(StackPanel parentStackPanel, string iconText, string channelID) {
+
+            string iconPath;
+
+            switch (channelID) {
+
+                case "-1":
+                    iconPath = Icons.Friends;
+                    break;
+                default:
+                    iconPath = Icons.Chat;
+                    break;
+            }
+
 
             StackPanel ChannelElement = new StackPanel {
                 Orientation = Orientation.Horizontal,
@@ -414,6 +418,26 @@ namespace Client {
             Content = gridLogin;
         }
 
+        private void Btn_Login_Click(object sender, RoutedEventArgs e) {
+            CurrentUserID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+
+            if (CurrentUserID != "Bad Password") {
+                InitializeMessagingUI();
+            } else {
+                MessageBox.Show("Bad Password");
+            }
+
+        }
+
+        private void Btn_Register_Click(object sender, RoutedEventArgs e) {
+            InitializeMessagingUI();
+
+            CurrentUserID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            if (CurrentUserID != null) {
+                InitializeMessagingUI();
+            }
+        }
+
         private void InitializeMessagingUI() {
             Content = messagingGrid;
 
@@ -467,7 +491,7 @@ namespace Client {
             Grid.SetColumn(messageGrid, 2);
 
             foreach (string[] channel in FetchDMs(CurrentUserID)) {
-                AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
+                AddChannel(channeListStackPanel, channel[1], channel[0]);
             }
 
             foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
