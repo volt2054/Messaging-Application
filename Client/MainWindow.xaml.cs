@@ -353,7 +353,7 @@ namespace Client {
 
         private void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
             StackPanel ChannelElement = sender as StackPanel;
-            CurrentChannelID = (string)ChannelElement.Tag;
+            CurrentChannelID = ChannelElement.Tag as string;
 
             messageStackPanel.Children.Clear();
             OldestMessage = int.MinValue.ToString();
