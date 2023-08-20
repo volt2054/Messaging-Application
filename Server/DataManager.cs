@@ -76,21 +76,7 @@ namespace Server.Database {
        
 
 
-        public static string CreateDMChannel(string user1s, string user2s) {
-            int user1 = Convert.ToInt32(user1s);
-            int user2 = Convert.ToInt32(user2s);
-            string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
-
-            int channelID = -1;
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", dmChannelName);
-                channelID = Convert.ToInt32(command.ExecuteScalar());
-            });
-
-            return channelID.ToString();
-        }
+        
 
         public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
             ExecuteDatabaseOperations(connection => {
@@ -177,22 +163,35 @@ namespace Server.Database {
             return isValidUser;
         }
 
-        public static void CreateChannel(string channel_name, string server_id) {
+        public static string CreateDMChannel(string User1ID, string User2ID) {
+            int user1 = Convert.ToInt32(User1ID);
+            int user2 = Convert.ToInt32(User2ID);
+            string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
+
+            int channelID = -1;
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ChannelName", dmChannelName);
+                channelID = Convert.ToInt32(command.ExecuteScalar());
+            });
+
+            return channelID.ToString();
+        }
+
+        public static string CreateChannel(string channel_name, string server_id) {
+            int channelID = -1;
             ExecuteDatabaseOperations(connection => {
                 string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@ChannelName", channel_name);
+                command.Parameters.AddWithValue("@ServerID", server_id);
 
-                // If server_id is "-1", set it as NULL; otherwise, set its value
-                if (server_id == "-1") {
-                    command.Parameters.AddWithValue("@ServerID", DBNull.Value);
-                } else {
-                    command.Parameters.AddWithValue("@ServerID", server_id);
-                }
-
-                ExecuteNonQuery(connection, command);
+                channelID = Convert.ToInt32(command.ExecuteScalar());
             });
+
+            return channelID.ToString();
         }
 
 

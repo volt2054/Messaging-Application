@@ -24,6 +24,9 @@ namespace Server {
         // TODO - Loading options from file??
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
+
+        static bool isRunning = true;
+
         static void Main(string[] args) {
             CreateDatabase();
 
@@ -48,35 +51,83 @@ namespace Server {
             Console.WriteLine("Creating Tables");
             CreateTables();
 
-            bool isRunning = true;
+            
 
             TcpListener listener;
             StartServer(out listener);
 
-            Task debugTask = Task.Run(PrintRequestCount);
+            //Task debugTask = Task.Run(PrintRequestCount);
+            Task CLI = Task.Run(CommandLine);
 
 
             while (isRunning) {
-                TcpClient client = listener.AcceptTcpClient();
-                //Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
 
-
-                Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
-                clientThread.Start(client);
-
+                if (listener.Pending()) {
+                    TcpClient client = listener.AcceptTcpClient();
+                    //Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
+                    Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
+                    clientThread.Start(client);
+                } else {
+                    
+                }
             }
-
-            Console.ReadLine();
         }
 
         static int requestCount = 0;
+
+        static void CommandLine() {
+            while (isRunning) {
+                Console.Write("Server> ");
+                string input = Console.ReadLine();
+
+                string[] commandParts = input.Split(' ');
+                string command = commandParts[0].ToUpper();
+
+                if (command == "NEWUSER" && commandParts.Length == 4) {
+                    string username = commandParts[1];
+                    string email = commandParts[2];
+                    string password = commandParts[3];
+
+                    int userID = InsertNewUser(username, email, password);
+                    Console.WriteLine($"User {userID} inserted successfully.");
+                } else if (command == "GETID" && commandParts.Length == 2) {
+                    string username = commandParts[1];
+                    string userId = GetID(username);
+
+                    Console.WriteLine($"User ID for {username}: {userId}");
+                } else if (command == "NEWDMCHANNEL" && commandParts.Length == 3) {
+                    string user1ID = commandParts[1];
+                    string user2ID = commandParts[2];
+
+                    string channelID = CreateDMChannel(user1ID, user2ID);
+                    Console.WriteLine($"DM channel {channelID} created successfully.");
+
+                } else if (command == "NEWCHANNEL" && commandParts.Length == 3) {
+                    string channelName = commandParts[1];
+                    string serverID = commandParts[2];
+
+                    string channelID = CreateChannel(channelName, serverID);
+                    Console.WriteLine($"Channel {channelID} created successfully.");
+                } else if (command == "DELETEUSER" && commandParts.Length == 2) {
+                    string userId = commandParts[1];
+                    DeleteUser(userId);
+                    Console.WriteLine("User deleted successfully.");
+                } else if (command == "EXIT") {
+                    isRunning = false;
+                    break;
+                } else {
+                    Console.WriteLine("Invalid command.");
+                }
+            }
+
+        }
 
         static void PrintRequestCount() {
             int past10seconds;
             int recording1;
             int recording2;
             float requestsPerSecond;
-            while (true) {
+            while (isRunning) {
                 recording1 = requestCount;
                 Thread.Sleep(10000);
                 recording2 = requestCount;
