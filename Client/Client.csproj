@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="images\icon.png" />
+    <None Remove="images\chat.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="images\icon.png" />
+    <Resource Include="images\chat.png" />
   </ItemGroup>
 
 </Project>
