@@ -18,10 +18,14 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using System.Net.Http;
+using System.Windows.Threading;
+
 
 using SharedLibrary;
+using static Client.WebSocketCommunication;
 using static SharedLibrary.Serialization;
-using System.Windows.Threading;
+
+
 
 namespace Client {
 
@@ -48,7 +52,6 @@ namespace Client {
 
 
         // TODO - Loading options from file??
-        const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
         const int PORT = 7256;
         const string IP_ADDRESS = "127.0.0.1";
@@ -61,9 +64,10 @@ namespace Client {
         string OldestMessage = int.MaxValue.ToString();
 
 
+    
+
 
         // TODO Wrap network functions into a class (put in a seperate file asw)
-
         static string CreateCommunication(string communicationType, string[] data) {
             string responseMessage = "-1"; // FAILED
             try {
@@ -73,7 +77,7 @@ namespace Client {
                 NetworkStream stream = client.GetStream();
                 string message = $"{communicationType}";
                 for (int i = 0; i < data.Length; i++) {
-                    message += DELIMITER;
+                    //message += DELIMITER;
                     message += data[i];
                 }
                 byte[] messageBytes = Encoding.ASCII.GetBytes(message);
@@ -95,6 +99,8 @@ namespace Client {
 
             return responseMessage;
         }
+
+        
 
         static string CreateUser(string username, string email, string password) {
             string[] data = { username, email, password };
@@ -168,10 +174,35 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            IntiializeLoginUI();
+            InitializeAppAsync(() => {
+                MessageBox.Show("Websocket Test");
+            });
+
         }
 
+
+        private async Task InitializeAppAsync(Action main) {
+            try {
+                await ConnectWebSocket();
+
+                main?.Invoke();
+
+            } catch (Exception ex) {
+                MessageBox.Show($"Error during initialization: {ex.Message}");
+            }
+        }
         
+        // Make sure websocket is closed
+        protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
+            await CloseWebSocket();
+
+            base.OnClosing(e);
+        }
+
+
+
+
+
 
         private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
             Ellipse ServerIcon = new Ellipse {
@@ -318,7 +349,7 @@ namespace Client {
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
 
-        private void IntiializeLoginUI() {
+        private void IntializeLoginUI() {
             RowDefinition rowDefinitionTitleLogin = new RowDefinition();
             rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
             RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
