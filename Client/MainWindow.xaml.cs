@@ -314,6 +314,8 @@ namespace Client {
             Ellipse ServerIcon = sender as Ellipse;
             string Tag = ServerIcon.Tag as string;
 
+            channeListStackPanel.Children.Clear();
+
             if (Tag == "-1") {
                 foreach (string[] channel in FetchDMs(CurrentUserID)) {
                     AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
