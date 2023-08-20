@@ -51,9 +51,6 @@ namespace Server.Database {
                 messages = ExecuteQuery<string[]>(connection, command);
             });
 
-            foreach (string[] row in messages) {
-                Console.WriteLine(row[0] + ": " + row[1]);
-            }
 
             return messages;
         }
@@ -207,9 +204,6 @@ namespace Server.Database {
                 result = ExecuteQuery<string>(connection, selectQuery);
             });
 
-            foreach (string row in result) {
-                Console.WriteLine(row);
-            }
         }
 
     }

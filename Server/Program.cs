@@ -53,9 +53,13 @@ namespace Server {
             TcpListener listener;
             StartServer(out listener);
 
+            Task debugTask = Task.Run(PrintRequestCount);
+
+
             while (isRunning) {
                 TcpClient client = listener.AcceptTcpClient();
                 //Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
+
 
                 Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
                 clientThread.Start(client);
@@ -65,10 +69,26 @@ namespace Server {
             Console.ReadLine();
         }
 
+        static int requestCount = 0;
 
-        
+        static void PrintRequestCount() {
+            int past10seconds;
+            int recording1;
+            int recording2;
+            float requestsPerSecond;
+            while (true) {
+                recording1 = requestCount;
+                Thread.Sleep(10000);
+                recording2 = requestCount;
+                past10seconds = recording2 - recording1;
+                requestsPerSecond = past10seconds / 10;
+                Console.WriteLine("Requests per second: " + requestsPerSecond.ToString());
+            }
+        }
+
 
         private static void HandleClient(object obj) {
+            requestCount++;
             TcpClient client = (TcpClient)obj;
 
             try {
