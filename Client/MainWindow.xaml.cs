@@ -297,21 +297,32 @@ namespace Client {
         }
 
         private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
-            Ellipse ellipse = new Ellipse {
+            Ellipse ServerIcon = new Ellipse {
                 Width = 50,
                 Height = 50,
                 Fill = new SolidColorBrush(color),
                 Tag = serverID
             };
 
-            ellipse.MouseLeftButtonDown += ServerIcon_Click;
+            ServerIcon.MouseLeftButtonDown += ServerIcon_Click;
 
 
-            parentStackPanel.Children.Add(ellipse);
+            parentStackPanel.Children.Add(ServerIcon);
         }
 
         private void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
-            throw new NotImplementedException();
+            Ellipse ServerIcon = sender as Ellipse;
+            string Tag = ServerIcon.Tag as string;
+
+            if (Tag == "-1") {
+                foreach (string[] channel in FetchDMs(CurrentUserID)) {
+                    AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
+                }
+            } else {
+                
+            }
+            
+            
         }
 
         private void AddChannel(StackPanel parentStackPanel, string iconPath, string iconText, string channelID) {
@@ -402,7 +413,7 @@ namespace Client {
 
 
         }
-
+        StackPanel channeListStackPanel;
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
 
@@ -422,8 +433,8 @@ namespace Client {
             AddServerIcon(circleStackPanel, Colors.Black, "-1"); // This is where we will access DMs from
 
             // Second Column: Boxes with Icons and Text
-            StackPanel boxStackPanel = new StackPanel();
-            ScrollViewer boxScrollViewer = new ScrollViewer() { Content = boxStackPanel };
+            channeListStackPanel = new StackPanel();
+            ScrollViewer boxScrollViewer = new ScrollViewer() { Content = channeListStackPanel };
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
 
@@ -459,7 +470,7 @@ namespace Client {
             Grid.SetColumn(messageGrid, 2);
 
             foreach (string[] channel in FetchDMs(CurrentUserID)) {
-                AddChannel(boxStackPanel, "/images/icon.png", channel[1], channel[0]);
+                AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
             }
 
             foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
