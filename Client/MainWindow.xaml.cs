@@ -316,12 +316,16 @@ namespace Client {
 
             channeListStackPanel.Children.Clear();
 
+            CurrentServerID = Tag;
+
             if (Tag == "-1") {
                 foreach (string[] channel in FetchDMs(CurrentUserID)) {
                     AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
                 }
             } else {
-                
+                foreach (string[] channel in FetchChannels(CurrentUserID,CurrentServerID)) {
+                    AddChannel(channeListStackPanel, "/images/icon.png", channel[1], channel[0]);
+                }
             }
             
             
