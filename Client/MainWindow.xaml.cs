@@ -53,8 +53,7 @@ namespace Client {
 
         // TODO - Loading options from file??
 
-        const int PORT = 7256;
-        const string IP_ADDRESS = "127.0.0.1";
+        
         private DispatcherTimer messageFetchTimer;
 
         string CurrentUserID;
@@ -64,104 +63,6 @@ namespace Client {
         string OldestMessage = int.MaxValue.ToString();
 
 
-    
-
-
-        // TODO Wrap network functions into a class (put in a seperate file asw)
-        static string CreateCommunication(string communicationType, string[] data) {
-            string responseMessage = "-1"; // FAILED
-            try {
-                TcpClient client = new(IP_ADDRESS, PORT);
-                //MessageBox.Show($"Connected to server on {IP_ADDRESS}:{PORT}");
-
-                NetworkStream stream = client.GetStream();
-                string message = $"{communicationType}";
-                for (int i = 0; i < data.Length; i++) {
-                    //message += DELIMITER;
-                    message += data[i];
-                }
-                byte[] messageBytes = Encoding.ASCII.GetBytes(message);
-                stream.Write(messageBytes, 0, messageBytes.Length);
-                //MessageBox.Show($"Sent message: {message}");
-
-                byte[] responseBytes = new byte[1024];
-                int bytesRead = stream.Read(responseBytes, 0, responseBytes.Length);
-                responseMessage = Encoding.ASCII.GetString(responseBytes, 0, bytesRead);
-
-                //MessageBox.Show(responseMessage);
-
-            } catch (Exception ex) {
-                MessageBox.Show($"Error Occured Creating Communication: {ex.Message}");
-            } finally {
-
-            }
-
-
-            return responseMessage;
-        }
-
-        
-
-        static string CreateUser(string username, string email, string password) {
-            string[] data = { username, email, password };
-            return CreateCommunication(TypeOfCommunication.RegisterUser, data);
-        }
-
-        static string VerifyUser(string username, string email, string password) {
-            string[] data = { username, email, password };
-            return CreateCommunication(TypeOfCommunication.ValidateUser, data);
-        }
-
-        static string GetID(string username) {
-            string[] data = { username };
-            return CreateCommunication(TypeOfCommunication.GetID, data);
-        }
-
-        static void DeleteUser(string userID) {
-            string[] data = { userID };
-            CreateCommunication(TypeOfCommunication.DeleteUser, data);
-        }
-
-        static void SendMessage(string message, string channelID, string clientID) {
-            string[] data = { message, channelID, clientID };
-            CreateCommunication(TypeOfCommunication.SendMessage, data);
-        }
-
-        static string CreateDMChannel(string user1, string user2) {
-            string[] data = { user1, user2 };
-            return CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
-        }
-
-        static List<string[]> FetchDMs(string userID) {
-            string[] data = { userID };
-            string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
-            byte[] dataBytes = Convert.FromBase64String(response);
-            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
-
-
-            return userChannels;
-        }
-
-        static List<string[]> FetchChannels(string userID, string serverID) {
-            string[] data = { userID, serverID };
-            string response = CreateCommunication(TypeOfCommunication.FetchChannels, data);
-            byte[] dataBytes = Convert.FromBase64String(response);
-            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
-
-            return userChannels;
-        }
-
-        static List<string[]> FetchMessages(string channelID, string messageID, string before) {
-            string[] data = { channelID, messageID, before };
-            string response = CreateCommunication(TypeOfCommunication.FetchMessages, data);
-
-            byte[] dataBytes = Convert.FromBase64String(response);
-            List<string[]> messageList = DeserializeList<string[]>(dataBytes);
-
-            return messageList;
-
-        }
-
         TextBox txt_Username = new TextBox();
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
@@ -170,12 +71,73 @@ namespace Client {
 
         Grid messagingGrid = new Grid();
 
+        static async Task<string> CreateUser(string username, string email, string password) {
+            string[] data = { username, email, password };
+            return await CreateCommunication(TypeOfCommunication.RegisterUser, data);
+        }
+
+        static async Task<string> VerifyUser(string username, string email, string password) {
+            string[] data = { username, email, password };
+            return await CreateCommunication(TypeOfCommunication.ValidateUser, data);
+        }
+
+        static async Task<string> GetID(string username) {
+            string[] data = { username };
+            return await CreateCommunication(TypeOfCommunication.GetID, data);
+        }
+
+        static async void DeleteUser(string userID) {
+            string[] data = { userID };
+            await CreateCommunication(TypeOfCommunication.DeleteUser, data);
+        }
+
+        static async void SendMessage(string message, string channelID, string clientID) {
+            string[] data = { message, channelID, clientID };
+            await CreateCommunication(TypeOfCommunication.SendMessage, data);
+        }
+
+        static async Task<string> CreateDMChannel(string user1, string user2) {
+            string[] data = { user1, user2 };
+            return await CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
+        }
+
+        static async Task<List<string[]>> FetchDMs(string userID) {
+            string[] data = { userID };
+            string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
+
+
+            return userChannels;
+        }
+
+        static async Task<List<string[]>> FetchChannels(string userID, string serverID) {
+            string[] data = { userID, serverID };
+            string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
+
+            return userChannels;
+        }
+
+        static async Task<List<string[]>> FetchMessages(string channelID, string messageID, string before) {
+            string[] data = { channelID, messageID, before };
+            string response = await CreateCommunication(TypeOfCommunication.FetchMessages, data);
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> messageList = DeserializeList<string[]>(dataBytes);
+
+            return messageList;
+
+        }
 
         public MainWindow() {
             InitializeComponent();
 
+            InitializeLoginUI();
+
+
             InitializeAppAsync(() => {
-                MessageBox.Show("Websocket Test");
             });
 
         }
@@ -218,7 +180,7 @@ namespace Client {
             parentStackPanel.Children.Add(ServerIcon);
         }
 
-        private void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
+        private async void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
             Ellipse ServerIcon = sender as Ellipse;
             string Tag = ServerIcon.Tag as string;
 
@@ -232,11 +194,11 @@ namespace Client {
                 AddChannel(channeListStackPanel, "Friends", "-1");
 
 
-                foreach (string[] channel in FetchDMs(CurrentUserID)) {
+                foreach (string[] channel in await FetchDMs(CurrentUserID)) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             } else {
-                foreach (string[] channel in FetchChannels(CurrentUserID,CurrentServerID)) {
+                foreach (string[] channel in await FetchChannels(CurrentUserID,CurrentServerID)) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             }
@@ -283,7 +245,7 @@ namespace Client {
             parentStackPanel.Children.Add(ChannelElement);
         }
 
-        private void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+        private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = ChannelElement.Tag as string;
 
@@ -291,7 +253,7 @@ namespace Client {
             OldestMessage = int.MinValue.ToString();
             OldestMessage = int.MaxValue.ToString();
 
-            foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -349,7 +311,7 @@ namespace Client {
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
 
-        private void IntializeLoginUI() {
+        private void InitializeLoginUI() {
             RowDefinition rowDefinitionTitleLogin = new RowDefinition();
             rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
             RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
@@ -449,8 +411,8 @@ namespace Client {
             Content = gridLogin;
         }
 
-        private void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            CurrentUserID = VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+        private async void Btn_Login_Click(object sender, RoutedEventArgs e) {
+            CurrentUserID = await VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
 
             if (CurrentUserID != "Bad Password") {
                 InitializeMessagingUI();
@@ -460,16 +422,16 @@ namespace Client {
 
         }
 
-        private void Btn_Register_Click(object sender, RoutedEventArgs e) {
+        private async void Btn_Register_Click(object sender, RoutedEventArgs e) {
             InitializeMessagingUI();
 
-            CurrentUserID = CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            CurrentUserID = await CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             if (CurrentUserID != null) {
                 InitializeMessagingUI();
             }
         }
 
-        private void InitializeMessagingUI() {
+        private async void InitializeMessagingUI() {
             Content = messagingGrid;
 
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
@@ -521,11 +483,11 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            foreach (string[] channel in FetchDMs(CurrentUserID)) {
+            foreach (string[] channel in await FetchDMs(CurrentUserID)) {
                 AddChannel(channeListStackPanel, channel[1], channel[0]);
             }
 
-            foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -539,16 +501,16 @@ namespace Client {
             messageFetchTimer.Start();
         }
 
-        private void MessageFetchTimer_Tick(object? sender, EventArgs e) {
-            foreach (string[] message in FetchMessages(CurrentChannelID, NewestMessage, "false")) {
+        private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, NewestMessage, "false")) {
                 NewestMessage = message[2];
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], false);
             }
         }
 
-        private void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
+        private async void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
             if (e.VerticalOffset == 0) {
-                foreach (string[] message in FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
                     AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 }

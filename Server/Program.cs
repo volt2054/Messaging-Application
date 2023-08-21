@@ -16,19 +16,23 @@ using static SharedLibrary.Serialization;
 
 using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
-using System.Threading.Channels;
+
+using static Server.WebSocketServer;
 
 namespace Server {
     
     class Server {
 
         // TODO - Loading options from file??
+
+        const string ipAddress = "127.0.0.1";
+        const int port = 7256;
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
 
         static bool isRunning = true;
 
-        static void Main(string[] args) {
+        static async Task Main(string[] args) {
             CreateDatabase();
 
             ExecuteDatabaseOperations(connection => {
@@ -52,26 +56,11 @@ namespace Server {
             Console.WriteLine("Creating Tables");
             CreateTables();
 
+            Task task = Task.Run(CommandLine);
+
+            WebSocketServer webSocketServer = new WebSocketServer(ipAddress, port, HandleClient);
+            await webSocketServer.StartAsync();
             
-
-            TcpListener listener;
-            StartServer(out listener);
-
-            //Task debugTask = Task.Run(PrintRequestCount);
-            Task CLI = Task.Run(CommandLine);
-
-
-            while (isRunning) {
-
-                if (listener.Pending()) {
-                    TcpClient client = listener.AcceptTcpClient();
-                    //Console.WriteLine("Client connected from {0}", client.Client.RemoteEndPoint);
-                    Thread clientThread = new Thread(new ParameterizedThreadStart(HandleClient));
-                    clientThread.Start(client);
-                } else {
-                    
-                }
-            }
         }
 
         static int requestCount = 0;
@@ -139,18 +128,12 @@ namespace Server {
         }
 
 
-        private static void HandleClient(object obj) {
+        private static string HandleClient(string message) {
             requestCount++;
-            TcpClient client = (TcpClient)obj;
+            string responseMessage = "";
 
             try {
-                NetworkStream stream = client.GetStream();
-                byte[] buffer = new byte[1024];
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                //Console.WriteLine("Recieved message from {0}: {1}", client.Client.RemoteEndPoint, message);
 
-                string responseMessage = "";
                 string[] args = message.Split(DELIMITER);
 
 
@@ -176,7 +159,7 @@ namespace Server {
                     bool before = (args[3] == "true");
                     List<string[]> messageList = FetchMessages(channel, message_from, before, 10);
 
-                    
+
 
                     byte[] messageData = SerializeList(messageList);
                     responseMessage = Convert.ToBase64String(messageData);
@@ -199,33 +182,11 @@ namespace Server {
                     responseMessage = CreateDMChannel(user1, user2);
                 }
 
-                byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
-                stream.Write(responseBytes, 0, responseBytes.Length);
-            } catch (Exception ex) {
-                //Console.WriteLine("Error handling client: {0}", ex.Message);
-            } finally {
-                client.Close();
-                //Console.WriteLine("Client disconnected");
+                return responseMessage;
+
+            } catch (Exception e) {
+                return "-1";
             }
         }
-
-
-        
-
-        
-
-
-        
-        
-
-
-
-        
-
-
-        
-        
-
-        
     }
 }

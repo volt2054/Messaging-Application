@@ -11,7 +11,9 @@ namespace Client {
     class WebSocketClient {
 
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
-        private static readonly string SERVER_URL = "ws://your.server.url";
+        //const int PORT = 7256;
+        //const string IP_ADDRESS = "127.0.0.1";
+        private static readonly string SERVER_URL = $"ws://127.0.0.1:7256";
         private static ClientWebSocket _webSocket;
 
 

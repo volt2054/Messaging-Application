@@ -107,13 +107,7 @@ namespace Server.Database {
         }
 
 
-        public static void StartServer(out TcpListener listener) {
-            IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-            int port = 7256;
-            listener = new TcpListener(ipAddress, port);
-            listener.Start();
-            Console.WriteLine("Server started");
-        }
+     
 
         public static void DeleteUser(string userID) {
             ExecuteDatabaseOperations(connection => {
