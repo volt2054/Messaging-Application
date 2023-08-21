@@ -54,7 +54,7 @@ namespace Client {
             string responseMessage = "-1"; // FAILED
 
             try {
-                string message = $"{communicationType}";
+                string message = $"{clientID}{DELIMITER}{communicationType}";
                 foreach (string datum in data) {
                     message += DELIMITER;
                     message += datum;

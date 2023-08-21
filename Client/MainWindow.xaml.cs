@@ -86,23 +86,18 @@ namespace Client {
             return await CreateCommunication(TypeOfCommunication.GetID, data);
         }
 
-        static async void DeleteUser(string userID) {
-            string[] data = { userID };
-            await CreateCommunication(TypeOfCommunication.DeleteUser, data);
-        }
-
-        static async void SendMessage(string message, string channelID, string clientID) {
-            string[] data = { message, channelID, clientID };
+        static async void SendMessage(string message, string channelID) {
+            string[] data = { message, channelID };
             await CreateCommunication(TypeOfCommunication.SendMessage, data);
         }
 
-        static async Task<string> CreateDMChannel(string user1, string user2) {
-            string[] data = { user1, user2 };
+        static async Task<string> CreateDMChannel(string user) {
+            string[] data = { user };
             return await CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
         }
 
-        static async Task<List<string[]>> FetchDMs(string userID) {
-            string[] data = { userID };
+        static async Task<List<string[]>> FetchDMs() {
+            string[] data = { };
             string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
@@ -111,8 +106,8 @@ namespace Client {
             return userChannels;
         }
 
-        static async Task<List<string[]>> FetchChannels(string userID, string serverID) {
-            string[] data = { userID, serverID };
+        static async Task<List<string[]>> FetchChannels( string serverID) {
+            string[] data = { serverID };
             string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
@@ -194,11 +189,11 @@ namespace Client {
                 AddChannel(channeListStackPanel, "Friends", "-1");
 
 
-                foreach (string[] channel in await FetchDMs(CurrentUserID)) {
+                foreach (string[] channel in await FetchDMs()) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             } else {
-                foreach (string[] channel in await FetchChannels(CurrentUserID,CurrentServerID)) {
+                foreach (string[] channel in await FetchChannels(CurrentServerID)) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             }
@@ -483,7 +478,7 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            foreach (string[] channel in await FetchDMs(CurrentUserID)) {
+            foreach (string[] channel in await FetchDMs()) {
                 AddChannel(channeListStackPanel, channel[1], channel[0]);
             }
 
@@ -521,7 +516,7 @@ namespace Client {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
-                    SendMessage(textBox.Text, CurrentChannelID, CurrentUserID);
+                    SendMessage(textBox.Text, CurrentChannelID);
                     textBox.Clear();
                 }
             }

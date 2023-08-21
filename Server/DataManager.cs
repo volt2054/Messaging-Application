@@ -73,10 +73,28 @@ namespace Server.Database {
             return result;
         }
 
-       
+        public static List<string[]> FetchServerChannels(string serverID) { //TODO TEST
+            List<string[]> result = new List<string[]>();
+
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                    "SELECT channel_id, channel_name " +
+                    "FROM Channels " +
+                    "WHERE server_id IS @ServerID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ServerID", serverID);
+
+                result = ExecuteQuery<string[]>(connection, command);
+            });
+
+            return result;
+        }
 
 
-        
+
+
+
 
         public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
             ExecuteDatabaseOperations(connection => {
@@ -117,8 +135,8 @@ namespace Server.Database {
             });
         }
 
-        public static int InsertNewUser(string username, string email, string password) {
-            int userID = -1;
+        public static string InsertNewUser(string username, string email, string password) {
+            string userID = "-1";
 
             ExecuteDatabaseOperations(connection => {
                 string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password); SELECT SCOPE_IDENTITY();";
@@ -128,7 +146,7 @@ namespace Server.Database {
                 insertCommand.Parameters.AddWithValue("@Email", email);
                 insertCommand.Parameters.AddWithValue("@Password", password);
 
-                userID = Convert.ToInt32(insertCommand.ExecuteScalar());
+                userID = Convert.ToInt32(insertCommand.ExecuteScalar()).ToString();
             });
 
             return userID;

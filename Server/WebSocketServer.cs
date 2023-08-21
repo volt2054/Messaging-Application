@@ -12,17 +12,13 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private readonly Dictionary<string, WebSocket> _clientWebSockets;
-        private readonly Dictionary<string, string> _clientUserIds;
+        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, WebSocket>();
+        private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add($"http://{ipAddress}:{port}/");
             _messageHandler = messageHandler;
-
-            _clientWebSockets = new Dictionary<string, WebSocket>();
-            _clientUserIds = new Dictionary<string, string>();
-
         }
 
         public async Task StartAsync() {
@@ -73,11 +69,11 @@ namespace Server {
         }
 
 
-        public void SetClientUserId(string clientId, string userId) { // link user id to a client id
+        public static void SetClientUserId(string clientId, string userId) { // link user id to a client id
             _clientUserIds[clientId] = userId;
         }
 
-        public string GetClientUserId(string clientId) { // get user id from a client
+        public static string GetClientUserId(string clientId) { // get user id from a client
             if (_clientUserIds.TryGetValue(clientId, out string userId)) {
                 return userId;
             }
