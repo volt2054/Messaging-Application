@@ -159,8 +159,6 @@ namespace Server {
                     bool before = (args[3] == "true");
                     List<string[]> messageList = FetchMessages(channel, message_from, before, 10);
 
-
-
                     byte[] messageData = SerializeList(messageList);
                     responseMessage = Convert.ToBase64String(messageData);
                 } else if (args[0] == TypeOfCommunication.GetID) {
