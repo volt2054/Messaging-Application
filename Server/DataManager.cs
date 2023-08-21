@@ -106,9 +106,6 @@ namespace Server.Database {
             return result;
         }
 
-
-     
-
         public static void DeleteUser(string userID) {
             ExecuteDatabaseOperations(connection => {
                 string deleteQuery = "DELETE FROM Users WHERE user_id = @UserID";
