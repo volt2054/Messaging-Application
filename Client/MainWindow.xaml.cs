@@ -53,9 +53,6 @@ namespace Client {
 
         // TODO - Loading options from file??
 
-        
-        private DispatcherTimer messageFetchTimer;
-
         string CurrentUserID;
         string CurrentChannelID;
         string CurrentServerID = "-1";
@@ -489,11 +486,6 @@ namespace Client {
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 messageScrollViewer.ScrollToBottom();
             }
-
-            messageFetchTimer = new DispatcherTimer();
-            messageFetchTimer.Interval = TimeSpan.FromSeconds(1);
-            messageFetchTimer.Tick += MessageFetchTimer_Tick;
-            messageFetchTimer.Start();
         }
 
         private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {
