@@ -12,10 +12,17 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
+        private readonly Dictionary<string, WebSocket> _clientWebSockets;
+        private readonly Dictionary<string, string> _clientUserIds;
+
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add($"http://{ipAddress}:{port}/");
             _messageHandler = messageHandler;
+
+            _clientWebSockets = new Dictionary<string, WebSocket>();
+            _clientUserIds = new Dictionary<string, string>();
+
         }
 
         public async Task StartAsync() {
@@ -28,14 +35,21 @@ namespace Server {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
 
                     WebSocket webSocket = webSocketContext.WebSocket;
-                    HandleWebSocket(webSocket);
+
+                    string clientID = Guid.NewGuid().ToString(); // generate a unique id for client
+                    _clientWebSockets.Add(clientID, webSocket); // link the client id to a websocket
+
+                    byte[] clientIDBytes = Encoding.ASCII.GetBytes(clientID);
+                    await webSocket.SendAsync(new ArraySegment<byte>(clientIDBytes), WebSocketMessageType.Text, true, CancellationToken.None); // send client id to client
+
+                    HandleWebSocket(webSocket, clientID);
                 } else {
                     context.Response.Close();
                 }
             }
         }
 
-        private async void HandleWebSocket(WebSocket webSocket) {
+        private async void HandleWebSocket(WebSocket webSocket, string clientID) {
             try {
                 byte[] buffer = new byte[1024];
                 WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -57,5 +71,19 @@ namespace Server {
                 Console.WriteLine($"WebSocket Exception: {ex.Message}");
             }
         }
+
+
+        public void SetClientUserId(string clientId, string userId) { // link user id to a client id
+            _clientUserIds[clientId] = userId;
+        }
+
+        public string GetClientUserId(string clientId) { // get user id from a client
+            if (_clientUserIds.TryGetValue(clientId, out string userId)) {
+                return userId;
+            }
+            return null;
+        }
+
+
     }
 }

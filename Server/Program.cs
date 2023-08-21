@@ -132,8 +132,10 @@ namespace Server {
             requestCount++;
             string responseMessage = "";
 
-            try {
+            string clientId = ""; // should be able to fetch from messages
+            string userId = "";
 
+            try {
                 string[] args = message.Split(DELIMITER);
 
 
