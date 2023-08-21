@@ -4,6 +4,7 @@ using System.Data;
 using System.Runtime.CompilerServices;
 using Microsoft.Data.SqlClient;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Net;
 using System.Threading;
 using System.Text;

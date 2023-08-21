@@ -8,7 +8,7 @@ using System.Threading;
 using System.Windows;
 
 namespace Client {
-    class WebSocketCommunication {
+    class WebSocketClient {
 
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
         private static readonly string SERVER_URL = "ws://your.server.url";

@@ -22,7 +22,7 @@ using System.Windows.Threading;
 
 
 using SharedLibrary;
-using static Client.WebSocketCommunication;
+using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
 
 
