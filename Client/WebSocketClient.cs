@@ -13,15 +13,29 @@ namespace Client {
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
         //const int PORT = 7256;
         //const string IP_ADDRESS = "127.0.0.1";
+
         private static readonly string SERVER_URL = $"ws://127.0.0.1:7256";
         private static ClientWebSocket _webSocket;
+
+        private static string clientID = "";
 
 
         public static async Task ConnectWebSocket() {
             _webSocket = new ClientWebSocket();
             Uri serverUri = new Uri(SERVER_URL);
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
+
+            clientID = await ReceiveClientID(_webSocket);
+            MessageBox.Show(clientID);
+
             MessageBox.Show("Connected to WebSocket server.");
+        }
+
+        private static async Task<string> ReceiveClientID(ClientWebSocket webSocket) {
+            byte[] buffer = new byte[1024];
+            WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            string clientId = Encoding.ASCII.GetString(buffer, 0, result.Count);
+            return clientId;
         }
 
         public static async Task CloseWebSocket() {
