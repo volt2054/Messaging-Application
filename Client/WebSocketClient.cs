@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Windows;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Client {
     class WebSocketClient {
@@ -58,8 +59,11 @@ namespace Client {
         public static async Task<string> CreateCommunication(string communicationType, string[] data) {
             string responseMessage = "-1"; // FAILED
 
+            // Generate a UID for the request
+            string requestId = Guid.NewGuid().ToString();
+
             try {
-                string message = $"{clientID}{DELIMITER}{communicationType}";
+                string message = $"{requestId}:{clientID}{DELIMITER}{communicationType}";
                 foreach (string datum in data) {
                     message += DELIMITER;
                     message += datum;
@@ -71,11 +75,17 @@ namespace Client {
                 byte[] responseBytes = new byte[1024];
                 WebSocketReceiveResult receiveResult = await _webSocket.ReceiveAsync(new ArraySegment<byte>(responseBytes), CancellationToken.None);
                 responseMessage = Encoding.ASCII.GetString(responseBytes, 0, receiveResult.Count);
+
+                //TODO SERVER ADD REQUEST ID
+                //responseMessage = responseMessage.Substring(requestId.Length + 1);
+
+
                 MessageBox.Show("CREATECOMM");
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
             return responseMessage;
+
         }
 
 
