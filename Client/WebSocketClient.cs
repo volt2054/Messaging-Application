@@ -26,9 +26,6 @@ namespace Client {
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
 
             clientID = await ReceiveClientID(_webSocket);
-            MessageBox.Show(clientID);
-
-            MessageBox.Show("Connected to WebSocket server.");
         }
 
         private static async Task<string> ReceiveClientID(ClientWebSocket webSocket) {

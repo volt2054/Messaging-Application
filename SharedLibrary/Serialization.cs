@@ -31,6 +31,11 @@ namespace SharedLibrary {
         }
 
         public static List<T> DeserializeList<T>(byte[] data) {
+
+            if (data.Length == 0) {
+                return new List<T>();
+            }
+
             List<T> list = new List<T>();
             using (MemoryStream memoryStream = new MemoryStream(data)) {
                 using (BinaryReader reader = new BinaryReader(memoryStream)) {
