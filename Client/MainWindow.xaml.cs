@@ -486,6 +486,13 @@ namespace Client {
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 messageScrollViewer.ScrollToBottom();
             }
+
+            while (true) {
+
+            string message12 = await RecieveMessage();
+            MessageBox.Show(message12);
+            }
+
         }
 
         private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {

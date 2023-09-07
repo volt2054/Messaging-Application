@@ -35,6 +35,14 @@ namespace Client {
             return clientId;
         }
 
+        public static async Task<string> RecieveMessage() {
+            byte[] buffer = new byte[1024];
+            WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
+            MessageBox.Show("RECIEVE");
+            return message;
+        }
+
         public static async Task CloseWebSocket() {
             try {
                 if (_webSocket != null && _webSocket.State == WebSocketState.Open) {
@@ -63,6 +71,7 @@ namespace Client {
                 byte[] responseBytes = new byte[1024];
                 WebSocketReceiveResult receiveResult = await _webSocket.ReceiveAsync(new ArraySegment<byte>(responseBytes), CancellationToken.None);
                 responseMessage = Encoding.ASCII.GetString(responseBytes, 0, receiveResult.Count);
+                MessageBox.Show("CREATECOMM");
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
