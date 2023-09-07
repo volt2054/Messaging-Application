@@ -10,6 +10,11 @@ using System.IO;
 namespace SharedLibrary {
     public class Serialization {
         public static byte[] SerializeList<T>(List<T> list) {
+
+            if (list.Count == 0) {
+                return new byte[0];
+            }
+
             using (MemoryStream memoryStream = new MemoryStream()) {
                 using (BinaryWriter writer = new BinaryWriter(memoryStream)) {
                     writer.Write(list.Count);
