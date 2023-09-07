@@ -80,6 +80,24 @@ namespace Server {
             return null;
         }
 
+        public static async void SendMessageToUser(string userId, string message) {
+            if (_clientUserIds.ContainsValue(userId)) {
+                KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userId);
+                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
+                    // Send Message
+
+                    byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                    await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+
+                    Console.WriteLine($"Sent {message}");
+
+                } else {
+                    Console.WriteLine($"No WebSocket found for user with ID: {userId}");
+                }
+            } else {
+                Console.WriteLine($"No user found with ID: {userId}");
+            }
+        }
     }
 }

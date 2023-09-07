@@ -107,6 +107,9 @@ namespace Server {
                     string userId = commandParts[1];
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
+                } else if (command == "TEST") {
+                    string username = commandParts[1];
+                    SendMessageToUser(username, "TEST");
                 } else if (command == "EXIT") {
                     isRunning = false;
                     break;
