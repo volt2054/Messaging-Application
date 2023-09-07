@@ -41,6 +41,11 @@ namespace Server {
             });
 
             ExecuteDatabaseOperations(connection => {
+                string del = "DELETE FROM ChannelUsers";
+                ExecuteNonQuery(connection, del);
+            });
+
+            ExecuteDatabaseOperations(connection => {
                 string del = "DELETE FROM Users";
                 ExecuteNonQuery(connection, del);
             });
@@ -49,7 +54,7 @@ namespace Server {
                 ExecuteNonQuery(connection, del);
             });
 
-            
+
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
