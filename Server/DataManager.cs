@@ -55,6 +55,20 @@ namespace Server.Database {
             return messages;
         }
 
+        public static List<string> FetchUsersInChannel(string ChannelID) {
+            List<string> users = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                    "SELECT user_id FROM ChannelUsers WHERE channel_id = @ChannelId;";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ChannelID", ChannelID);
+
+                users = ExecuteQuery<string>(connection, command);
+            });
+            return users;
+        }
+
         public static List<string[]> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
 
