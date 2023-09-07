@@ -117,6 +117,20 @@ namespace Server.Database {
                     ExecuteNonQuery(connection, command);
                 });
 
+                Console.WriteLine("Creating table channel_users");
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                        "CREATE TABLE [dbo].[ChannelUsers] (" +
+                        "   [channel_id] INT NOT NULL," +
+                        "   [user_id] INT NOT NULL," +
+                        "   [date_joined] DATETIME NOT NULL DEFAULT(getdate())," +
+                        "   PRIMARY KEY ([channel_id], [user_id])," +
+                        "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
+                        "   FOREIGN KEY (user_id) REFERENCES Users(user_id)" +
+                        ");";
+                    ExecuteNonQuery(connection, command);
+                });
+
                 Console.WriteLine("Creating table channel_roles");
                 ExecuteDatabaseOperations(connection => {
                     string command =
