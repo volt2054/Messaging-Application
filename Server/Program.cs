@@ -178,7 +178,11 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-
+                        List<string> usersInChannel = FetchUsersInChannel(channel);
+                        foreach (string user in usersInChannel) {
+                            // Send message to user client
+                        }
+                        
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
