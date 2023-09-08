@@ -6,7 +6,12 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Windows;
-using System.Diagnostics.Eventing.Reader;
+
+
+
+// TODO SPLIT INTO MESSAGE HANDLER AND COMMUNICATION HANDLER
+// 2 SEPERATE WEBSOCKETS ONE FOR RECIEVING MESSAGES FROM THE SERVER AND ANOTHER FOR SENDING AND RECIEVING MESSAGES FROM THE SERVER
+
 
 namespace Client {
     class WebSocketClient {
