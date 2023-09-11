@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Windows;
+using SharedLibrary;
 
 
 
 // TODO SPLIT INTO MESSAGE HANDLER AND COMMUNICATION HANDLER
 // 2 SEPERATE WEBSOCKETS ONE FOR RECIEVING MESSAGES FROM THE SERVER AND ANOTHER FOR SENDING AND RECIEVING MESSAGES FROM THE SERVER
+
 
 
 namespace Client {
@@ -25,6 +27,18 @@ namespace Client {
 
         private static string clientID = "";
 
+        static Queue<string> responseMessages = new Queue<string>();
+
+
+        private static async Task StartListeningForMessages() {
+            while (true) {
+                byte[] buffer = new byte[1024];
+                WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
+                responseMessages.Enqueue(responseMessage);
+                MessageBox.Show("RECIEVED MESSAGE");
+            }
+        }
 
         public static async Task ConnectWebSocket() {
             _webSocket = new ClientWebSocket();
@@ -32,6 +46,7 @@ namespace Client {
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
 
             clientID = await ReceiveClientID(_webSocket);
+            StartListeningForMessages();
         }
 
         private static async Task<string> ReceiveClientID(ClientWebSocket webSocket) {
