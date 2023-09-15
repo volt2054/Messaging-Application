@@ -33,7 +33,6 @@ namespace Client {
         private void init() {
             ConnectWebSocket();
             StartListeningForServerMessages();
-            
         }
 
         private static void OnMessageRecieved() {
@@ -131,7 +130,6 @@ namespace Client {
                 WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
                 responseMessages.Enqueue(responseMessage);
-                MessageBox.Show("RECIEVED MESSAGE");
             }
         }
 
@@ -155,7 +153,6 @@ namespace Client {
             byte[] buffer = new byte[1024];
             WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
-            MessageBox.Show("RECIEVE");
             return message;
         }
 
@@ -195,7 +192,6 @@ namespace Client {
                 //responseMessage = responseMessage.Substring(requestId.Length + 1);
 
 
-                MessageBox.Show("CREATECOMM");
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
