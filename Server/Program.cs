@@ -146,16 +146,14 @@ namespace Server {
 
             try {
 
+                
+
                 string[] args = message.Split(DELIMITER);
 
                 clientID = args[0];
                 string communicationType = args[1];
 
                 args = args.Skip(2).ToArray();
-
-                foreach (string arg in args) {
-                    Console.WriteLine(arg);
-                }
 
                 userID = GetClientUserId(clientID);
 

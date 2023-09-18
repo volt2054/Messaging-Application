@@ -9,13 +9,6 @@ using System.Windows;
 using static SharedLibrary.WebSocket;
 using SharedLibrary;
 
-
-
-// TODO SPLIT INTO MESSAGE HANDLER AND COMMUNICATION HANDLER
-// 2 SEPERATE WEBSOCKETS ONE FOR RECIEVING MESSAGES FROM THE SERVER AND ANOTHER FOR SENDING AND RECIEVING MESSAGES FROM THE SERVER
-
-
-
 namespace Client {
 
     class WebSocketClient {
@@ -30,7 +23,7 @@ namespace Client {
 
         }
 
-        private void init() {
+        private void Init() {
             ConnectWebSocket();
             StartListeningForServerMessages();
         }
@@ -96,17 +89,11 @@ namespace Client {
                         return responseMessage; // -1
                     }
                 }
-                //TODO SERVER ADD REQUEST ID
-
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
             return responseMessage;
-
         }
-
-
-
     }
 
 

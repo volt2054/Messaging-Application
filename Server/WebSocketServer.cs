@@ -54,7 +54,11 @@ namespace Server {
                     string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
                     Console.WriteLine($"Received: {message}");
 
+                    string requestID = message.Split(":")[0];
+
                     string responseMessage = _messageHandler(message);
+
+                    responseMessage = requestID + ":" + responseMessage;
 
                     byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
                     await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
