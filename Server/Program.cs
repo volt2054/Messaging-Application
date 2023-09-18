@@ -211,10 +211,10 @@ namespace Server {
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
-
                         
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
+
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];

@@ -47,7 +47,6 @@ namespace Client {
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
 
             clientID = await ReceiveClientID(_webSocket); // Retrieve ClientID before listening to messages to make sure that we get the right ResponseMessage
-            
         }
 
         private static async Task<string> ReceiveClientID(ClientWebSocket webSocket) {
@@ -175,8 +174,7 @@ namespace Client {
                 WebSocketReceiveResult receiveResult = await _webSocket.ReceiveAsync(new ArraySegment<byte>(responseBytes), CancellationToken.None);
                 responseMessage = Encoding.ASCII.GetString(responseBytes, 0, receiveResult.Count);
 
-                //TODO SERVER ADD REQUEST ID
-                //responseMessage = responseMessage.Substring(requestId.Length + 1);
+                responseMessage = responseMessage.Substring(requestId.Length + 1);
 
 
             } catch (Exception ex) {

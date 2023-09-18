@@ -96,6 +96,11 @@ namespace Client {
         static async Task<List<string[]>> FetchDMs() {
             string[] data = { };
             string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
+
+            if (response.Length == 0) {
+                return new List<string[]>();
+            }
+
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
@@ -115,6 +120,12 @@ namespace Client {
         static async Task<List<string[]>> FetchMessages(string channelID, string messageID, string before) {
             string[] data = { channelID, messageID, before };
             string response = await CreateCommunication(TypeOfCommunication.FetchMessages, data);
+
+            if (response.Length == 0) {
+                return new List<string[]>();
+            }
+
+            MessageBox.Show(response);
 
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
@@ -415,8 +426,6 @@ namespace Client {
         }
 
         private async void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            InitializeMessagingUI();
-
             CurrentUserID = await CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
             if (CurrentUserID != null) {
                 InitializeMessagingUI();
