@@ -97,7 +97,7 @@ namespace Client {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
 
-            if (response.Length == 0) {
+            if (response == "-1") {
                 return new List<string[]>();
             }
 

@@ -17,6 +17,8 @@ namespace Client {
         private ClientWebSocket _webSocket;
         private string clientID;
 
+        private static TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
+
         public WebSocketClient() {
             _webSocket = new ClientWebSocket();
             Init();
@@ -28,7 +30,7 @@ namespace Client {
         }
 
         private static void OnMessageRecieved(string responseMessage) {
-            MessageBox.Show(responseMessage);
+            _taskCompletionSource.TrySetResult(true);
         }
 
         private async Task StartListeningForServerMessages() {
@@ -71,22 +73,19 @@ namespace Client {
                 byte[] messageBytes = Encoding.ASCII.GetBytes(messageToSend);
                 await _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None); // Send Request
 
-                int attempts = 0;
-                int maxAttempts = 10;
-                while(true) {
-                    attempts++;
-                    foreach (var message in responseMessages) {
+                bool found = false;
+                while (found) {
+                    await _taskCompletionSource.Task;
+                    foreach(string message in responseMessages) {
                         if (message.StartsWith(requestId)) {
                             responseMessage = responseMessage.Substring(requestId.Length + 1);
                             return responseMessage;
                         }
                     }
-                    Thread.Sleep(1000 * attempts * attempts);
-
-                    if (attempts > maxAttempts) {
-                        return responseMessage; // -1
-                    }
+                    _taskCompletionSource.TrySetResult(false);
                 }
+
+                
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
