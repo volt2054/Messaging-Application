@@ -70,17 +70,20 @@ namespace Client {
 
         static async Task<string> CreateUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
-            return await Client.SendAndRecieve(TypeOfCommunication.RegisterUser, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.RegisterUser, data);
+            return response;
         }
 
         static async Task<string> VerifyUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
-            return await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
+            string response =await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
+            return response;
         }
 
         static async Task<string> GetID(string username, WebSocketClient Client) {
             string[] data = { username };
-            return await Client.SendAndRecieve(TypeOfCommunication.GetID, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetID, data);
+            return response;
         }
 
         static async void SendMessage(string message, string channelID, WebSocketClient Client) {
@@ -90,7 +93,8 @@ namespace Client {
 
         static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
             string[] data = { user };
-            return await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
+            return response;
         }
 
         static async Task<List<string[]>> FetchDMs(WebSocketClient Client) {
@@ -111,6 +115,9 @@ namespace Client {
         static async Task<List<string[]>> FetchChannels( string serverID, WebSocketClient Client) {
             string[] data = { serverID };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
+            if (response == "-1") {
+                return new List<string[]>();
+            }
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
@@ -121,7 +128,7 @@ namespace Client {
             string[] data = { channelID, messageID, before };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchMessages, data);
 
-            if (response.Length == 0) {
+            if (response == "-1") {
                 return new List<string[]>();
             }
 

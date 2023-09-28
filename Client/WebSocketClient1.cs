@@ -37,6 +37,7 @@ namespace Client {
             while (true) {
                 byte[] buffer = new byte[1024];
                 WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                MessageBox.Show("recieve");
                 string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
                 responseMessages.Enqueue(responseMessage);
                 OnMessageRecieved(responseMessage);
@@ -74,15 +75,15 @@ namespace Client {
                 await _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None); // Send Request
 
                 bool found = false;
-                while (found) {
+                while (found == false) {
                     await _taskCompletionSource.Task;
                     foreach(string message in responseMessages) {
                         if (message.StartsWith(requestId)) {
-                            responseMessage = responseMessage.Substring(requestId.Length + 1);
+                            responseMessage = message.Substring(requestId.Length + 1);
+                            _taskCompletionSource.TrySetResult(false);
                             return responseMessage;
                         }
                     }
-                    _taskCompletionSource.TrySetResult(false);
                 }
 
                 
