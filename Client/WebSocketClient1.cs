@@ -19,17 +19,16 @@ namespace Client {
 
         public WebSocketClient() {
             _webSocket = new ClientWebSocket();
-
-
+            Init();
         }
 
-        private void Init() {
-            ConnectWebSocket();
-            StartListeningForServerMessages();
+        public async void Init() {
+            await ConnectWebSocket();
+            await StartListeningForServerMessages();
         }
 
-        private static void OnMessageRecieved() {
-
+        private static void OnMessageRecieved(string responseMessage) {
+            MessageBox.Show(responseMessage);
         }
 
         private async Task StartListeningForServerMessages() {
@@ -38,7 +37,7 @@ namespace Client {
                 WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
                 responseMessages.Enqueue(responseMessage);
-                OnMessageRecieved();
+                OnMessageRecieved(responseMessage);
             }
         }
 
@@ -56,7 +55,7 @@ namespace Client {
             return clientId;
         }
 
-        private async Task<string> SendAndRecieve(string communicationType, string[] data) {
+        public async Task<string> SendAndRecieve(string communicationType, string[] data) {
             string responseMessage = "-1"; // FAILED
 
             // Generate a UID for the request

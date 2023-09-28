@@ -61,6 +61,7 @@ namespace Server {
 
                     responseMessage = requestID + ":" + responseMessage;
 
+                    Console.WriteLine("SENT: " + responseMessage);
                     byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
                     await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
