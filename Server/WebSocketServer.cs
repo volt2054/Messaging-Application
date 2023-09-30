@@ -86,17 +86,19 @@ namespace Server {
             return null;
         }
 
-        public static async void SendMessageToUser(string userId, string message) {
+        public static async void SendMessageToUser(string channel, string userId, string message_content) {
             if (_clientUserIds.ContainsValue(userId)) {
                 KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userId);
-                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out System.Net.WebSockets.WebSocket webSocket)) {
+                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
                     // Send Message
+
+                    string message = TypeOfCommunication.NotifyMessage + channel + WebSocketMetadata.DELIMITER + userId + WebSocketMetadata.DELIMITER + message_content;
 
                     byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                     await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
-                    Console.WriteLine($"Sent {message}");
+                    Console.WriteLine($"Notify Sent {message}");
 
                 } else {
                     Console.WriteLine($"No WebSocket found for user with ID: {userId}");

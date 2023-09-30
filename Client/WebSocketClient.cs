@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Windows;
-using static SharedLibrary.WebSocket;
+using static SharedLibrary.WebSocketMetadata;
 using System.Collections.Concurrent;
 using SharedLibrary;
 
@@ -16,10 +16,10 @@ namespace Client {
 
         // Add a dictionary for responses instead
         // USE QUEUE FOR MESSAGES.
-        Queue<string> messageQueue = new Queue<string>();
+        BlockingCollection<string> messageQueue = new BlockingCollection<string>();
 
         public string GetNextMessage() {
-            return messageQueue.Dequeue();
+            return messageQueue.Take();
         }
 
         ConcurrentQueue<string> responseMessages = new ConcurrentQueue<string>();
@@ -42,11 +42,10 @@ namespace Client {
             _taskCompletionSource.TrySetResult(true);
             
             if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
-                messageQueue.Enqueue(message);
+                messageQueue.Add(message);
             } else {
                 responseMessages.Enqueue(message);
             }
-            // add messages
         }
 
         private void StartListeningForServerMessages() {

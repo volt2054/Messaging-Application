@@ -25,6 +25,7 @@ using SharedLibrary;
 using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
 using System.Net.WebSockets;
+using System.Threading;
 
 namespace Client {
 
@@ -254,18 +255,30 @@ namespace Client {
                 messageScrollViewer.ScrollToBottom();
             }
         }
-        private void AddMessages() {
-            while (true) {
-                Client.GetNextMessage();
-            }
+
+        private void ListenForMessages() {
+            SynchronizationContext uiContext = SynchronizationContext.Current;
+
+            Task.Run(() => {
+                while (true) {
+                    string message = Client.GetNextMessage();
+                    message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
+
+                    string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                    uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
+                }
+            });
         }
 
+        private void HandleServerMessage() {
+
+        }
         public void AddMessage(string channelID, string username, string messageContent) {
-            if (CurrentChannelID  == channelID) {
+            //if (CurrentChannelID  == channelID) {
                 AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
-            }
+            //}
         }
-
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
 
             StackPanel messageStackPanel = new StackPanel {
@@ -496,6 +509,8 @@ namespace Client {
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 messageScrollViewer.ScrollToBottom();
             }
+
+            ListenForMessages();
         }
 
         private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {

@@ -199,6 +199,22 @@ namespace Server.Database {
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
 
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@channelID", channelID);
+                command.Parameters.AddWithValue("@userID", user1);
+                ExecuteNonQuery(connection, command);
+            });
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@channelID", channelID);
+                command.Parameters.AddWithValue("@userID", user2);
+                ExecuteNonQuery(connection, command);
+            });
+
             return channelID.ToString();
         }
 
@@ -213,6 +229,8 @@ namespace Server.Database {
 
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
+
+            // need to add users to channel
 
             return channelID.ToString();
         }

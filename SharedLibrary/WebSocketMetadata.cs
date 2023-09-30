@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SharedLibrary {
-    public class WebSocket {
+    public class WebSocketMetadata {
 
         public const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
         const int PORT = 7256;

@@ -109,7 +109,7 @@ namespace Server {
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
                     string username = commandParts[1];
-                    SendMessageToUser(username, "TEST");
+                    SendMessageToUser("-2",username, "TEST");
                 } else if (command == "EXIT") {
                     isRunning = false;
                     break;
@@ -148,7 +148,7 @@ namespace Server {
 
                 
 
-                string[] args = message.Split(DELIMITER);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 clientID = args[0];
                 string communicationType = args[1];
@@ -186,7 +186,7 @@ namespace Server {
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
                         foreach (string user in usersInChannel) {
-                            // Send message to user client
+                            SendMessageToUser(channel, user, message_content);
                         }
                         
 
