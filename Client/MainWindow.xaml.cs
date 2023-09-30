@@ -24,8 +24,7 @@ using System.Windows.Threading;
 using SharedLibrary;
 using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
-
-
+using System.Net.WebSockets;
 
 namespace Client {
 
@@ -50,8 +49,9 @@ namespace Client {
 
     public partial class MainWindow : Window {
 
-
         // TODO - Loading options from file??
+
+        WebSocketClient Client;
 
         string CurrentUserID;
         string CurrentChannelID;
@@ -68,34 +68,43 @@ namespace Client {
 
         Grid messagingGrid = new Grid();
 
-        static async Task<string> CreateUser(string username, string email, string password) {
+        static async Task<string> CreateUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
-            return await CreateCommunication(TypeOfCommunication.RegisterUser, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.RegisterUser, data);
+            return response;
         }
 
-        static async Task<string> VerifyUser(string username, string email, string password) {
+        static async Task<string> VerifyUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
-            return await CreateCommunication(TypeOfCommunication.ValidateUser, data);
+            string response =await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
+            return response;
         }
 
-        static async Task<string> GetID(string username) {
+        static async Task<string> GetID(string username, WebSocketClient Client) {
             string[] data = { username };
-            return await CreateCommunication(TypeOfCommunication.GetID, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetID, data);
+            return response;
         }
 
-        static async void SendMessage(string message, string channelID) {
+        static async void SendMessage(string message, string channelID, WebSocketClient Client) {
             string[] data = { message, channelID };
-            await CreateCommunication(TypeOfCommunication.SendMessage, data);
+            await Client.SendAndRecieve(TypeOfCommunication.SendMessage, data);
         }
 
-        static async Task<string> CreateDMChannel(string user) {
+        static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
             string[] data = { user };
-            return await CreateCommunication(TypeOfCommunication.CreateDMChannel, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
+            return response;
         }
 
-        static async Task<List<string[]>> FetchDMs() {
+        static async Task<List<string[]>> FetchDMs(WebSocketClient Client) {
             string[] data = { };
-            string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
+
+            if (response == "-1") {
+                return new List<string[]>();
+            }
+
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
@@ -103,18 +112,25 @@ namespace Client {
             return userChannels;
         }
 
-        static async Task<List<string[]>> FetchChannels( string serverID) {
+        static async Task<List<string[]>> FetchChannels( string serverID, WebSocketClient Client) {
             string[] data = { serverID };
-            string response = await CreateCommunication(TypeOfCommunication.FetchChannels, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
+            if (response == "-1") {
+                return new List<string[]>();
+            }
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> userChannels = DeserializeList<string[]>(dataBytes);
 
             return userChannels;
         }
 
-        static async Task<List<string[]>> FetchMessages(string channelID, string messageID, string before) {
+        static async Task<List<string[]>> FetchMessages(string channelID, string messageID, string before, WebSocketClient Client) {
             string[] data = { channelID, messageID, before };
-            string response = await CreateCommunication(TypeOfCommunication.FetchMessages, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.FetchMessages, data);
+
+            if (response == "-1") {
+                return new List<string[]>();
+            }
 
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
@@ -126,29 +142,14 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
+            Client = new WebSocketClient();
+
             InitializeLoginUI();
-
-
-            InitializeAppAsync(() => {
-            });
-
-        }
-
-
-        private async Task InitializeAppAsync(Action main) {
-            try {
-                await ConnectWebSocket();
-
-                main?.Invoke();
-
-            } catch (Exception ex) {
-                MessageBox.Show($"Error during initialization: {ex.Message}");
-            }
         }
         
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
-            await CloseWebSocket();
+            await Client.CloseWebSocket();
 
             base.OnClosing(e);
         }
@@ -186,11 +187,11 @@ namespace Client {
                 AddChannel(channeListStackPanel, "Friends", "-1");
 
 
-                foreach (string[] channel in await FetchDMs()) {
+                foreach (string[] channel in await FetchDMs(Client)) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             } else {
-                foreach (string[] channel in await FetchChannels(CurrentServerID)) {
+                foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             }
@@ -245,7 +246,7 @@ namespace Client {
             OldestMessage = int.MinValue.ToString();
             OldestMessage = int.MaxValue.ToString();
 
-            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -404,7 +405,7 @@ namespace Client {
         }
 
         private async void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            CurrentUserID = await VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            CurrentUserID = await VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, Client);
 
             if (CurrentUserID != "Bad Password") {
                 InitializeMessagingUI();
@@ -415,9 +416,7 @@ namespace Client {
         }
 
         private async void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            InitializeMessagingUI();
-
-            CurrentUserID = await CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text);
+            CurrentUserID = await CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, Client);
             if (CurrentUserID != null) {
                 InitializeMessagingUI();
             }
@@ -475,28 +474,21 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            foreach (string[] channel in await FetchDMs()) {
+            foreach (string[] channel in await FetchDMs(Client)) {
                 AddChannel(channeListStackPanel, channel[1], channel[0]);
             }
 
-            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 messageScrollViewer.ScrollToBottom();
             }
-
-            while (true) {
-
-            string message12 = await RecieveMessage();
-            MessageBox.Show(message12);
-            }
-
         }
 
         private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {
-            foreach (string[] message in await FetchMessages(CurrentChannelID, NewestMessage, "false")) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, NewestMessage, "false", Client)) {
                 NewestMessage = message[2];
                 AddMessage(messageStackPanel, Colors.Black, message[0], message[1], false);
             }
@@ -504,7 +496,7 @@ namespace Client {
 
         private async void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
             if (e.VerticalOffset == 0) {
-                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true")) {
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
                     AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 }
@@ -515,7 +507,7 @@ namespace Client {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
-                    SendMessage(textBox.Text, CurrentChannelID);
+                    SendMessage(textBox.Text, CurrentChannelID, Client);
                     textBox.Clear();
                 }
             }

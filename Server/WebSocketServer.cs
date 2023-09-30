@@ -12,7 +12,7 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, WebSocket>();
+        private static readonly Dictionary<string, System.Net.WebSockets.WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
@@ -30,7 +30,7 @@ namespace Server {
                 if (context.Request.IsWebSocketRequest) {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
 
-                    WebSocket webSocket = webSocketContext.WebSocket;
+                    System.Net.WebSockets.WebSocket webSocket = webSocketContext.WebSocket;
 
                     string clientID = Guid.NewGuid().ToString(); // generate a unique id for client
                     _clientWebSockets.Add(clientID, webSocket); // link the client id to a websocket
@@ -45,7 +45,7 @@ namespace Server {
             }
         }
 
-        private async void HandleWebSocket(WebSocket webSocket, string clientID) {
+        private async void HandleWebSocket(System.Net.WebSockets.WebSocket webSocket, string clientID) {
             try {
                 byte[] buffer = new byte[1024];
                 WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -54,8 +54,14 @@ namespace Server {
                     string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
                     Console.WriteLine($"Received: {message}");
 
-                    string responseMessage = _messageHandler(message);
+                    string requestID = message.Split(":")[0];
+                    string messageDetails = message.Split(":")[1];
 
+                    string responseMessage = _messageHandler(messageDetails);
+
+                    responseMessage = requestID + ":" + responseMessage;
+
+                    Console.WriteLine("SENT: " + responseMessage);
                     byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
                     await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
@@ -83,7 +89,7 @@ namespace Server {
         public static async void SendMessageToUser(string userId, string message) {
             if (_clientUserIds.ContainsValue(userId)) {
                 KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userId);
-                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
+                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out System.Net.WebSockets.WebSocket webSocket)) {
 
                     // Send Message
 

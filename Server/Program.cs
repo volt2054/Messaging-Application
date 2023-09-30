@@ -146,16 +146,14 @@ namespace Server {
 
             try {
 
+                
+
                 string[] args = message.Split(DELIMITER);
 
                 clientID = args[0];
                 string communicationType = args[1];
 
                 args = args.Skip(2).ToArray();
-
-                foreach (string arg in args) {
-                    Console.WriteLine(arg);
-                }
 
                 userID = GetClientUserId(clientID);
 
@@ -213,10 +211,10 @@ namespace Server {
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
-
                         
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
+
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];
