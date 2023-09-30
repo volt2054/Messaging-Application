@@ -14,6 +14,14 @@ namespace Client {
 
     class WebSocketClient {
 
+        // Add a dictionary for responses instead
+        // USE QUEUE FOR MESSAGES.
+        Queue<string> messageQueue = new Queue<string>();
+
+        public string GetNextMessage() {
+            return messageQueue.Dequeue();
+        }
+
         ConcurrentQueue<string> responseMessages = new ConcurrentQueue<string>();
         private ClientWebSocket _webSocket;
         private string clientID;
@@ -30,8 +38,15 @@ namespace Client {
             StartListeningForServerMessages();
         }
 
-        private static void OnMessageReceived(string responseMessage) {
+        private void OnMessageReceived(string message) {
             _taskCompletionSource.TrySetResult(true);
+            
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
+                messageQueue.Enqueue(message);
+            } else {
+                responseMessages.Enqueue(message);
+            }
+            // add messages
         }
 
         private void StartListeningForServerMessages() {
@@ -44,9 +59,8 @@ namespace Client {
                         result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
                         if (result.MessageType == WebSocketMessageType.Text) {
-                            string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
-                            responseMessages.Enqueue(responseMessage);
-                            OnMessageReceived(responseMessage);
+                            string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
+                            OnMessageReceived(message);
                         } else if (result.MessageType == WebSocketMessageType.Close) {
                             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
                         }

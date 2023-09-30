@@ -254,6 +254,17 @@ namespace Client {
                 messageScrollViewer.ScrollToBottom();
             }
         }
+        private void AddMessages() {
+            while (true) {
+                Client.GetNextMessage();
+            }
+        }
+
+        public void AddMessage(string channelID, string username, string messageContent) {
+            if (CurrentChannelID  == channelID) {
+                AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
+            }
+        }
 
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
 
@@ -297,9 +308,9 @@ namespace Client {
                 parentStackPanel.Children.Insert(0, messageStackPanel);
                 messageScrollViewer.ScrollToVerticalOffset(currentVerticalOffset + newContentHeight);
             } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
-
-
         }
+
+
         StackPanel channeListStackPanel;
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
