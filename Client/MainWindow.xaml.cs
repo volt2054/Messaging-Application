@@ -275,9 +275,9 @@ namespace Client {
 
         }
         public void AddMessage(string channelID, string username, string messageContent) {
-            //if (CurrentChannelID  == channelID) {
+            if (CurrentChannelID  == channelID) {
                 AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
-            //}
+            }
         }
         private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
 
