@@ -86,9 +86,9 @@ namespace Server {
             return null;
         }
 
-        public static async void SendMessageToUser(string channel, string userId, string message_content) {
-            if (_clientUserIds.ContainsValue(userId)) {
-                KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userId);
+        public static async void SendMessageToUser(string channel, string userId, string message_content, string userIdToSendTo) {
+            if (_clientUserIds.ContainsValue(userIdToSendTo)) {
+                KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userIdToSendTo);
                 if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
                     // Send Message
@@ -101,10 +101,10 @@ namespace Server {
                     Console.WriteLine($"Notify Sent {message}");
 
                 } else {
-                    Console.WriteLine($"No WebSocket found for user with ID: {userId}");
+                    Console.WriteLine($"No WebSocket found for user with ID: {userIdToSendTo}");
                 }
             } else {
-                Console.WriteLine($"No user found with ID: {userId}");
+                Console.WriteLine($"No user found with ID: {userIdToSendTo}");
             }
         }
     }

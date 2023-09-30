@@ -109,7 +109,7 @@ namespace Server {
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
                     string username = commandParts[1];
-                    SendMessageToUser("-2",username, "TEST");
+                    SendMessageToUser("-2","0", "TEST", username);
                 } else if (command == "EXIT") {
                     isRunning = false;
                     break;
@@ -186,7 +186,7 @@ namespace Server {
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
                         foreach (string user in usersInChannel) {
-                            SendMessageToUser(channel, user, message_content);
+                            SendMessageToUser(channel, userID, message_content, user);
                         }
                         
 
