@@ -132,8 +132,6 @@ namespace Client {
                 return new List<string[]>();
             }
 
-            MessageBox.Show(response);
-
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
 

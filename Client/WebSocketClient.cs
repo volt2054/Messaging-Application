@@ -7,13 +7,14 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Windows;
 using static SharedLibrary.WebSocket;
+using System.Collections.Concurrent;
 using SharedLibrary;
 
 namespace Client {
 
     class WebSocketClient {
 
-        Queue<string> responseMessages = new Queue<string>();
+        ConcurrentQueue<string> responseMessages = new ConcurrentQueue<string>();
         private ClientWebSocket _webSocket;
         private string clientID;
 
@@ -26,23 +27,36 @@ namespace Client {
 
         public async void Init() {
             await ConnectWebSocket();
-            await StartListeningForServerMessages();
+            StartListeningForServerMessages();
         }
 
-        private static void OnMessageRecieved(string responseMessage) {
+        private static void OnMessageReceived(string responseMessage) {
             _taskCompletionSource.TrySetResult(true);
         }
 
-        private async Task StartListeningForServerMessages() {
-            while (true) {
-                byte[] buffer = new byte[1024];
-                WebSocketReceiveResult result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                MessageBox.Show("recieve");
-                string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
-                responseMessages.Enqueue(responseMessage);
-                OnMessageRecieved(responseMessage);
-            }
+        private void StartListeningForServerMessages() {
+
+            Task.Run(async () => {
+                while (_webSocket.State == WebSocketState.Open) {
+                    byte[] buffer = new byte[1024];
+                    WebSocketReceiveResult result;
+                    do {
+                        result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                        if (result.MessageType == WebSocketMessageType.Text) {
+                            string responseMessage = Encoding.ASCII.GetString(buffer, 0, result.Count);
+                            responseMessages.Enqueue(responseMessage);
+                            OnMessageReceived(responseMessage);
+                        } else if (result.MessageType == WebSocketMessageType.Close) {
+                            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                        }
+                    } while (!result.EndOfMessage);
+                }
+            });
+
+            
         }
+
 
         private async Task ConnectWebSocket() {
             Uri serverUri = new Uri(SERVER_URL);
@@ -77,7 +91,7 @@ namespace Client {
                 bool found = false;
                 while (found == false) {
                     await _taskCompletionSource.Task;
-                    foreach(string message in responseMessages) {
+                    foreach (string message in responseMessages) {
                         if (message.StartsWith(requestId)) {
                             responseMessage = message.Substring(requestId.Length + 1);
                             _taskCompletionSource.TrySetResult(false);
@@ -86,7 +100,7 @@ namespace Client {
                     }
                 }
 
-                
+
             } catch (Exception ex) {
                 MessageBox.Show($"Error Occurred Creating WebSocket Communication: {ex.Message}");
             }
