@@ -41,6 +41,11 @@ namespace Server {
             });
 
             ExecuteDatabaseOperations(connection => {
+                string del = "DELETE FROM ChannelUsers";
+                ExecuteNonQuery(connection, del);
+            });
+
+            ExecuteDatabaseOperations(connection => {
                 string del = "DELETE FROM Users";
                 ExecuteNonQuery(connection, del);
             });
@@ -49,7 +54,7 @@ namespace Server {
                 ExecuteNonQuery(connection, del);
             });
 
-            
+
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
@@ -102,6 +107,9 @@ namespace Server {
                     string userId = commandParts[1];
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
+                } else if (command == "TEST") {
+                    string username = commandParts[1];
+                    SendMessageToUser("-2","0", "TEST", username);
                 } else if (command == "EXIT") {
                     isRunning = false;
                     break;
@@ -138,16 +146,14 @@ namespace Server {
 
             try {
 
-                string[] args = message.Split(DELIMITER);
+                
+
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 clientID = args[0];
                 string communicationType = args[1];
 
                 args = args.Skip(2).ToArray();
-
-                foreach (string arg in args) {
-                    Console.WriteLine(arg);
-                }
 
                 userID = GetClientUserId(clientID);
 
@@ -178,7 +184,11 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-
+                        List<string> usersInChannel = FetchUsersInChannel(channel);
+                        foreach (string user in usersInChannel) {
+                            SendMessageToUser(channel, userID, message_content, user);
+                        }
+                        
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
@@ -201,10 +211,10 @@ namespace Server {
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
-
                         
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
+
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];
@@ -214,7 +224,7 @@ namespace Server {
 
                 return responseMessage;
 
-            } catch (Exception e) {
+            } catch {
                 return "-1";
             }
         }

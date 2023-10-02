@@ -12,7 +12,7 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, WebSocket>();
+        private static readonly Dictionary<string, System.Net.WebSockets.WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
@@ -30,7 +30,7 @@ namespace Server {
                 if (context.Request.IsWebSocketRequest) {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
 
-                    WebSocket webSocket = webSocketContext.WebSocket;
+                    System.Net.WebSockets.WebSocket webSocket = webSocketContext.WebSocket;
 
                     string clientID = Guid.NewGuid().ToString(); // generate a unique id for client
                     _clientWebSockets.Add(clientID, webSocket); // link the client id to a websocket
@@ -45,7 +45,7 @@ namespace Server {
             }
         }
 
-        private async void HandleWebSocket(WebSocket webSocket, string clientID) {
+        private async void HandleWebSocket(System.Net.WebSockets.WebSocket webSocket, string clientID) {
             try {
                 byte[] buffer = new byte[1024];
                 WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -54,8 +54,14 @@ namespace Server {
                     string message = Encoding.ASCII.GetString(buffer, 0, result.Count);
                     Console.WriteLine($"Received: {message}");
 
-                    string responseMessage = _messageHandler(message);
+                    string requestID = message.Split(":")[0];
+                    string messageDetails = message.Split(":")[1];
 
+                    string responseMessage = _messageHandler(messageDetails);
+
+                    responseMessage = requestID + ":" + responseMessage;
+
+                    Console.WriteLine("SENT: " + responseMessage);
                     byte[] responseBytes = Encoding.ASCII.GetBytes(responseMessage);
                     await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
@@ -70,6 +76,13 @@ namespace Server {
 
 
         public static void SetClientUserId(string clientId, string userId) { // link user id to a client id
+
+            if (_clientUserIds.ContainsValue(userId)) {
+                string clientIdToRemove = _clientUserIds.FirstOrDefault(entry => entry.Value == userId).Key;
+
+                _clientUserIds.Remove(clientIdToRemove);
+            }
+
             _clientUserIds[clientId] = userId;
         }
 
@@ -80,6 +93,26 @@ namespace Server {
             return null;
         }
 
+        public static async void SendMessageToUser(string channel, string userId, string message_content, string userIdToSendTo) {
+            if (_clientUserIds.ContainsValue(userIdToSendTo)) {
+                KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userIdToSendTo);
+                if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
+                    // Send Message
+
+                    string message = TypeOfCommunication.NotifyMessage + channel + WebSocketMetadata.DELIMITER + userId + WebSocketMetadata.DELIMITER + message_content;
+
+                    byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+                    await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+
+                    Console.WriteLine($"Notify Sent {message}");
+
+                } else {
+                    Console.WriteLine($"No WebSocket found for user with ID: {userIdToSendTo}");
+                }
+            } else {
+                Console.WriteLine($"No user found with ID: {userIdToSendTo}");
+            }
+        }
     }
 }
