@@ -224,7 +224,7 @@ namespace Server {
 
                 return responseMessage;
 
-            } catch (Exception e) {
+            } catch {
                 return "-1";
             }
         }
