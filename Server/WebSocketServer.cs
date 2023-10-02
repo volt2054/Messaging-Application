@@ -76,6 +76,13 @@ namespace Server {
 
 
         public static void SetClientUserId(string clientId, string userId) { // link user id to a client id
+
+            if (_clientUserIds.ContainsValue(userId)) {
+                string clientIdToRemove = _clientUserIds.FirstOrDefault(entry => entry.Value == userId).Key;
+
+                _clientUserIds.Remove(clientIdToRemove);
+            }
+
             _clientUserIds[clientId] = userId;
         }
 
