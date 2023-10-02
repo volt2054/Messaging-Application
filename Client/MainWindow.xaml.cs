@@ -513,22 +513,15 @@ namespace Client {
             ListenForMessages();
         }
 
-        private async void MessageFetchTimer_Tick(object? sender, EventArgs e) {
-            foreach (string[] message in await FetchMessages(CurrentChannelID, NewestMessage, "false", Client)) {
-                NewestMessage = message[2];
-                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], false);
-            }
-        }
-
         private async void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
-            if (e.VerticalOffset == 0) {
-                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
-                    if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                if (e.VerticalOffset == 0) {
+                    foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+                        if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                        AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                    }
                 }
             }
-        }
-
+        
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
