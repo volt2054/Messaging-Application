@@ -43,7 +43,7 @@ namespace Client {
 
     public class Icons {
         public static readonly string Chat = "/images/chat.png";
-        public static readonly string Friends = "/images/Friends.png";
+        public static readonly string Friends = "/images/friends.png";
     }
 
 
@@ -178,22 +178,21 @@ namespace Client {
             Ellipse ServerIcon = sender as Ellipse;
             string Tag = ServerIcon.Tag as string;
 
-            channeListStackPanel.Children.Clear();
+            channelListStackPanel.Children.Clear();
 
             CurrentServerID = Tag;
 
             if (Tag == SpecialServerIDs.DirectMessages) {
 
                 // FRIENDS CHANNEL
-                AddChannel(channeListStackPanel, "Friends", "-1");
+                AddChannel(channelListStackPanel, "Friends", "-1");
 
-
-                foreach (string[] channel in await FetchDMs(Client)) {
-                    AddChannel(channeListStackPanel, channel[1], channel[0]);
+                foreach (string[] channel in await FetchDMs()) {
+                    AddChannel(channelListStackPanel, channel[1], channel[0]);
                 }
             } else {
-                foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
-                    AddChannel(channeListStackPanel, channel[1], channel[0]);
+                foreach (string[] channel in await FetchChannels(CurrentServerID)) {
+                    AddChannel(channelListStackPanel, channel[1], channel[0]);
                 }
             }
 
@@ -323,8 +322,7 @@ namespace Client {
             } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
         }
 
-
-        StackPanel channeListStackPanel;
+        StackPanel channelListStackPanel;
         StackPanel messageStackPanel;
         ScrollViewer messageScrollViewer;
 
@@ -462,8 +460,8 @@ namespace Client {
             AddServerIcon(circleStackPanel, Colors.Black, SpecialServerIDs.DirectMessages); // This is where we will access DMs from
 
             // Second Column: Boxes with Icons and Text
-            channeListStackPanel = new StackPanel();
-            ScrollViewer boxScrollViewer = new ScrollViewer() { Content = channeListStackPanel };
+            channelListStackPanel = new StackPanel();
+            ScrollViewer boxScrollViewer = new ScrollViewer() { Content = channelListStackPanel };
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
 
@@ -497,9 +495,11 @@ namespace Client {
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
+          
+            AddChannel(channelListStackPanel, "Friends", "-1");
 
-            foreach (string[] channel in await FetchDMs(Client)) {
-                AddChannel(channeListStackPanel, channel[1], channel[0]);
+            foreach (string[] channel in await FetchDMs()) {
+                AddChannel(channelListStackPanel, channel[1], channel[0]);
             }
 
             foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
