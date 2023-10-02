@@ -77,7 +77,7 @@ namespace Client {
 
         static async Task<string> VerifyUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
-            string response =await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
+            string response = await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
             return response;
         }
 
@@ -113,7 +113,7 @@ namespace Client {
             return userChannels;
         }
 
-        static async Task<List<string[]>> FetchChannels( string serverID, WebSocketClient Client) {
+        static async Task<List<string[]>> FetchChannels(string serverID, WebSocketClient Client) {
             string[] data = { serverID };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
             if (response == "-1") {
@@ -147,7 +147,7 @@ namespace Client {
 
             InitializeLoginUI();
         }
-        
+
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
             await Client.CloseWebSocket();
@@ -196,8 +196,8 @@ namespace Client {
                     AddChannel(channeListStackPanel, channel[1], channel[0]);
                 }
             }
-            
-            
+
+
         }
 
         private void AddChannel(StackPanel parentStackPanel, string iconText, string channelID) {
@@ -275,7 +275,7 @@ namespace Client {
 
         }
         public void AddMessage(string channelID, string username, string messageContent) {
-            if (CurrentChannelID  == channelID) {
+            if (CurrentChannelID == channelID) {
                 AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
             }
         }
@@ -514,14 +514,19 @@ namespace Client {
         }
 
         private async void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
-                if (e.VerticalOffset == 0) {
-                    foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
-                        if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                        AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
-                    }
+
+            if (messageStackPanel.Children.Count == 1) { // Hacky fix for first message - prevents double message, When message is added the scroll is changed- so we remove this message.
+                messageStackPanel.Children.Remove(messageStackPanel.Children[0]);
+            }
+
+            if (e.VerticalOffset == 0) {
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+                    if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
                 }
             }
-        
+        }
+
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
                 TextBox textBox = sender as TextBox;
