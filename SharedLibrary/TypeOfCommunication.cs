@@ -8,6 +8,9 @@ namespace SharedLibrary {
             public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS USER ID ON SUCCESS OR "BAD PASSWORD" ON FAIL
             public static readonly string FetchChannels = "FETCHCHANNELS"; // (FETCHCHANNELS + SERVERID) RETURNS LIST OF CHANNELS
             public static readonly string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCAHNNEL + USERID + USERID) RETURNS CHANNEL ID
+
+            public static readonly string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
+
         }
     
 }

@@ -55,6 +55,20 @@ namespace Server.Database {
             return messages;
         }
 
+        public static List<string> FetchUsersInChannel(string ChannelID) {
+            List<string> users = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                    "SELECT user_id FROM ChannelUsers WHERE channel_id = @ChannelId;";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ChannelID", ChannelID);
+
+                users = ExecuteQuery<string>(connection, command);
+            });
+            return users;
+        }
+
         public static List<string[]> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
 
@@ -185,6 +199,22 @@ namespace Server.Database {
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
 
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@channelID", channelID);
+                command.Parameters.AddWithValue("@userID", user1);
+                ExecuteNonQuery(connection, command);
+            });
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@channelID", channelID);
+                command.Parameters.AddWithValue("@userID", user2);
+                ExecuteNonQuery(connection, command);
+            });
+
             return channelID.ToString();
         }
 
@@ -199,6 +229,8 @@ namespace Server.Database {
 
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
+
+            // need to add users to channel
 
             return channelID.ToString();
         }
