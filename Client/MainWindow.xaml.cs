@@ -145,7 +145,7 @@ namespace Client {
 
             Client = new WebSocketClient();
 
-            InitializeLoginUI();
+            InitializeFriendsUI();
         }
 
         // Make sure websocket is closed
@@ -239,19 +239,24 @@ namespace Client {
         }
 
         private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = ChannelElement.Tag as string;
 
-            messageStackPanel.Children.Clear();
-            OldestMessage = int.MinValue.ToString();
-            OldestMessage = int.MaxValue.ToString();
+            if (CurrentChannelID == "-1") {
+                // Load Friends UI
+            } else {
+                messageStackPanel.Children.Clear();
+                OldestMessage = int.MinValue.ToString();
+                OldestMessage = int.MaxValue.ToString();
 
-            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
-                messageScrollViewer.ScrollToEnd();
-                if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
-                if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
-                messageScrollViewer.ScrollToBottom();
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+                    messageScrollViewer.ScrollToEnd();
+                    if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
+                    if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
+                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                    messageScrollViewer.ScrollToBottom();
+                }
             }
         }
 
@@ -495,7 +500,7 @@ namespace Client {
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
-          
+
             AddChannel(channelListStackPanel, "Friends", "-1");
 
             foreach (string[] channel in await FetchDMs(Client)) {
@@ -535,6 +540,109 @@ namespace Client {
                     textBox.Clear();
                 }
             }
+        }
+
+        StackPanel FriendsStackPanel;
+        private void InitializeFriendsUI() {
+            Grid mainGrid = new Grid();
+            mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
+            mainGrid.VerticalAlignment = VerticalAlignment.Top;
+
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(5, GridUnitType.Star) });
+
+            // Define the header Grid
+            Grid headerGrid = new Grid();
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+            // Create and add buttons to the header Grid
+            Button addButton = new Button() { Content = "Add Friend", Margin = new Thickness(5) };
+            Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
+            Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
+
+            Grid.SetColumn(addButton, 0);
+            Grid.SetColumn(dmButton, 1);
+            Grid.SetColumn(groupChatButton, 2);
+
+            headerGrid.Children.Add(addButton);
+            headerGrid.Children.Add(dmButton);
+            headerGrid.Children.Add(groupChatButton);
+
+            Grid.SetRow(headerGrid, 0);
+
+            
+
+            // Define the friend list StackPanel
+            FriendsStackPanel = new StackPanel();
+            FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
+
+
+            // Add sample friend elements (you can add more dynamically)
+            AddFriendElement("Friend1");
+            AddFriendElement("Friend2");
+
+            for (int i = 0; i < 100; i++) {
+                AddFriendElement("Friend" + i);
+            }
+            ScrollViewer friendsScrollViewer = new ScrollViewer();
+            friendsScrollViewer.Content = FriendsStackPanel;
+            Grid.SetRow(friendsScrollViewer, 1);
+
+            friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
+
+            // Add the header Grid and friend list StackPanel to the main Grid
+            mainGrid.Children.Add(headerGrid);
+            mainGrid.Children.Add(friendsScrollViewer);
+
+            // Set the main Grid as the Window content
+            this.Content = mainGrid;
+
+        }
+
+
+        private void AddFriendElement(string username) {
+            // Create a friend element
+            Border friendBorder = new Border();
+            friendBorder.BorderBrush = Brushes.LightGray;
+            friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
+            friendBorder.Padding = new Thickness(5);
+
+            Grid friendGrid = new Grid();
+
+            Ellipse ellipse = new Ellipse();
+            ellipse.Width = 25;
+            ellipse.Height = 25;
+            ellipse.Fill = Brushes.Red;
+
+            Label label = new Label();
+            label.Content = username;
+            label.VerticalAlignment = VerticalAlignment.Center;
+            label.HorizontalAlignment = HorizontalAlignment.Left;
+            label.Margin = new Thickness(35, 0, 60, 0);
+
+            Button removeButton = new Button();
+            removeButton.Content = "X";
+            removeButton.VerticalAlignment = VerticalAlignment.Center;
+            removeButton.HorizontalAlignment = HorizontalAlignment.Right;
+            removeButton.Width = 20;
+            removeButton.Click += RemoveFriend_Click;
+
+            // Add elements to the friendGrid
+            friendGrid.Children.Add(ellipse);
+            friendGrid.Children.Add(label);
+            friendGrid.Children.Add(removeButton);
+
+            friendBorder.Child = friendGrid;
+
+            // Add the friendBorder to the FriendsStackPanel
+            FriendsStackPanel.Children.Add(friendBorder);
+        }
+
+        private void RemoveFriend_Click(object sender, RoutedEventArgs e) {
+            // Handle the remove friend button click
+            // You can implement the removal logic here
         }
     }
 }
