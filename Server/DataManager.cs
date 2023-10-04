@@ -69,182 +69,192 @@ namespace Server.Database {
             return users;
         }
 
-        public static List<string[]> FetchUserDMs(string userID) {
-            List<string[]> result = new List<string[]>();
+        // INSERT INTO friendships (user_id, friend_id) VALUES (1, 2);
+        //DELETE FROM friendships WHERE(user_id = 1 AND friend_id = 2) OR(user_id = 2 AND friend_id = 1);
+/*
+ * SELECT u.username AS friend_username
+FROM users u
+INNER JOIN friendships f ON u.user_id = f.friend_id
+WHERE f.user_id = [your_user_id]
+*/
 
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery =
-                    "SELECT channel_id, channel_name " +
-                    "FROM Channels " +
-                    "WHERE channel_name LIKE @ChannelName AND server_id IS NULL";
 
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", "DM_%" + userID + "%");
+public static List<string[]> FetchUserDMs(string userID) {
+    List<string[]> result = new List<string[]>();
 
-                result = ExecuteQuery<string[]>(connection, command);
-            });
+    ExecuteDatabaseOperations(connection => {
+        string selectQuery =
+            "SELECT channel_id, channel_name " +
+            "FROM Channels " +
+            "WHERE channel_name LIKE @ChannelName AND server_id IS NULL";
 
-            return result;
+        SqlCommand command = new SqlCommand(selectQuery, connection);
+        command.Parameters.AddWithValue("@ChannelName", "DM_%" + userID + "%");
+
+        result = ExecuteQuery<string[]>(connection, command);
+    });
+
+    return result;
+}
+
+public static List<string[]> FetchServerChannels(string serverID) { //TODO TEST
+    List<string[]> result = new List<string[]>();
+
+    ExecuteDatabaseOperations(connection => {
+        string selectQuery =
+            "SELECT channel_id, channel_name " +
+            "FROM Channels " +
+            "WHERE server_id IS @ServerID";
+
+        SqlCommand command = new SqlCommand(selectQuery, connection);
+        command.Parameters.AddWithValue("@ServerID", serverID);
+
+        result = ExecuteQuery<string[]>(connection, command);
+    });
+
+    return result;
+}
+
+
+
+
+
+
+public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES (@MessageContent, @ChannelID, @UserID)";
+        SqlCommand command = new SqlCommand(insertQuery, connection);
+        command.Parameters.AddWithValue("@MessageContent", messageContent);
+        command.Parameters.AddWithValue("@ChannelID", channelID);
+        command.Parameters.AddWithValue("@UserID", userID);
+        ExecuteNonQuery(connection, command);
+    });
+}
+
+
+public static string GetID(string username) {
+    string result = "";
+
+    ExecuteDatabaseOperations(connection => {
+        string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
+
+        SqlCommand command = new SqlCommand(selectQuery, connection);
+        command.Parameters.AddWithValue("@Username", username);
+
+        List<string> queryResult = ExecuteQuery<string>(connection, command);
+        result = queryResult.First();
+    });
+
+    return result;
+}
+
+public static void DeleteUser(string userID) {
+    ExecuteDatabaseOperations(connection => {
+        string deleteQuery = "DELETE FROM Users WHERE user_id = @UserID";
+
+        SqlCommand command = new SqlCommand(deleteQuery, connection);
+        command.Parameters.AddWithValue("@UserID", userID);
+
+        ExecuteNonQuery(connection, command);
+    });
+}
+
+public static string InsertNewUser(string username, string email, string password) {
+    string userID = "-1";
+
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password); SELECT SCOPE_IDENTITY();";
+
+        SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
+        insertCommand.Parameters.AddWithValue("@Username", username);
+        insertCommand.Parameters.AddWithValue("@Email", email);
+        insertCommand.Parameters.AddWithValue("@Password", password);
+
+        userID = Convert.ToInt32(insertCommand.ExecuteScalar()).ToString();
+    });
+
+    return userID;
+}
+
+
+public static bool CheckUser(string username, string email, string password) {
+    bool isValidUser = false;
+
+    ExecuteDatabaseOperations(connection => {
+        string searchQuery = "SELECT password FROM USERS WHERE email = @Email OR username = @Username";
+        SqlCommand command = new SqlCommand(searchQuery, connection);
+        command.Parameters.AddWithValue("@Email", email);
+        command.Parameters.AddWithValue("@Username", username);
+
+        List<string> result = ExecuteQuery<string>(connection, command);
+
+        if (result.Count > 0 && result.Last() == password) {
+            isValidUser = true;
         }
+    });
 
-        public static List<string[]> FetchServerChannels(string serverID) { //TODO TEST
-            List<string[]> result = new List<string[]>();
+    return isValidUser;
+}
 
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery =
-                    "SELECT channel_id, channel_name " +
-                    "FROM Channels " +
-                    "WHERE server_id IS @ServerID";
+public static string CreateDMChannel(string User1ID, string User2ID) {
+    int user1 = Convert.ToInt32(User1ID);
+    int user2 = Convert.ToInt32(User2ID);
+    string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
 
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@ServerID", serverID);
+    int channelID = -1;
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
+        SqlCommand command = new SqlCommand(insertQuery, connection);
+        command.Parameters.AddWithValue("@ChannelName", dmChannelName);
+        channelID = Convert.ToInt32(command.ExecuteScalar());
+    });
 
-                result = ExecuteQuery<string[]>(connection, command);
-            });
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+        SqlCommand command = new SqlCommand(insertQuery, connection);
+        command.Parameters.AddWithValue("@channelID", channelID);
+        command.Parameters.AddWithValue("@userID", user1);
+        ExecuteNonQuery(connection, command);
+    });
 
-            return result;
-        }
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+        SqlCommand command = new SqlCommand(insertQuery, connection);
+        command.Parameters.AddWithValue("@channelID", channelID);
+        command.Parameters.AddWithValue("@userID", user2);
+        ExecuteNonQuery(connection, command);
+    });
 
+    return channelID.ToString();
+}
 
+public static string CreateChannel(string channel_name, string server_id) {
+    int channelID = -1;
+    ExecuteDatabaseOperations(connection => {
+        string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
 
+        SqlCommand command = new SqlCommand(insertQuery, connection);
+        command.Parameters.AddWithValue("@ChannelName", channel_name);
+        command.Parameters.AddWithValue("@ServerID", server_id);
 
+        channelID = Convert.ToInt32(command.ExecuteScalar());
+    });
 
+    // need to add users to channel
 
-        public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES (@MessageContent, @ChannelID, @UserID)";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", messageContent);
-                command.Parameters.AddWithValue("@ChannelID", channelID);
-                command.Parameters.AddWithValue("@UserID", userID);
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
-
-        public static string GetID(string username) {
-            string result = "";
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
-
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Username", username);
-
-                List<string> queryResult = ExecuteQuery<string>(connection, command);
-                result = queryResult.First();
-            });
-
-            return result;
-        }
-
-        public static void DeleteUser(string userID) {
-            ExecuteDatabaseOperations(connection => {
-                string deleteQuery = "DELETE FROM Users WHERE user_id = @UserID";
-
-                SqlCommand command = new SqlCommand(deleteQuery, connection);
-                command.Parameters.AddWithValue("@UserID", userID);
-
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
-        public static string InsertNewUser(string username, string email, string password) {
-            string userID = "-1";
-
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password); SELECT SCOPE_IDENTITY();";
-
-                SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
-                insertCommand.Parameters.AddWithValue("@Username", username);
-                insertCommand.Parameters.AddWithValue("@Email", email);
-                insertCommand.Parameters.AddWithValue("@Password", password);
-
-                userID = Convert.ToInt32(insertCommand.ExecuteScalar()).ToString();
-            });
-
-            return userID;
-        }
+    return channelID.ToString();
+}
 
 
-        public static bool CheckUser(string username, string email, string password) {
-            bool isValidUser = false;
+public static void SelectAll() {
+    List<string> result = new List<string>();
 
-            ExecuteDatabaseOperations(connection => {
-                string searchQuery = "SELECT password FROM USERS WHERE email = @Email OR username = @Username";
-                SqlCommand command = new SqlCommand(searchQuery, connection);
-                command.Parameters.AddWithValue("@Email", email);
-                command.Parameters.AddWithValue("@Username", username);
+    ExecuteDatabaseOperations(connection => {
+        string selectQuery = "SELECT * FROM Users";
+        result = ExecuteQuery<string>(connection, selectQuery);
+    });
 
-                List<string> result = ExecuteQuery<string>(connection, command);
+}
 
-                if (result.Count > 0 && result.Last() == password) {
-                    isValidUser = true;
-                }
-            });
-
-            return isValidUser;
-        }
-
-        public static string CreateDMChannel(string User1ID, string User2ID) {
-            int user1 = Convert.ToInt32(User1ID);
-            int user2 = Convert.ToInt32(User2ID);
-            string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
-
-            int channelID = -1;
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", dmChannelName);
-                channelID = Convert.ToInt32(command.ExecuteScalar());
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@channelID", channelID);
-                command.Parameters.AddWithValue("@userID", user1);
-                ExecuteNonQuery(connection, command);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@channelID", channelID);
-                command.Parameters.AddWithValue("@userID", user2);
-                ExecuteNonQuery(connection, command);
-            });
-
-            return channelID.ToString();
-        }
-
-        public static string CreateChannel(string channel_name, string server_id) {
-            int channelID = -1;
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
-
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", channel_name);
-                command.Parameters.AddWithValue("@ServerID", server_id);
-
-                channelID = Convert.ToInt32(command.ExecuteScalar());
-            });
-
-            // need to add users to channel
-
-            return channelID.ToString();
-        }
-
-
-        public static void SelectAll() {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Users";
-                result = ExecuteQuery<string>(connection, selectQuery);
-            });
-
-        }
-
-    }
+}
 }

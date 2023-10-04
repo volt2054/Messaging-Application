@@ -163,6 +163,21 @@ namespace Server.Database {
                     ExecuteNonQuery(connection, command);
                 });
 
+                ExecuteDatabaseOperations(connection => {
+                    string command =
+                    "CREATE TABLE [dbo].[UserFriendships] (" +
+                    "   [user_id]           INT         NOT NULL  IDENTITY(1,1)," +
+                    "   [friend_id]        INT         NOT NULL," +
+                    "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   PRIMARY KEY CLUSTERED([user_id] ASC)," +
+                    "   FOREIGN KEY (user_id) REFERENCES Users(user_id)," +
+                    "   FOREIGN KEY (friend_id) REFERENCES Users(user_id)," +
+                    ");";
+
+                    ExecuteNonQuery(connection, command);
+                });
+
+
 
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
