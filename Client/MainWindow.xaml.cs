@@ -161,7 +161,7 @@ namespace Client {
 
             Client = new WebSocketClient();
 
-            InitializeFriendsUI();
+            InitializeLoginUI();
         }
 
         // Make sure websocket is closed
