@@ -145,7 +145,7 @@ namespace Client {
 
             Client = new WebSocketClient();
 
-            InitializeFriendsUI();
+            InitializeLoginUI();
         }
 
         // Make sure websocket is closed
@@ -244,7 +244,7 @@ namespace Client {
             CurrentChannelID = ChannelElement.Tag as string;
 
             if (CurrentChannelID == "-1") {
-                // Load Friends UI
+                InitializeFriendsUI();
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
@@ -578,14 +578,6 @@ namespace Client {
             FriendsStackPanel = new StackPanel();
             FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
-
-            // Add sample friend elements (you can add more dynamically)
-            AddFriendElement("Friend1");
-            AddFriendElement("Friend2");
-
-            for (int i = 0; i < 100; i++) {
-                AddFriendElement("Friend" + i);
-            }
             ScrollViewer friendsScrollViewer = new ScrollViewer();
             friendsScrollViewer.Content = FriendsStackPanel;
             Grid.SetRow(friendsScrollViewer, 1);
