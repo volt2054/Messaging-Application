@@ -222,7 +222,17 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;
                         string user2 = args[0];
-                        AddFriend(user1, user2);
+                        responseMessage = AddFriend(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.RemoveFriend) {
+                        string user1 = userID;
+                        string user2 = args[0];
+                        responseMessage = RemoveFriend(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.GetFriends) {
+                        string user1 = userID;
+                        
+                        List<string> friends = GetFriends(userID);
+                        byte[] friendsData = SerializeList(friends);
+                        responseMessage = Convert.ToBase64String(friendsData);
                     }
                 }
 
