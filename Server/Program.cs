@@ -88,9 +88,6 @@ namespace Server {
                 } else if (command == "TEST") {
                     string username = commandParts[1];
                     GetFriends(username);
-                } else if (command == "EXIT") {
-                    isRunning = false;
-                    break;
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
