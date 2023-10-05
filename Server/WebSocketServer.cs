@@ -23,7 +23,6 @@ namespace Server {
 
         public async Task StartAsync() {
             _httpListener.Start();
-            Console.WriteLine("WebSocket server listening...");
 
             while (true) {
                 HttpListenerContext context = await _httpListener.GetContextAsync();

@@ -44,7 +44,6 @@ namespace Server {
 
             WebSocketServer webSocketServer = new WebSocketServer(ipAddress, port, HandleClient);
             await webSocketServer.StartAsync();
-            
         }
 
         static int requestCount = 0;
