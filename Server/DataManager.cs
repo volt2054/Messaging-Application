@@ -69,7 +69,10 @@ namespace Server.Database {
             return users;
         }
 
-        public static void AddFriend(string userID, string friendID) {
+        public static string AddFriend(string userID, string friendID) {
+            string result = "-1";
+            try {
+
             ExecuteDatabaseOperations(connection => {
                 string insertQuery =
                     "INSERT INTO friendships (user_id, friend_id) VALUES (@UserID, @FriendID);";
@@ -79,10 +82,17 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@FriendID", friendID);
                 ExecuteNonQuery(connection, command);
             });
+                return "0";
+            } catch {
+                return result;
+            }
+
         }
 
-        public static void RemoveFriend(string userID, string friendID) {
-            ExecuteDatabaseOperations(connection => {
+        public static string RemoveFriend(string userID, string friendID) {
+            string result = "-1";
+            try {
+                ExecuteDatabaseOperations(connection => {
                 string insertQuery =
                     "DELETE FROM friendships WHERE(user_id = @UserID AND friend_id = @FriendID)";
 
@@ -90,7 +100,11 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@UserID", userID);
                 command.Parameters.AddWithValue("@FriendID", friendID);
                 ExecuteNonQuery(connection, command);
-            });
+                });
+                return "0";
+            } catch {
+                return result;
+            }
         }
 
         public static List<string> GetFriends(string userID) {
