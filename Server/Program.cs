@@ -109,7 +109,7 @@ namespace Server {
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
                     string username = commandParts[1];
-                    SendMessageToUser("-2","0", "TEST", username);
+                    GetFriends(username);
                 } else if (command == "EXIT") {
                     isRunning = false;
                     break;

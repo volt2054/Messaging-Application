@@ -111,11 +111,13 @@ namespace Server.Database {
             List<string> result = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT u.username AS friend_username" +
-                "FROM users u" +
-                "INNER JOIN UserFriendships f ON u.user_id = f.friend_id" +
+                "SELECT u.username AS friend_username " +
+                "FROM Users u " +
+                "INNER JOIN UserFriendships f ON u.user_id = f.friend_id " +
                 "WHERE f.user_id = @UserID";
-                result = ExecuteQuery<string>(connection, selectQuery);
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+                result = ExecuteQuery<string>(connection, command);
             });
             return result;
         }

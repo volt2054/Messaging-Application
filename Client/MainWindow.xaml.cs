@@ -140,6 +140,21 @@ namespace Client {
 
         }
 
+        static async Task<List<string>> FetchFriends(WebSocketClient Client) {
+            string[] data = { };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
+
+            if (response == "-1") {
+                return new List<string>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string> friendsList = DeserializeList<string>(dataBytes);
+
+            return friendsList;
+
+        }
+
         public MainWindow() {
             InitializeComponent();
 
@@ -543,7 +558,7 @@ namespace Client {
         }
 
         StackPanel FriendsStackPanel;
-        private void InitializeFriendsUI() {
+        private async void InitializeFriendsUI() {
             Grid mainGrid = new Grid();
             mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
             mainGrid.VerticalAlignment = VerticalAlignment.Top;
@@ -598,6 +613,10 @@ namespace Client {
             mainGrid.Children.Add(headerGrid);
             mainGrid.Children.Add(friendsScrollViewer);
 
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend);
+            }
+
             // Set the main Grid as the Window content
             this.Content = mainGrid;
 
@@ -620,6 +639,8 @@ namespace Client {
 
 
             Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+
+            AddFriendElement(text.Text);
         }
 
         private void AddFriendElement(string username) {
