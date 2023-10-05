@@ -33,28 +33,7 @@ namespace Server {
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
-            CreateDatabase();
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Messages";
-                ExecuteNonQuery(connection, del);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM ChannelUsers";
-                ExecuteNonQuery(connection, del);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Users";
-                ExecuteNonQuery(connection, del);
-            });
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Channels";
-                ExecuteNonQuery(connection, del);
-            });
-
-
+            //CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();

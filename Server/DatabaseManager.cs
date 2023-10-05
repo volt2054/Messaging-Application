@@ -190,7 +190,16 @@ namespace Server.Database {
         public static void DropTables() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users; DROP TABLE ChannelUsers; DROP TABLE Messages; DROP TABLE Channels";
+                    string command =    "DROP TABLE [dbo].[UserFriendships];" +
+                                        "DROP TABLE [dbo].[UserChannelRoles];" +
+                                        "DROP TABLE [dbo].[ChannelRoles];" +
+                                        "DROP TABLE [dbo].[ChannelUsers];" +
+                                        "DROP TABLE [dbo].[UserServers];" +
+                                        "DROP TABLE [dbo].[Messages];" +
+                                        "DROP TABLE [dbo].[Roles];" +
+                                        "DROP TABLE [dbo].[Channels];" +
+                                        "DROP TABLE [dbo].[Servers];" +
+                                        "DROP TABLE [dbo].[Users];";
                     ExecuteNonQuery(connection, command);
 
                 });
