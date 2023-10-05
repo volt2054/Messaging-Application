@@ -548,7 +548,7 @@ namespace Client {
             mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
             mainGrid.VerticalAlignment = VerticalAlignment.Top;
 
-            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) });
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(5, GridUnitType.Star) });
 
             // Define the header Grid
@@ -558,7 +558,7 @@ namespace Client {
             headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             // Create and add buttons to the header Grid
-            Button addButton = new Button() { Content = "Add Friend", Margin = new Thickness(5) };
+            Button addButton = new Button() { Content = "Add Friend" };
             Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
             Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
 
@@ -566,11 +566,17 @@ namespace Client {
             dmButton.Click += DmButton_Click;
             groupChatButton.Click += GroupChatButton_Click;
 
-            Grid.SetColumn(addButton, 0);
+            TextBox FriendText = new TextBox();
+
+            StackPanel AddFriend = new StackPanel() { Margin = new Thickness(5) };
+            AddFriend.Children.Add(addButton);
+            AddFriend.Children.Add(FriendText);
+
+            Grid.SetColumn(AddFriend, 0);
             Grid.SetColumn(dmButton, 1);
             Grid.SetColumn(groupChatButton, 2);
 
-            headerGrid.Children.Add(addButton);
+            headerGrid.Children.Add(AddFriend);
             headerGrid.Children.Add(dmButton);
             headerGrid.Children.Add(groupChatButton);
 
@@ -606,7 +612,14 @@ namespace Client {
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e) {
-            // Add Friend
+            Button button = sender as Button;
+            StackPanel panel = button.Parent as StackPanel;
+            TextBox text = panel.Children[1] as TextBox;
+
+            string[] data = { text.Text };
+
+
+            Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
         }
 
         private void AddFriendElement(string username) {

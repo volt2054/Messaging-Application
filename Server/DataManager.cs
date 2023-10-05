@@ -75,7 +75,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string insertQuery =
-                    "INSERT INTO friendships (user_id, friend_id) VALUES (@UserID, @FriendID);";
+                    "INSERT INTO UserFriendships (user_id, friend_id) VALUES (@UserID, @FriendID);";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
@@ -94,7 +94,7 @@ namespace Server.Database {
             try {
                 ExecuteDatabaseOperations(connection => {
                 string insertQuery =
-                    "DELETE FROM friendships WHERE(user_id = @UserID AND friend_id = @FriendID)";
+                    "DELETE FROM UserFriendships WHERE(user_id = @UserID AND friend_id = @FriendID)";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
@@ -113,7 +113,7 @@ namespace Server.Database {
                 string selectQuery =
                 "SELECT u.username AS friend_username" +
                 "FROM users u" +
-                "INNER JOIN friendships f ON u.user_id = f.friend_id" +
+                "INNER JOIN UserFriendships f ON u.user_id = f.friend_id" +
                 "WHERE f.user_id = @UserID";
                 result = ExecuteQuery<string>(connection, selectQuery);
             });
