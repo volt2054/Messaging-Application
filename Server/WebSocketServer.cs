@@ -12,7 +12,7 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private static readonly Dictionary<string, System.Net.WebSockets.WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
+        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
@@ -29,7 +29,7 @@ namespace Server {
                 if (context.Request.IsWebSocketRequest) {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
 
-                    System.Net.WebSockets.WebSocket webSocket = webSocketContext.WebSocket;
+                    WebSocket webSocket = webSocketContext.WebSocket;
 
                     string clientID = Guid.NewGuid().ToString(); // generate a unique id for client
                     _clientWebSockets.Add(clientID, webSocket); // link the client id to a websocket
