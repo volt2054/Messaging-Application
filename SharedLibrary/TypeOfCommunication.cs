@@ -7,7 +7,7 @@ namespace SharedLibrary {
             public static readonly string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
             public static readonly string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS USER ID ON SUCCESS OR "BAD PASSWORD" ON FAIL
             public static readonly string FetchChannels = "FETCHCHANNELS"; // (FETCHCHANNELS + SERVERID) RETURNS LIST OF CHANNELS
-            public static readonly string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCAHNNEL + USERID + USERID) RETURNS CHANNEL ID
+            public static readonly string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCAHNNEL + USERID) RETURNS CHANNEL ID
             public static readonly string AddFriend = "ADDFRIEND"; // (ADDFRIEND + FRIENDID)
             public static readonly string RemoveFriend = "REMFRIEND"; // (REMFRIEND + FRIENDID)
             public static readonly string GetFriends = "GETFRIEND"; // (GETFRIEND + USERID)

@@ -26,6 +26,7 @@ using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
 using System.Net.WebSockets;
 using System.Threading;
+using System.DirectoryServices.ActiveDirectory;
 
 namespace Client {
 
@@ -160,7 +161,7 @@ namespace Client {
 
             Client = new WebSocketClient();
 
-            InitializeLoginUI();
+            InitializeFriendsUI();
         }
 
         // Make sure websocket is closed
@@ -627,7 +628,14 @@ namespace Client {
         }
 
         private void DmButton_Click(object sender, RoutedEventArgs e) {
-            // Make new DM
+            foreach(Border item in FriendsStackPanel.Children) {
+                Grid grid = item.Child as Grid;
+                CheckBox checkbox = grid.Children[0] as CheckBox;
+                if (checkbox.IsChecked == true) {
+                    Label label = grid.Children[2] as Label;
+                    MessageBox.Show(label.Content.ToString()); ;
+                }
+            }
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e) {
@@ -652,6 +660,11 @@ namespace Client {
 
             Grid friendGrid = new Grid();
 
+            CheckBox checkBox = new CheckBox {
+                IsChecked = false,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
             Ellipse ellipse = new Ellipse();
             ellipse.Width = 25;
             ellipse.Height = 25;
@@ -671,6 +684,7 @@ namespace Client {
             removeButton.Click += RemoveFriend_Click;
 
             // Add elements to the friendGrid
+            friendGrid.Children.Add(checkBox);
             friendGrid.Children.Add(ellipse);
             friendGrid.Children.Add(label);
             friendGrid.Children.Add(removeButton);
