@@ -219,6 +219,9 @@ namespace Server {
                         string user1 = userID;
                         string user2 = args[0];
                         responseMessage = CreateDMChannel(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.AddFriend) {
+                        string user1 = userID;
+                        string user2 = args[0];
                     }
                 }
 
