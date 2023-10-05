@@ -562,6 +562,10 @@ namespace Client {
             Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
             Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
 
+            addButton.Click += AddButton_Click;
+            dmButton.Click += DmButton_Click;
+            groupChatButton.Click += GroupChatButton_Click;
+
             Grid.SetColumn(addButton, 0);
             Grid.SetColumn(dmButton, 1);
             Grid.SetColumn(groupChatButton, 2);
@@ -593,6 +597,17 @@ namespace Client {
 
         }
 
+        private void GroupChatButton_Click(object sender, RoutedEventArgs e) {
+            // Make new GroupChat
+        }
+
+        private void DmButton_Click(object sender, RoutedEventArgs e) {
+            // Make new DM
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e) {
+            // Add Friend
+        }
 
         private void AddFriendElement(string username) {
             // Create a friend element
