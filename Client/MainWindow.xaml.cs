@@ -623,8 +623,25 @@ namespace Client {
 
         }
 
-        private void GroupChatButton_Click(object sender, RoutedEventArgs e) {
-            // Make new GroupChat
+        private async void GroupChatButton_Click(object sender, RoutedEventArgs e) {
+            List<string> UserIDs = new List<string>();
+            UserIDs.Add(CurrentUserID);
+            foreach (Border item in FriendsStackPanel.Children) {
+                Grid grid = item.Child as Grid;
+                CheckBox checkbox = grid.Children[0] as CheckBox;
+                if (checkbox.IsChecked == true) {
+                    Label label = grid.Children[2] as Label;
+
+                    string UserID = await GetID(label.Content.ToString(), Client);
+                    UserIDs.Add(UserID);
+                }
+            }
+            byte[] SerializedData = SerializeList<string>(UserIDs);
+            string B64Data = Convert.ToBase64String(SerializedData);
+
+            string[] data = {B64Data};
+
+            Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
         }
 
         private async void DmButton_Click(object sender, RoutedEventArgs e) {

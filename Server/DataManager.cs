@@ -10,6 +10,8 @@ using Microsoft.Data.SqlClient;
 
 using static Server.Database.DatabaseManager;
 using System.Threading.Channels;
+using System.Runtime.Intrinsics.X86;
+using System.Collections;
 
 namespace Server.Database {
     public class DataManager {
@@ -126,15 +128,16 @@ namespace Server.Database {
         public static List<string[]> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
 
+            
+
             ExecuteDatabaseOperations(connection => {
-                string selectQuery =
-                    "SELECT channel_id, channel_name " +
-                    "FROM Channels " +
-                    "WHERE channel_name LIKE @ChannelName AND server_id IS NULL";
-
+                string selectQuery = "SELECT c.channel_id, c.channel_name " +
+                "FROM Channels c " +
+                "INNER JOIN ChannelUsers cu ON c.channel_id = cu.channel_id " +
+                "WHERE cu.user_id = @UserID " +
+                "AND c.server_id IS NULL;";
                 SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@ChannelName", "DM_%" + userID + "%");
-
+                command.Parameters.AddWithValue("@UserID", userID);
                 result = ExecuteQuery<string[]>(connection, command);
             });
 
@@ -268,6 +271,34 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@userID", user2);
                 ExecuteNonQuery(connection, command);
             });
+
+            return channelID.ToString();
+        }
+
+        public static string CreateGroupChannel(List<string> users) {
+            string groupChatName = $"GC_";
+            foreach(string user in users) {
+                groupChatName += (user+"_");
+            }
+
+
+            int channelID = -1;
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = $"INSERT INTO Channels (channel_name) VALUES (@ChannelName); SELECT SCOPE_IDENTITY();";
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ChannelName", groupChatName);
+                channelID = Convert.ToInt32(command.ExecuteScalar());
+            });
+
+            foreach (string user in users) {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO ChannelUsers(channel_id, user_id) VALUES(@channelId, @userId)";
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@channelID", channelID);
+                    command.Parameters.AddWithValue("@userID", user);
+                    ExecuteNonQuery(connection, command);
+                });
+            }
 
             return channelID.ToString();
         }

@@ -163,7 +163,7 @@ namespace Server {
                         foreach (string user in usersInChannel) {
                             SendMessageToUser(channel, userID, message_content, user);
                         }
-                        
+
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
@@ -186,7 +186,7 @@ namespace Server {
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
-                        
+
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
 
@@ -194,6 +194,13 @@ namespace Server {
                         string user1 = userID;
                         string user2 = args[0];
                         responseMessage = CreateDMChannel(user1, user2);
+
+                    } else if (communicationType== TypeOfCommunication.CreateGroupChannel) {
+                        byte[] usersData = Convert.FromBase64String(args[0]);
+                        List<string> users = DeserializeList<string>(usersData);
+
+                        responseMessage = CreateGroupChannel(users);
+
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;
                         string user2 = args[0];
