@@ -627,26 +627,33 @@ namespace Client {
             // Make new GroupChat
         }
 
-        private void DmButton_Click(object sender, RoutedEventArgs e) {
+        private async void DmButton_Click(object sender, RoutedEventArgs e) {
             foreach(Border item in FriendsStackPanel.Children) {
                 Grid grid = item.Child as Grid;
                 CheckBox checkbox = grid.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
                     Label label = grid.Children[2] as Label;
-                    MessageBox.Show(label.Content.ToString()); ;
+
+                    string ID = await GetID(label.Content.ToString(), Client);
+
+                    string[] data = { ID };
+
+                    await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
                 }
             }
         }
 
-        private void AddButton_Click(object sender, RoutedEventArgs e) {
+        private async void AddButton_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
             StackPanel panel = button.Parent as StackPanel;
             TextBox text = panel.Children[1] as TextBox;
 
-            string[] data = { text.Text };
 
+            string ID = await GetID(text.Text, Client);
 
-            Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+            string[] data = { ID };
+
+            await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
             AddFriendElement(text.Text);
         }
@@ -695,9 +702,18 @@ namespace Client {
             FriendsStackPanel.Children.Add(friendBorder);
         }
 
-        private void RemoveFriend_Click(object sender, RoutedEventArgs e) {
-            // Handle the remove friend button click
-            // You can implement the removal logic here
+        private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
+            Button button = sender as Button;
+            Grid grid = button.Parent as Grid;
+            Label label = grid.Children[2] as Label;
+            Border border = grid.Parent as Border;
+            string username = label.Content.ToString();
+            string id = await GetID(username, Client);
+            string[] data = { id };
+
+            await Client.SendAndRecieve(TypeOfCommunication.RemoveFriend, data);
+
+            FriendsStackPanel.Children.Remove(border);
         }
     }
 }
