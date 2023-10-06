@@ -650,9 +650,7 @@ namespace Client {
 
 
             string ID = await GetID(text.Text, Client);
-
             string[] data = { ID };
-
             await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
             AddFriendElement(text.Text);
