@@ -627,24 +627,31 @@ namespace Client {
             // Make new GroupChat
         }
 
-        private void DmButton_Click(object sender, RoutedEventArgs e) {
+        private async void DmButton_Click(object sender, RoutedEventArgs e) {
             foreach(Border item in FriendsStackPanel.Children) {
                 Grid grid = item.Child as Grid;
                 CheckBox checkbox = grid.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
                     Label label = grid.Children[2] as Label;
-                    MessageBox.Show(label.Content.ToString()); ;
+
+                    string ID = await GetID(label.Content.ToString(), Client);
+
+                    string[] data = { ID };
+
+                    Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
                 }
             }
         }
 
-        private void AddButton_Click(object sender, RoutedEventArgs e) {
+        private async void AddButton_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
             StackPanel panel = button.Parent as StackPanel;
             TextBox text = panel.Children[1] as TextBox;
 
-            string[] data = { text.Text };
 
+            string ID = await GetID(text.Text, Client);
+
+            string[] data = { ID };
 
             Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
