@@ -66,10 +66,6 @@ namespace Client {
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
 
-        Grid gridLogin = new Grid();
-
-        Grid messagingGrid = new Grid();
-
         static async Task<string> CreateUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
             string response = await Client.SendAndRecieve(TypeOfCommunication.RegisterUser, data);
@@ -348,6 +344,8 @@ namespace Client {
         ScrollViewer messageScrollViewer;
 
         private void InitializeLoginUI() {
+            Grid gridLogin = new Grid();
+
             RowDefinition rowDefinitionTitleLogin = new RowDefinition();
             rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
             RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
@@ -466,6 +464,8 @@ namespace Client {
         }
 
         private async void InitializeMessagingUI() {
+            Grid messagingGrid = new Grid();
+
             Content = messagingGrid;
 
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
