@@ -98,8 +98,6 @@ namespace Client {
                     messageToSend += datum;
                 }
 
-
-
                 byte[] messageBytes = Encoding.ASCII.GetBytes(messageToSend);
                 await _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None); // Send Request
 

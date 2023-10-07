@@ -43,7 +43,7 @@ namespace Server.Database {
                     "SELECT TOP " + count + " user_id, message_content, message_id " +
                     "FROM Messages " +
                     "WHERE channel_id = @ChannelID AND " +
-                    (fetchBefore ? "message_id < @MessageID" : "message_id >= @MessageID") +
+                    (fetchBefore ? "message_id < @MessageID" : "message_id > @MessageID") +
                     " ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
