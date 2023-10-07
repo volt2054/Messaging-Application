@@ -27,6 +27,7 @@ using static SharedLibrary.Serialization;
 using System.Net.WebSockets;
 using System.Threading;
 using System.DirectoryServices.ActiveDirectory;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Client {
 
@@ -37,9 +38,11 @@ namespace Client {
 
     public class SpecialServerIDs {
         public static readonly string DirectMessages = "-1";
+        public static readonly string CreateServer = "-2";
     }
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
+        public static readonly string CreateChannel = "-2";
     }
 
     public class Icons {
@@ -172,13 +175,33 @@ namespace Client {
 
 
 
-        private void AddServerIcon(StackPanel parentStackPanel, Color color, string serverID) {
-            Ellipse ServerIcon = new Ellipse {
+        private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
+
+            Grid ServerIcon = new Grid();
+
+            Ellipse ServerBackground = new Ellipse {
                 Width = 50,
                 Height = 50,
-                Fill = new SolidColorBrush(color),
+                Fill = new SolidColorBrush(backgroundColour),
                 Tag = serverID
             };
+
+
+            Label label = new Label {
+                Content = text,
+                Width = 50,
+                Height = 50,
+                Foreground = new SolidColorBrush(foregroundColour),
+                FontSize = 50 / text.Length,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+               
+            };
+
+            ServerIcon.Children.Add(ServerBackground);
+            ServerIcon.Children.Add(label);
 
             ServerIcon.MouseLeftButtonDown += ServerIcon_Click;
 
@@ -187,7 +210,8 @@ namespace Client {
         }
 
         private async void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
-            Ellipse ServerIcon = sender as Ellipse;
+            Grid ServerGrid = sender as Grid;
+            Ellipse ServerIcon = ServerGrid.Children[0] as Ellipse;
             string Tag = ServerIcon.Tag as string;
 
             channelListStackPanel.Children.Clear();
@@ -202,12 +226,17 @@ namespace Client {
                 foreach (string[] channel in await FetchDMs(Client)) {
                     AddChannel(channelListStackPanel, channel[1], channel[0]);
                 }
+            } else if(Tag == SpecialServerIDs.CreateServer) {
+                // CREATE SERVER UI
+                InitializeCreateServerUI();
             } else {
                 foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
                     AddChannel(channelListStackPanel, channel[1], channel[0]);
                 }
             }
+        }
 
+        private void InitializeCreateServerUI() {
 
         }
 
@@ -493,7 +522,11 @@ namespace Client {
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddServerIcon(circleStackPanel, Colors.Black, SpecialServerIDs.DirectMessages); // This is where we will access DMs from
+            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
+
+            // FETCH SERVERS
+
+            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
 
             // Second Column: Boxes with Icons and Text
             channelListStackPanel = new StackPanel();
