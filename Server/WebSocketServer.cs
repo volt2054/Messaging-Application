@@ -92,14 +92,16 @@ namespace Server {
             return null;
         }
 
-        public static async void SendMessageToUser(string channel, string userId, string message_content, string userIdToSendTo) {
+        public static async void SendMessageToUser(string[] args, string userIdToSendTo, string messageType) {
             if (_clientUserIds.ContainsValue(userIdToSendTo)) {
                 KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userIdToSendTo);
                 if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
-                    // Send Message
-
-                    string message = TypeOfCommunication.NotifyMessage + channel + WebSocketMetadata.DELIMITER + userId + WebSocketMetadata.DELIMITER + message_content;
+                    string message = messageType;
+                    foreach (string arg in args) { 
+                        message += arg;
+                        message += WebSocketMetadata.DELIMITER;
+                    }
 
                     byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                     await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);

@@ -211,7 +211,7 @@ namespace Client {
 
         }
 
-        private void AddChannel(StackPanel parentStackPanel, string iconText, string channelID) {
+        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
 
             string iconPath;
 
@@ -238,7 +238,7 @@ namespace Client {
             };
 
             TextBlock textBlock = new TextBlock {
-                Text = iconText,
+                Text = channelName,
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
@@ -260,9 +260,9 @@ namespace Client {
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
-                OldestMessage = int.MaxValue.ToString();
+                NewestMessage = int.MaxValue.ToString();
 
-                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -278,18 +278,32 @@ namespace Client {
             Task.Run(() => {
                 while (true) {
                     string message = Client.GetNextMessage();
+
+                    HandleServerMessage(message, uiContext);
+
                     message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
 
                     string[] args = message.Split(WebSocketMetadata.DELIMITER);
-
-                    uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
                 }
             });
         }
 
-        private void HandleServerMessage() {
+        private void HandleServerMessage(string message, SynchronizationContext uiContext) {
+
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
+                message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
+            } else if(message.StartsWith(TypeOfCommunication.NotifyChannel)) {
+                message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
+            }
 
         }
+
         public void AddMessage(string channelID, string username, string messageContent) {
             if (CurrentChannelID == channelID) {
                 AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
@@ -523,7 +537,7 @@ namespace Client {
                 AddChannel(channelListStackPanel, channel[1], channel[0]);
             }
 
-            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }

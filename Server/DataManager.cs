@@ -43,7 +43,7 @@ namespace Server.Database {
                     "SELECT TOP " + count + " user_id, message_content, message_id " +
                     "FROM Messages " +
                     "WHERE channel_id = @ChannelID AND " +
-                    (fetchBefore ? "message_id < @MessageID" : "message_id > @MessageID") +
+                    (fetchBefore ? "message_id < @MessageID" : "message_id >= @MessageID") +
                     " ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
@@ -243,10 +243,11 @@ namespace Server.Database {
             return isValidUser;
         }
 
-        public static string CreateDMChannel(string User1ID, string User2ID) {
+        public static string CreateDMChannel(string User1ID, string User2ID, out string ChannelName) {
             int user1 = Convert.ToInt32(User1ID);
             int user2 = Convert.ToInt32(User2ID);
             string dmChannelName = $"DM_{Math.Min(user1, user2)}_{Math.Max(user1, user2)}";
+            ChannelName = dmChannelName;
 
             int channelID = -1;
             ExecuteDatabaseOperations(connection => {
@@ -275,11 +276,12 @@ namespace Server.Database {
             return channelID.ToString();
         }
 
-        public static string CreateGroupChannel(List<string> users) {
+        public static string CreateGroupChannel(List<string> users, out string ChannelName) {
             string groupChatName = $"GC_";
             foreach(string user in users) {
                 groupChatName += (user+"_");
             }
+            ChannelName = groupChatName;
 
 
             int channelID = -1;

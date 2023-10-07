@@ -18,6 +18,8 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
+using System.Threading.Channels;
+using Azure.Messaging;
 
 namespace Server {
     
@@ -72,7 +74,7 @@ namespace Server {
                     string user1ID = commandParts[1];
                     string user2ID = commandParts[2];
 
-                    string channelID = CreateDMChannel(user1ID, user2ID);
+                    string channelID = CreateDMChannel(user1ID, user2ID, out _); // discard result
                     Console.WriteLine($"DM channel {channelID} created successfully.");
 
                 } else if (command == "NEWCHANNEL" && commandParts.Length == 3) {
@@ -161,8 +163,12 @@ namespace Server {
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
+                        string[] argsToSend = new string[3];
+                        argsToSend[0] = channel;
+                        argsToSend[1] = userID;
+                        argsToSend[2] = message_content;
                         foreach (string user in usersInChannel) {
-                            SendMessageToUser(channel, userID, message_content, user);
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
 
 
@@ -194,13 +200,29 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];
-                        responseMessage = CreateDMChannel(user1, user2);
+                        string channelName;
+                        string channelID = CreateDMChannel(user1, user2, out channelName);
+                        responseMessage = channelID;
 
-                    } else if (communicationType== TypeOfCommunication.CreateGroupChannel) {
+                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
+
+                    } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);
                         List<string> users = DeserializeList<string>(usersData);
+                        string channelName;
+                        string channelID = CreateGroupChannel(users, out channelName);
+                        responseMessage = channelID;
 
-                        responseMessage = CreateGroupChannel(users);
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        foreach (string user in users) {
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        }
 
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;

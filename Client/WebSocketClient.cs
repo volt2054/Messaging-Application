@@ -41,7 +41,7 @@ namespace Client {
         private void OnMessageReceived(string message) {
             _taskCompletionSource.TrySetResult(true);
             
-            if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage) || message.StartsWith(TypeOfCommunication.NotifyChannel)) { // disgusting FIX TODO
                 messageQueue.Add(message);
             } else {
                 responseMessages.Enqueue(message);
@@ -97,6 +97,12 @@ namespace Client {
                     messageToSend += DELIMITER;
                     messageToSend += datum;
                 }
+
+                if (communicationType == TypeOfCommunication.FetchMessages) {
+                    MessageBox.Show("Sent: " + messageToSend);
+
+                }
+
 
                 byte[] messageBytes = Encoding.ASCII.GetBytes(messageToSend);
                 await _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None); // Send Request
