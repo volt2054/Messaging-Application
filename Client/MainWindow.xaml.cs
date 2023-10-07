@@ -569,18 +569,21 @@ namespace Client {
 
             // Define the header Grid
             Grid headerGrid = new Grid();
-            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
             headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             // Create and add buttons to the header Grid
             Button addButton = new Button() { Content = "Add Friend" };
             Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
             Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
+            Button exitButton = new Button() { Content = "X", Margin = new Thickness(5) };
 
             addButton.Click += AddButton_Click;
             dmButton.Click += DmButton_Click;
             groupChatButton.Click += GroupChatButton_Click;
+            exitButton.Click += ExitButton_Click;
 
             TextBox FriendText = new TextBox();
 
@@ -591,10 +594,12 @@ namespace Client {
             Grid.SetColumn(AddFriend, 0);
             Grid.SetColumn(dmButton, 1);
             Grid.SetColumn(groupChatButton, 2);
+            Grid.SetColumn(exitButton, 3);
 
             headerGrid.Children.Add(AddFriend);
             headerGrid.Children.Add(dmButton);
             headerGrid.Children.Add(groupChatButton);
+            headerGrid.Children.Add(exitButton);
 
             Grid.SetRow(headerGrid, 0);
 
@@ -621,6 +626,10 @@ namespace Client {
             // Set the main Grid as the Window content
             this.Content = mainGrid;
 
+        }
+
+        private void ExitButton_Click(object sender, RoutedEventArgs e) {
+            InitializeMessagingUI();
         }
 
         private async void GroupChatButton_Click(object sender, RoutedEventArgs e) {
