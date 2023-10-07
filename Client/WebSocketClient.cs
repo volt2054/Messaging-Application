@@ -98,10 +98,6 @@ namespace Client {
                     messageToSend += datum;
                 }
 
-                if (communicationType == TypeOfCommunication.FetchMessages) {
-                    MessageBox.Show("Sent: " + messageToSend);
-
-                }
 
 
                 byte[] messageBytes = Encoding.ASCII.GetBytes(messageToSend);
