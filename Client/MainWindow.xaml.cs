@@ -290,6 +290,7 @@ namespace Client {
 
         private void HandleServerMessage(string message, SynchronizationContext uiContext) {
 
+
             if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
                 message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -549,11 +550,6 @@ namespace Client {
         }
 
         private async void MessageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e) {
-
-            if (messageStackPanel.Children.Count == 1) { // Hacky fix for first message - prevents double message, When message is added the scroll is changed- so we remove this message.
-                messageStackPanel.Children.Remove(messageStackPanel.Children[0]);
-            }
-
             if (e.VerticalOffset == 0) {
                 foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
