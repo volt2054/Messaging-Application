@@ -18,6 +18,8 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
+using System.Threading.Channels;
+using Azure.Messaging;
 
 namespace Server {
     
@@ -33,28 +35,7 @@ namespace Server {
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
-            CreateDatabase();
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Messages";
-                ExecuteNonQuery(connection, del);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM ChannelUsers";
-                ExecuteNonQuery(connection, del);
-            });
-
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Users";
-                ExecuteNonQuery(connection, del);
-            });
-            ExecuteDatabaseOperations(connection => {
-                string del = "DELETE FROM Channels";
-                ExecuteNonQuery(connection, del);
-            });
-
-
+            //CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
@@ -65,7 +46,6 @@ namespace Server {
 
             WebSocketServer webSocketServer = new WebSocketServer(ipAddress, port, HandleClient);
             await webSocketServer.StartAsync();
-            
         }
 
         static int requestCount = 0;
@@ -94,7 +74,7 @@ namespace Server {
                     string user1ID = commandParts[1];
                     string user2ID = commandParts[2];
 
-                    string channelID = CreateDMChannel(user1ID, user2ID);
+                    string channelID = CreateDMChannel(user1ID, user2ID, out _); // discard result
                     Console.WriteLine($"DM channel {channelID} created successfully.");
 
                 } else if (command == "NEWCHANNEL" && commandParts.Length == 3) {
@@ -109,10 +89,7 @@ namespace Server {
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
                     string username = commandParts[1];
-                    SendMessageToUser("-2","0", "TEST", username);
-                } else if (command == "EXIT") {
-                    isRunning = false;
-                    break;
+                    GetFriends(username);
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
@@ -164,6 +141,7 @@ namespace Server {
                         string email = args[1];
                         string password = args[2];
                         userID = InsertNewUser(username, email, password);
+                        SetClientUserId(clientID, userID);
                         responseMessage = Convert.ToString(userID);
                         SelectAll();
 
@@ -185,10 +163,14 @@ namespace Server {
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
+                        string[] argsToSend = new string[3];
+                        argsToSend[0] = channel;
+                        argsToSend[1] = userID;
+                        argsToSend[2] = message_content;
                         foreach (string user in usersInChannel) {
-                            SendMessageToUser(channel, userID, message_content, user);
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
-                        
+
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
@@ -211,14 +193,51 @@ namespace Server {
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
-                        
+
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
 
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];
-                        responseMessage = CreateDMChannel(user1, user2);
+                        string channelName;
+                        string channelID = CreateDMChannel(user1, user2, out channelName);
+                        responseMessage = channelID;
+
+                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
+
+                    } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
+                        byte[] usersData = Convert.FromBase64String(args[0]);
+                        List<string> users = DeserializeList<string>(usersData);
+                        string channelName;
+                        string channelID = CreateGroupChannel(users, out channelName);
+                        responseMessage = channelID;
+
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        foreach (string user in users) {
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        }
+
+                    } else if (communicationType == TypeOfCommunication.AddFriend) {
+                        string user1 = userID;
+                        string user2 = args[0];
+                        responseMessage = AddFriend(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.RemoveFriend) {
+                        string user1 = userID;
+                        string user2 = args[0];
+                        responseMessage = RemoveFriend(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.GetFriends) {
+                        string user1 = userID;
+                        
+                        List<string> friends = GetFriends(userID);
+                        byte[] friendsData = SerializeList(friends);
+                        responseMessage = Convert.ToBase64String(friendsData);
                     }
                 }
 

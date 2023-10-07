@@ -166,10 +166,9 @@ namespace Server.Database {
                 ExecuteDatabaseOperations(connection => {
                     string command =
                     "CREATE TABLE [dbo].[UserFriendships] (" +
-                    "   [user_id]           INT         NOT NULL  IDENTITY(1,1)," +
+                    "   [user_id]           INT         NOT NULL," +
                     "   [friend_id]        INT         NOT NULL," +
                     "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
-                    "   PRIMARY KEY CLUSTERED([user_id] ASC)," +
                     "   FOREIGN KEY (user_id) REFERENCES Users(user_id)," +
                     "   FOREIGN KEY (friend_id) REFERENCES Users(user_id)," +
                     ");";
@@ -191,7 +190,16 @@ namespace Server.Database {
         public static void DropTables() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    string command = "DROP TABLE Users; DROP TABLE ChannelUsers; DROP TABLE Messages; DROP TABLE Channels";
+                    string command =    "DROP TABLE [dbo].[UserFriendships];" +
+                                        "DROP TABLE [dbo].[UserChannelRoles];" +
+                                        "DROP TABLE [dbo].[ChannelRoles];" +
+                                        "DROP TABLE [dbo].[ChannelUsers];" +
+                                        "DROP TABLE [dbo].[UserServers];" +
+                                        "DROP TABLE [dbo].[Messages];" +
+                                        "DROP TABLE [dbo].[Roles];" +
+                                        "DROP TABLE [dbo].[Channels];" +
+                                        "DROP TABLE [dbo].[Servers];" +
+                                        "DROP TABLE [dbo].[Users];";
                     ExecuteNonQuery(connection, command);
 
                 });

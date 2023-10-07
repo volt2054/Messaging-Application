@@ -12,7 +12,7 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private static readonly Dictionary<string, System.Net.WebSockets.WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
+        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(string ipAddress, int port, Func<string, string> messageHandler) {
@@ -23,14 +23,13 @@ namespace Server {
 
         public async Task StartAsync() {
             _httpListener.Start();
-            Console.WriteLine("WebSocket server listening...");
 
             while (true) {
                 HttpListenerContext context = await _httpListener.GetContextAsync();
                 if (context.Request.IsWebSocketRequest) {
                     HttpListenerWebSocketContext webSocketContext = await context.AcceptWebSocketAsync(null);
 
-                    System.Net.WebSockets.WebSocket webSocket = webSocketContext.WebSocket;
+                    WebSocket webSocket = webSocketContext.WebSocket;
 
                     string clientID = Guid.NewGuid().ToString(); // generate a unique id for client
                     _clientWebSockets.Add(clientID, webSocket); // link the client id to a websocket
@@ -93,14 +92,16 @@ namespace Server {
             return null;
         }
 
-        public static async void SendMessageToUser(string channel, string userId, string message_content, string userIdToSendTo) {
+        public static async void SendMessageToUser(string[] args, string userIdToSendTo, string messageType) {
             if (_clientUserIds.ContainsValue(userIdToSendTo)) {
                 KeyValuePair<string, string> clientUserPair = _clientUserIds.FirstOrDefault(pair => pair.Value == userIdToSendTo);
                 if (_clientWebSockets.TryGetValue(clientUserPair.Key, out WebSocket webSocket)) {
 
-                    // Send Message
-
-                    string message = TypeOfCommunication.NotifyMessage + channel + WebSocketMetadata.DELIMITER + userId + WebSocketMetadata.DELIMITER + message_content;
+                    string message = messageType;
+                    foreach (string arg in args) { 
+                        message += arg;
+                        message += WebSocketMetadata.DELIMITER;
+                    }
 
                     byte[] messageBytes = Encoding.UTF8.GetBytes(message);
                     await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);

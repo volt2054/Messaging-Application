@@ -26,6 +26,7 @@ using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
 using System.Net.WebSockets;
 using System.Threading;
+using System.DirectoryServices.ActiveDirectory;
 
 namespace Client {
 
@@ -64,10 +65,6 @@ namespace Client {
         TextBox txt_Username = new TextBox();
         TextBox txt_Email = new TextBox();
         TextBox txt_Password = new TextBox();
-
-        Grid gridLogin = new Grid();
-
-        Grid messagingGrid = new Grid();
 
         static async Task<string> CreateUser(string username, string email, string password, WebSocketClient Client) {
             string[] data = { username, email, password };
@@ -140,12 +137,27 @@ namespace Client {
 
         }
 
+        static async Task<List<string>> FetchFriends(WebSocketClient Client) {
+            string[] data = { };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
+
+            if (response == "-1") {
+                return new List<string>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string> friendsList = DeserializeList<string>(dataBytes);
+
+            return friendsList;
+
+        }
+
         public MainWindow() {
             InitializeComponent();
 
             Client = new WebSocketClient();
 
-            InitializeFriendsUI();
+            InitializeLoginUI();
         }
 
         // Make sure websocket is closed
@@ -199,7 +211,7 @@ namespace Client {
 
         }
 
-        private void AddChannel(StackPanel parentStackPanel, string iconText, string channelID) {
+        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
 
             string iconPath;
 
@@ -226,7 +238,7 @@ namespace Client {
             };
 
             TextBlock textBlock = new TextBlock {
-                Text = iconText,
+                Text = channelName,
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
@@ -244,13 +256,13 @@ namespace Client {
             CurrentChannelID = ChannelElement.Tag as string;
 
             if (CurrentChannelID == "-1") {
-                // Load Friends UI
+                InitializeFriendsUI();
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
-                OldestMessage = int.MaxValue.ToString();
+                NewestMessage = int.MaxValue.ToString();
 
-                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+                foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -266,18 +278,32 @@ namespace Client {
             Task.Run(() => {
                 while (true) {
                     string message = Client.GetNextMessage();
+
+                    HandleServerMessage(message, uiContext);
+
                     message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
 
                     string[] args = message.Split(WebSocketMetadata.DELIMITER);
-
-                    uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
                 }
             });
         }
 
-        private void HandleServerMessage() {
+        private void HandleServerMessage(string message, SynchronizationContext uiContext) {
+
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
+                message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
+            } else if(message.StartsWith(TypeOfCommunication.NotifyChannel)) {
+                message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
+            }
 
         }
+
         public void AddMessage(string channelID, string username, string messageContent) {
             if (CurrentChannelID == channelID) {
                 AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
@@ -332,6 +358,8 @@ namespace Client {
         ScrollViewer messageScrollViewer;
 
         private void InitializeLoginUI() {
+            Grid gridLogin = new Grid();
+
             RowDefinition rowDefinitionTitleLogin = new RowDefinition();
             rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
             RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
@@ -450,6 +478,8 @@ namespace Client {
         }
 
         private async void InitializeMessagingUI() {
+            Grid messagingGrid = new Grid();
+
             Content = messagingGrid;
 
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
@@ -507,7 +537,7 @@ namespace Client {
                 AddChannel(channelListStackPanel, channel[1], channel[0]);
             }
 
-            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
+            foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
@@ -543,32 +573,47 @@ namespace Client {
         }
 
         StackPanel FriendsStackPanel;
-        private void InitializeFriendsUI() {
+        private async void InitializeFriendsUI() {
             Grid mainGrid = new Grid();
             mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
             mainGrid.VerticalAlignment = VerticalAlignment.Top;
 
-            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) });
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(5, GridUnitType.Star) });
 
             // Define the header Grid
             Grid headerGrid = new Grid();
-            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
             headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             // Create and add buttons to the header Grid
-            Button addButton = new Button() { Content = "Add Friend", Margin = new Thickness(5) };
+            Button addButton = new Button() { Content = "Add Friend" };
             Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
             Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
+            Button exitButton = new Button() { Content = "X", Margin = new Thickness(5) };
 
-            Grid.SetColumn(addButton, 0);
+            addButton.Click += AddButton_Click;
+            dmButton.Click += DmButton_Click;
+            groupChatButton.Click += GroupChatButton_Click;
+            exitButton.Click += ExitButton_Click;
+
+            TextBox FriendText = new TextBox();
+
+            StackPanel AddFriend = new StackPanel() { Margin = new Thickness(5) };
+            AddFriend.Children.Add(addButton);
+            AddFriend.Children.Add(FriendText);
+
+            Grid.SetColumn(AddFriend, 0);
             Grid.SetColumn(dmButton, 1);
             Grid.SetColumn(groupChatButton, 2);
+            Grid.SetColumn(exitButton, 3);
 
-            headerGrid.Children.Add(addButton);
+            headerGrid.Children.Add(AddFriend);
             headerGrid.Children.Add(dmButton);
             headerGrid.Children.Add(groupChatButton);
+            headerGrid.Children.Add(exitButton);
 
             Grid.SetRow(headerGrid, 0);
 
@@ -578,14 +623,6 @@ namespace Client {
             FriendsStackPanel = new StackPanel();
             FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
-
-            // Add sample friend elements (you can add more dynamically)
-            AddFriendElement("Friend1");
-            AddFriendElement("Friend2");
-
-            for (int i = 0; i < 100; i++) {
-                AddFriendElement("Friend" + i);
-            }
             ScrollViewer friendsScrollViewer = new ScrollViewer();
             friendsScrollViewer.Content = FriendsStackPanel;
             Grid.SetRow(friendsScrollViewer, 1);
@@ -596,11 +633,68 @@ namespace Client {
             mainGrid.Children.Add(headerGrid);
             mainGrid.Children.Add(friendsScrollViewer);
 
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend);
+            }
+
             // Set the main Grid as the Window content
             this.Content = mainGrid;
 
         }
 
+        private void ExitButton_Click(object sender, RoutedEventArgs e) {
+            InitializeMessagingUI();
+        }
+
+        private async void GroupChatButton_Click(object sender, RoutedEventArgs e) {
+            List<string> UserIDs = new List<string>();
+            UserIDs.Add(CurrentUserID);
+            foreach (Border item in FriendsStackPanel.Children) {
+                Grid grid = item.Child as Grid;
+                CheckBox checkbox = grid.Children[0] as CheckBox;
+                if (checkbox.IsChecked == true) {
+                    Label label = grid.Children[2] as Label;
+
+                    string UserID = await GetID(label.Content.ToString(), Client);
+                    UserIDs.Add(UserID);
+                }
+            }
+            byte[] SerializedData = SerializeList<string>(UserIDs);
+            string B64Data = Convert.ToBase64String(SerializedData);
+
+            string[] data = {B64Data};
+
+            Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
+        }
+
+        private async void DmButton_Click(object sender, RoutedEventArgs e) {
+            foreach(Border item in FriendsStackPanel.Children) {
+                Grid grid = item.Child as Grid;
+                CheckBox checkbox = grid.Children[0] as CheckBox;
+                if (checkbox.IsChecked == true) {
+                    Label label = grid.Children[2] as Label;
+
+                    string ID = await GetID(label.Content.ToString(), Client);
+
+                    string[] data = { ID };
+
+                    await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
+                }
+            }
+        }
+
+        private async void AddButton_Click(object sender, RoutedEventArgs e) {
+            Button button = sender as Button;
+            StackPanel panel = button.Parent as StackPanel;
+            TextBox text = panel.Children[1] as TextBox;
+
+
+            string ID = await GetID(text.Text, Client);
+            string[] data = { ID };
+            await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+
+            AddFriendElement(text.Text);
+        }
 
         private void AddFriendElement(string username) {
             // Create a friend element
@@ -610,6 +704,11 @@ namespace Client {
             friendBorder.Padding = new Thickness(5);
 
             Grid friendGrid = new Grid();
+
+            CheckBox checkBox = new CheckBox {
+                IsChecked = false,
+                VerticalAlignment = VerticalAlignment.Center
+            };
 
             Ellipse ellipse = new Ellipse();
             ellipse.Width = 25;
@@ -630,6 +729,7 @@ namespace Client {
             removeButton.Click += RemoveFriend_Click;
 
             // Add elements to the friendGrid
+            friendGrid.Children.Add(checkBox);
             friendGrid.Children.Add(ellipse);
             friendGrid.Children.Add(label);
             friendGrid.Children.Add(removeButton);
@@ -640,9 +740,18 @@ namespace Client {
             FriendsStackPanel.Children.Add(friendBorder);
         }
 
-        private void RemoveFriend_Click(object sender, RoutedEventArgs e) {
-            // Handle the remove friend button click
-            // You can implement the removal logic here
+        private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
+            Button button = sender as Button;
+            Grid grid = button.Parent as Grid;
+            Label label = grid.Children[2] as Label;
+            Border border = grid.Parent as Border;
+            string username = label.Content.ToString();
+            string id = await GetID(username, Client);
+            string[] data = { id };
+
+            await Client.SendAndRecieve(TypeOfCommunication.RemoveFriend, data);
+
+            FriendsStackPanel.Children.Remove(border);
         }
     }
 }
