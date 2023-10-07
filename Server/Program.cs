@@ -139,6 +139,7 @@ namespace Server {
                         string email = args[1];
                         string password = args[2];
                         userID = InsertNewUser(username, email, password);
+                        SetClientUserId(clientID, userID);
                         responseMessage = Convert.ToString(userID);
                         SelectAll();
 
