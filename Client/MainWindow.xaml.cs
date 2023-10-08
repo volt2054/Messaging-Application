@@ -317,6 +317,19 @@ namespace Client {
 
             serverOptionsBorder.Child = serverOptionsGrid;
 
+
+            Grid testGrid = new Grid();
+            RowDefinition testGridRow = new RowDefinition { Height = new GridLength(4, GridUnitType.Star) };
+            RowDefinition testGridRow2 = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+
+            testGrid.RowDefinitions.Add(testGridRow);
+            testGrid.RowDefinitions.Add(testGridRow2);
+
+            Button createServer = new Button();
+            createServer.Margin = new Thickness(0,20, 0,0);
+            createServer.FontSize = 24;
+            createServer.Content = "Create Server";
+
             // ScrollViewer in the second column
             Border scrollViewer2Border = new Border {
                 BorderBrush = Brushes.Black,
@@ -334,13 +347,17 @@ namespace Client {
             scrollViewer2.Content = scrollViewer2Content;
             scrollViewer2Border.Child = scrollViewer2;
 
-            AddFriendElement("test", false, scrollViewer2Content);
+            Grid.SetRow(scrollViewer2Border, 0);
+            Grid.SetRow(createServer, 1);
+
+            testGrid.Children.Add(scrollViewer2Border);
+            testGrid.Children.Add(createServer);
 
             Grid.SetColumn(serverOptionsBorder, 0);
-            Grid.SetColumn(scrollViewer2Border, 1);
+            Grid.SetColumn(testGrid, 1);
 
             mainGrid.Children.Add(serverOptionsBorder);
-            mainGrid.Children.Add(scrollViewer2Border);
+            mainGrid.Children.Add(testGrid);
 
             // Set the mainGrid as the content of the Window
             this.Content = mainGrid;
