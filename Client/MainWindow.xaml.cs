@@ -158,9 +158,9 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            Client = new WebSocketClient();
+            //Client = new WebSocketClient();
 
-            InitializeLoginUI();
+            InitializeCreateServerUI();
         }
 
         // Make sure websocket is closed
@@ -197,7 +197,7 @@ namespace Client {
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
-               
+
             };
 
             ServerIcon.Children.Add(ServerBackground);
@@ -226,7 +226,7 @@ namespace Client {
                 foreach (string[] channel in await FetchDMs(Client)) {
                     AddChannel(channelListStackPanel, channel[1], channel[0]);
                 }
-            } else if(Tag == SpecialServerIDs.CreateServer) {
+            } else if (Tag == SpecialServerIDs.CreateServer) {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
             } else {
@@ -239,7 +239,7 @@ namespace Client {
         private void InitializeCreateServerUI() {
             Grid mainGrid = new Grid {
                 Name = "MainGrid",
-                Margin = new Thickness(50)
+                Margin = new Thickness(30)
             };
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(7, GridUnitType.Star) });
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
@@ -250,7 +250,7 @@ namespace Client {
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(5),
                 Padding = new Thickness(10),
-                Margin = new Thickness(0, 0, 50, 0)
+                Margin = new Thickness(0, 0, 25, 0)
             };
 
             Grid serverOptionsGrid = new Grid {
@@ -329,6 +329,8 @@ namespace Client {
 
             scrollViewer2.Content = scrollViewer2Content;
             scrollViewer2Border.Child = scrollViewer2;
+
+            AddFriendElement("test", false, scrollViewer2Content);
 
             Grid.SetColumn(serverOptionsBorder, 0);
             Grid.SetColumn(scrollViewer2Border, 1);
@@ -425,7 +427,7 @@ namespace Client {
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
-            } else if(message.StartsWith(TypeOfCommunication.NotifyChannel)) {
+            } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
@@ -746,7 +748,7 @@ namespace Client {
 
             Grid.SetRow(headerGrid, 0);
 
-            
+
 
             // Define the friend list StackPanel
             FriendsStackPanel = new StackPanel();
@@ -763,7 +765,7 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (string friend in await FetchFriends(Client)) {
-                AddFriendElement(friend);
+                AddFriendElement(friend, true, FriendsStackPanel);
             }
 
             // Set the main Grid as the Window content
@@ -791,13 +793,13 @@ namespace Client {
             byte[] SerializedData = SerializeList<string>(UserIDs);
             string B64Data = Convert.ToBase64String(SerializedData);
 
-            string[] data = {B64Data};
+            string[] data = { B64Data };
 
             Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
         }
 
         private async void DmButton_Click(object sender, RoutedEventArgs e) {
-            foreach(Border item in FriendsStackPanel.Children) {
+            foreach (Border item in FriendsStackPanel.Children) {
                 Grid grid = item.Child as Grid;
                 CheckBox checkbox = grid.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
@@ -822,33 +824,36 @@ namespace Client {
             string[] data = { ID };
             await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
-            AddFriendElement(text.Text);
+            AddFriendElement(text.Text, true, FriendsStackPanel);
         }
 
-        private void AddFriendElement(string username) {
+        private void AddFriendElement(string username, bool removeButtonToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
             friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             friendBorder.Padding = new Thickness(5);
 
-            Grid friendGrid = new Grid();
+            StackPanel friendStackPanel = new StackPanel();
+            friendStackPanel.Orientation = Orientation.Horizontal;
 
             CheckBox checkBox = new CheckBox {
                 IsChecked = false,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 10, 0)
             };
 
             Ellipse ellipse = new Ellipse();
             ellipse.Width = 25;
             ellipse.Height = 25;
             ellipse.Fill = Brushes.Red;
+            ellipse.HorizontalAlignment = HorizontalAlignment.Left;
 
             Label label = new Label();
             label.Content = username;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
-            label.Margin = new Thickness(35, 0, 60, 0);
 
             Button removeButton = new Button();
             removeButton.Content = "X";
@@ -857,23 +862,27 @@ namespace Client {
             removeButton.Width = 20;
             removeButton.Click += RemoveFriend_Click;
 
-            // Add elements to the friendGrid
-            friendGrid.Children.Add(checkBox);
-            friendGrid.Children.Add(ellipse);
-            friendGrid.Children.Add(label);
-            friendGrid.Children.Add(removeButton);
 
-            friendBorder.Child = friendGrid;
+            // Add elements to the friendGrid
+            friendStackPanel.Children.Add(checkBox);
+            friendStackPanel.Children.Add(ellipse);
+            friendStackPanel.Children.Add(label);
+
+            if (removeButtonToggle) {
+                friendStackPanel.Children.Add(removeButton);
+            }
+
+            friendBorder.Child = friendStackPanel;
 
             // Add the friendBorder to the FriendsStackPanel
-            FriendsStackPanel.Children.Add(friendBorder);
+            stackPanel.Children.Add(friendBorder);
         }
 
         private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
-            Grid grid = button.Parent as Grid;
-            Label label = grid.Children[2] as Label;
-            Border border = grid.Parent as Border;
+            StackPanel stackPanel = button.Parent as StackPanel;
+            Label label = stackPanel.Children[2] as Label;
+            Border border = stackPanel.Parent as Border;
             string username = label.Content.ToString();
             string id = await GetID(username, Client);
             string[] data = { id };
