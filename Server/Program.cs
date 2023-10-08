@@ -27,7 +27,7 @@ namespace Server {
 
         // TODO - Loading options from file??
 
-        const string ipAddress = "127.0.0.1";
+        const string ipAddress = "100.113.247.67";
         const int port = 7256;
         const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
 
