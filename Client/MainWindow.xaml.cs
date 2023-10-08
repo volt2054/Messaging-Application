@@ -237,7 +237,107 @@ namespace Client {
         }
 
         private void InitializeCreateServerUI() {
+            Grid mainGrid = new Grid {
+                Name = "MainGrid",
+                Margin = new Thickness(50)
+            };
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(7, GridUnitType.Star) });
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
 
+            // ServerOptionsGrid
+            Border serverOptionsBorder = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(10),
+                Margin = new Thickness(0, 0, 50, 0)
+            };
+
+            Grid serverOptionsGrid = new Grid {
+                Name = "ServerOptionsGrid"
+            };
+            serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            // First row of ServerOptionsGrid
+            StackPanel stackPanel1 = new StackPanel {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            stackPanel1.Children.Add(new Label { Content = "Name:" });
+            stackPanel1.Children.Add(new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) });
+            stackPanel1.Children.Add(new Label { Content = "Description:", Margin = new Thickness(10, 0, 0, 0) });
+            stackPanel1.Children.Add(new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) });
+
+            // Second row of ServerOptionsGrid
+            Grid channelGrid = new Grid {
+                Name = "channelgrid"
+            };
+            channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+            channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            // ScrollViewer in the first column of channelgrid
+            Border scrollViewerBorder = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                Margin = new Thickness(20)
+            };
+
+            ScrollViewer scrollViewer = new ScrollViewer {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+            StackPanel scrollViewerContent = new StackPanel();
+
+            scrollViewer.Content = scrollViewerContent;
+            scrollViewerBorder.Child = scrollViewer;
+
+            // Textbox and Button in the second column of channelgrid
+            StackPanel stackPanel2 = new StackPanel {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10)
+            };
+            stackPanel2.Children.Add(new TextBox());
+            stackPanel2.Children.Add(new Button { Content = "Add Channel", Margin = new Thickness(0, 5, 0, 0) });
+
+            channelGrid.Children.Add(scrollViewerBorder);
+            Grid.SetColumn(scrollViewerBorder, 0);
+            channelGrid.Children.Add(stackPanel2);
+            Grid.SetColumn(stackPanel2, 1);
+
+            serverOptionsGrid.Children.Add(stackPanel1);
+            Grid.SetRow(stackPanel1, 0);
+            serverOptionsGrid.Children.Add(channelGrid);
+            Grid.SetRow(channelGrid, 1);
+
+            serverOptionsBorder.Child = serverOptionsGrid;
+
+            // ScrollViewer in the second column
+            Border scrollViewer2Border = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(10)
+            };
+
+            ScrollViewer scrollViewer2 = new ScrollViewer {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+            StackPanel scrollViewer2Content = new StackPanel();
+
+            scrollViewer2.Content = scrollViewer2Content;
+            scrollViewer2Border.Child = scrollViewer2;
+
+            Grid.SetColumn(serverOptionsBorder, 0);
+            Grid.SetColumn(scrollViewer2Border, 1);
+
+            mainGrid.Children.Add(serverOptionsBorder);
+            mainGrid.Children.Add(scrollViewer2Border);
+
+            // Set the mainGrid as the content of the Window
+            this.Content = mainGrid;
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
