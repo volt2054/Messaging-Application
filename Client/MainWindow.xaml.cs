@@ -43,6 +43,7 @@ namespace Client {
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
         public static readonly string CreateChannel = "-2";
+        public static readonly string NotMade = "-3";
     }
 
     public class Icons {
@@ -291,6 +292,9 @@ namespace Client {
             StackPanel scrollViewerContent = new StackPanel();
 
             scrollViewer.Content = scrollViewerContent;
+
+            AddChannel(scrollViewerContent, "test", "-3");
+
             scrollViewerBorder.Child = scrollViewer;
 
             // Textbox and Button in the second column of channelgrid
@@ -346,16 +350,11 @@ namespace Client {
 
             string iconPath;
 
-            switch (channelID) {
-
-                case "-1":
-                    iconPath = Icons.Friends;
-                    break;
-                default:
-                    iconPath = Icons.Chat;
-                    break;
+            if (channelID == SpecialChannelIDs.Friends) {
+                iconPath = Icons.Friends;
+            } else {
+                iconPath = Icons.Chat;
             }
-
 
             StackPanel ChannelElement = new StackPanel {
                 Orientation = Orientation.Horizontal,
@@ -373,7 +372,9 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
-            ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
+            if (channelID != SpecialChannelIDs.NotMade) {
+                ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
+            }
 
             ChannelElement.Children.Add(icon);
             ChannelElement.Children.Add(textBlock);
