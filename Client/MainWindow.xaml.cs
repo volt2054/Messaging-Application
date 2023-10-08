@@ -159,9 +159,9 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            //Client = new WebSocketClient();
+            Client = new WebSocketClient();
 
-            InitializeCreateServerUI();
+            InitializeLoginUI();
         }
 
         // Make sure websocket is closed
