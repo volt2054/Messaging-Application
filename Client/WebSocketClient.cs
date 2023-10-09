@@ -75,6 +75,8 @@ namespace Client {
             Uri serverUri = new Uri(SERVER_URL);
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
 
+            MessageBox.Show("Connect");
+
             clientID = await ReceiveClientID(_webSocket); // Retrieve ClientID before listening to messages to make sure that we get the right ResponseMessage
         }
 

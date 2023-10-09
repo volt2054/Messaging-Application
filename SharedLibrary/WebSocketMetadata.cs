@@ -9,7 +9,7 @@ namespace SharedLibrary {
 
         public const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
         public const int PORT = 7256;
-        public const string IP_ADDRESS = "100.113.247.67";
+        public const string IP_ADDRESS = "localhost";
         public static readonly string SERVER_URL = $"ws://{IP_ADDRESS}:{PORT}";
 
     }
