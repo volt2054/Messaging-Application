@@ -25,12 +25,6 @@ namespace Server {
     
     class Server {
 
-        // TODO - Loading options from file??
-
-        const string ipAddress = "127.0.0.1";
-        const int port = 7256;
-        const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
-
 
         static bool isRunning = true;
 
@@ -44,7 +38,7 @@ namespace Server {
 
             Task task = Task.Run(CommandLine);
 
-            WebSocketServer webSocketServer = new WebSocketServer(ipAddress, port, HandleClient);
+            WebSocketServer webSocketServer = new WebSocketServer(HandleClient);
             await webSocketServer.StartAsync();
         }
 
