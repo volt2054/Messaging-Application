@@ -159,14 +159,14 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            Client = new WebSocketClient();
+            //Client = new WebSocketClient();
 
-            InitializeLoginUI();
+            InitializeCreateServerUI();
         }
 
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
-            await Client.CloseWebSocket();
+            //await Client.CloseWebSocket();
 
             base.OnClosing(e);
         }
@@ -319,23 +319,33 @@ namespace Client {
 
 
             Grid testGrid = new Grid();
-            RowDefinition testGridRow = new RowDefinition { Height = new GridLength(4, GridUnitType.Star) };
-            RowDefinition testGridRow2 = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+            RowDefinition friendsGridRow = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+            RowDefinition friendsGridRow2 = new RowDefinition { Height = new GridLength(4, GridUnitType.Star) };
+            RowDefinition friendsGridRow3 = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
 
-            testGrid.RowDefinitions.Add(testGridRow);
-            testGrid.RowDefinitions.Add(testGridRow2);
+
+            testGrid.RowDefinitions.Add(friendsGridRow);
+            testGrid.RowDefinitions.Add(friendsGridRow2);
+            testGrid.RowDefinitions.Add(friendsGridRow3);
+
+            Button goBack = new Button();
+            goBack.Margin = new Thickness(0, 0, 0, 20);
+            goBack.FontSize = 24;
+            goBack.Content = "Go Back";
+            goBack.VerticalAlignment = VerticalAlignment.Top;
 
             Button createServer = new Button();
             createServer.Margin = new Thickness(0,20, 0,0);
             createServer.FontSize = 24;
             createServer.Content = "Create Server";
+            createServer.VerticalAlignment = VerticalAlignment.Bottom;
 
             // ScrollViewer in the second column
             Border scrollViewer2Border = new Border {
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(10)
+                VerticalAlignment = VerticalAlignment.Stretch
             };
 
             ScrollViewer scrollViewer2 = new ScrollViewer {
@@ -347,9 +357,11 @@ namespace Client {
             scrollViewer2.Content = scrollViewer2Content;
             scrollViewer2Border.Child = scrollViewer2;
 
-            Grid.SetRow(scrollViewer2Border, 0);
-            Grid.SetRow(createServer, 1);
+            Grid.SetRow(goBack, 0);
+            Grid.SetRow(scrollViewer2Border, 1);
+            Grid.SetRow(createServer, 2);
 
+            testGrid.Children.Add(goBack);
             testGrid.Children.Add(scrollViewer2Border);
             testGrid.Children.Add(createServer);
 
@@ -438,8 +450,6 @@ namespace Client {
         }
 
         private void HandleServerMessage(string message, SynchronizationContext uiContext) {
-
-
             if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
                 message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -451,7 +461,6 @@ namespace Client {
 
                 uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
             }
-
         }
 
         public void AddMessage(string channelID, string username, string messageContent) {
