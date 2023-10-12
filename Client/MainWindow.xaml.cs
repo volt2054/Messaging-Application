@@ -171,11 +171,6 @@ namespace Client {
             base.OnClosing(e);
         }
 
-
-
-
-
-
         private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
 
             Grid ServerIcon = new Grid();
@@ -271,7 +266,7 @@ namespace Client {
             TextBox serverName = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) };
             stackPanel1.Children.Add(serverName);
             stackPanel1.Children.Add(new Label { Content = "Description:", Margin = new Thickness(10, 0, 0, 0) });
-            TextBox serverDescription = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) }
+            TextBox serverDescription = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) };
             stackPanel1.Children.Add(serverDescription);
 
             // Second row of ServerOptionsGrid
