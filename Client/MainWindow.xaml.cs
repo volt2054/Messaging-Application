@@ -237,6 +237,7 @@ namespace Client {
             }
         }
 
+        
         private void InitializeCreateServerUI() {
             Grid mainGrid = new Grid {
                 Name = "MainGrid",
@@ -266,9 +267,12 @@ namespace Client {
                 Margin = new Thickness(0, 0, 0, 10)
             };
             stackPanel1.Children.Add(new Label { Content = "Name:" });
-            stackPanel1.Children.Add(new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) });
+
+            TextBox serverName = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) };
+            stackPanel1.Children.Add(serverName);
             stackPanel1.Children.Add(new Label { Content = "Description:", Margin = new Thickness(10, 0, 0, 0) });
-            stackPanel1.Children.Add(new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) });
+            TextBox serverDescription = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) }
+            stackPanel1.Children.Add(serverDescription);
 
             // Second row of ServerOptionsGrid
             Grid channelGrid = new Grid {
@@ -334,11 +338,17 @@ namespace Client {
             goBack.Content = "Go Back";
             goBack.VerticalAlignment = VerticalAlignment.Top;
 
+            goBack.Click += GoBack_Click;
+
             Button createServer = new Button();
             createServer.Margin = new Thickness(0,20, 0,0);
             createServer.FontSize = 24;
             createServer.Content = "Create Server";
             createServer.VerticalAlignment = VerticalAlignment.Bottom;
+
+            createServer.Click += (s, e) => {
+                
+            };
 
             // ScrollViewer in the second column
             Border scrollViewer2Border = new Border {
@@ -373,6 +383,14 @@ namespace Client {
 
             // Set the mainGrid as the content of the Window
             this.Content = mainGrid;
+        }
+
+        private void CreateServer_Click(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void GoBack_Click(object sender, RoutedEventArgs e) {
+            InitializeMessagingUI();
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
