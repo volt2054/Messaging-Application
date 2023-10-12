@@ -204,6 +204,17 @@ namespace Server {
                         argsToSend[1] = channelName;
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
 
+                    } else if (communicationType == TypeOfCommunication.CreateServer) {
+                        string channelName = args[1];
+                        string channelDescription = args[2];
+
+                        string SerializedChannelsString = args[3];
+                        byte[] SerializedChannels = Convert.FromBase64String(SerializedChannelsString);
+
+                        List<string> Channels = DeserializeList<string>(SerializedChannels);
+
+                        CreateServer(channelName, channelDescription, Channels);
+
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);
                         List<string> users = DeserializeList<string>(usersData);

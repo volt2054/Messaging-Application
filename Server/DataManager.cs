@@ -322,6 +322,14 @@ namespace Server.Database {
             return channelID.ToString();
         }
 
+        public static string CreateServer(string server_name, string server_description, List<string> channels) {
+            ExecuteDatabaseOperations(connection => {
+
+            });
+
+            return "1";
+        }
+
 
         public static void SelectAll() {
             List<string> result = new List<string>();
