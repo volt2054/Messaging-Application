@@ -821,10 +821,10 @@ namespace Client {
             List<string> UserIDs = new List<string>();
             UserIDs.Add(CurrentUserID);
             foreach (Border item in FriendsStackPanel.Children) {
-                Grid grid = item.Child as Grid;
-                CheckBox checkbox = grid.Children[0] as CheckBox;
+                StackPanel stackpanel = item.Child as StackPanel;
+                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
-                    Label label = grid.Children[2] as Label;
+                    Label label = stackpanel.Children[2] as Label;
 
                     string UserID = await GetID(label.Content.ToString(), Client);
                     UserIDs.Add(UserID);
@@ -840,10 +840,10 @@ namespace Client {
 
         private async void DmButton_Click(object sender, RoutedEventArgs e) {
             foreach (Border item in FriendsStackPanel.Children) {
-                Grid grid = item.Child as Grid;
-                CheckBox checkbox = grid.Children[0] as CheckBox;
+                StackPanel stackpanel = item.Child as StackPanel;
+                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
-                    Label label = grid.Children[2] as Label;
+                    Label label = stackpanel.Children[2] as Label;
 
                     string ID = await GetID(label.Content.ToString(), Client);
 
