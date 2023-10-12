@@ -232,10 +232,9 @@ namespace Client {
             }
         }
 
-        
+        List<string> channels = new List<string>();
         private void InitializeCreateServerUI() {
             Grid mainGrid = new Grid {
-                Name = "MainGrid",
                 Margin = new Thickness(30)
             };
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(7, GridUnitType.Star) });
@@ -250,9 +249,7 @@ namespace Client {
                 Margin = new Thickness(0, 0, 25, 0)
             };
 
-            Grid serverOptionsGrid = new Grid {
-                Name = "ServerOptionsGrid"
-            };
+            Grid serverOptionsGrid = new Grid();
             serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
@@ -270,9 +267,7 @@ namespace Client {
             stackPanel1.Children.Add(serverDescription);
 
             // Second row of ServerOptionsGrid
-            Grid channelGrid = new Grid {
-                Name = "channelgrid"
-            };
+            Grid channelGrid = new Grid();
             channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
             channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
@@ -291,9 +286,6 @@ namespace Client {
             StackPanel scrollViewerContent = new StackPanel();
 
             scrollViewer.Content = scrollViewerContent;
-
-            AddChannel(scrollViewerContent, "test", "-3");
-
             scrollViewerBorder.Child = scrollViewer;
 
             // Textbox and Button in the second column of channelgrid
@@ -301,8 +293,21 @@ namespace Client {
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(10)
             };
-            stackPanel2.Children.Add(new TextBox());
-            stackPanel2.Children.Add(new Button { Content = "Add Channel", Margin = new Thickness(0, 5, 0, 0) });
+
+            TextBox addChannelTextBox = new TextBox();
+            
+
+            Button addChannelButton = new Button {
+                Content = "Add Channel",
+                Margin = new Thickness(0, 5, 0, 0)
+            };
+            addChannelButton.Click += (s, e) => {
+                AddChannel(scrollViewerContent, addChannelTextBox.Text, "-2");
+                channels.Add(addChannelTextBox.Text);
+            };
+
+            stackPanel2.Children.Add(addChannelTextBox);
+            stackPanel2.Children.Add(addChannelButton);
 
             channelGrid.Children.Add(scrollViewerBorder);
             Grid.SetColumn(scrollViewerBorder, 0);
@@ -342,7 +347,12 @@ namespace Client {
             createServer.VerticalAlignment = VerticalAlignment.Bottom;
 
             createServer.Click += (s, e) => {
-                
+                byte[] SerializedChannels = SerializeList<string>(channels);
+                string SerializedChannelsString = Convert.ToBase64String(SerializedChannels);
+
+                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString};
+
+                Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
             };
 
             // ScrollViewer in the second column
