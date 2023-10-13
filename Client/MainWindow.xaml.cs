@@ -159,14 +159,14 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            //Client = new WebSocketClient();
+            Client = new WebSocketClient();
 
-            InitializeCreateServerUI();
+            InitializeLoginUI();
         }
 
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
-            //await Client.CloseWebSocket();
+            await Client.CloseWebSocket();
 
             base.OnClosing(e);
         }
@@ -666,6 +666,7 @@ namespace Client {
 
         StackPanel serverStackPanel = new StackPanel();
         private async void InitializeMessagingUI() {
+            serverStackPanel = new StackPanel();
             Grid messagingGrid = new Grid();
 
             Content = messagingGrid;
@@ -684,6 +685,10 @@ namespace Client {
             // FETCH SERVERS
 
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
+
+            foreach (string serverName in FetchServers()) {
+                AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, serverName, serverName);
+            }
 
             // Second Column: Boxes with Icons and Text
             channelListStackPanel = new StackPanel();
