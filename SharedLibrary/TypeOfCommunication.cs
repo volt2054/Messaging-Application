@@ -16,6 +16,7 @@ namespace SharedLibrary {
 
             public static readonly string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
             public static readonly string NotifyChannel = "CHANNEL:"; // (CHANNEL: + CHANNELID + CHANNELNAME)
+            public static readonly string NotifyServer = "SERVER:"; // (CHANNEL: + SERVERID + SERVERNAME)
 
         }
     

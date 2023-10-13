@@ -483,6 +483,11 @@ namespace Client {
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
+            } else if (message.StartsWith(TypeOfCommunication.NotifyServer)) {
+                message = message.Substring(TypeOfCommunication.NotifyServer.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, args[0], args[1]), null);
             }
         }
 
@@ -659,6 +664,7 @@ namespace Client {
             }
         }
 
+        StackPanel serverStackPanel = new StackPanel();
         private async void InitializeMessagingUI() {
             Grid messagingGrid = new Grid();
 
@@ -669,16 +675,15 @@ namespace Client {
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10, GridUnitType.Star) });
 
             // First Column: Circles
-            StackPanel circleStackPanel = new StackPanel();
-            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = circleStackPanel };
+            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = serverStackPanel };
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
 
             // FETCH SERVERS
 
-            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
 
             // Second Column: Boxes with Icons and Text
             channelListStackPanel = new StackPanel();

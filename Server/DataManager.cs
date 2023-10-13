@@ -322,12 +322,33 @@ namespace Server.Database {
             return channelID.ToString();
         }
 
-        public static string CreateServer(string server_name, string server_description, List<string> channels) {
+        public static string CreateServer(string server_name, string server_description, string userID, List<string> channels) {
+            int id = 0;
             ExecuteDatabaseOperations(connection => {
-
+                string insertQuery = "INSERT INTO Servers (server_name, server_owner) VALUES (@ServerName, @ServerOwner)";
+               
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ServerName", server_name);
+                command.Parameters.AddWithValue("@ServerOwner", userID);
+                id = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            return "1";
+            foreach(string channel in channels) {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
+
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@ChannelName", channel);
+                    command.Parameters.AddWithValue("@ServerID", id.ToString());
+
+                    command.ExecuteNonQuery();
+                });
+            }
+
+            
+            
+
+            return id.ToString();
         }
 
 

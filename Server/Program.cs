@@ -205,15 +205,19 @@ namespace Server {
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
 
                     } else if (communicationType == TypeOfCommunication.CreateServer) {
-                        string channelName = args[1];
-                        string channelDescription = args[2];
+                        string serverName = args[1];
+                        string serverDescription = args[2];
 
                         string SerializedChannelsString = args[3];
                         byte[] SerializedChannels = Convert.FromBase64String(SerializedChannelsString);
 
                         List<string> Channels = DeserializeList<string>(SerializedChannels);
 
-                        CreateServer(channelName, channelDescription, Channels);
+                        string id = CreateServer(serverName, serverDescription, userID, Channels);
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = id;
+                        argsToSend[1] = serverName;
+                        SendMessageToUser(argsToSend, userID, TypeOfCommunication.NotifyServer);
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);
