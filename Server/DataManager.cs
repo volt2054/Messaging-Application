@@ -162,7 +162,23 @@ namespace Server.Database {
             return result;
         }
 
+        public static List<string[]> FetchServers(string userID) {
+            List<string[]> result = new List<string[]>();
 
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                "SELECT server_name,server_owner FROM UserServers, Servers " +
+                "WHERE UserServers.server_id = Servers.server_id " +
+                "AND user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                result = ExecuteQuery<string[]>(connection, command);
+            });
+
+            return result;
+        }
 
 
 

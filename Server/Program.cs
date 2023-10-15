@@ -191,6 +191,15 @@ namespace Server {
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
 
+                    } else if (communicationType==TypeOfCommunication.FetchServers) {
+                        List<string[]> userServers;
+
+                        userServers = FetchServers(userID);
+
+                        byte[] serversData= SerializeList(userServers);
+                        responseMessage= Convert.ToBase64String(serversData);
+                    
+
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
                         string user2 = args[0];
@@ -205,10 +214,10 @@ namespace Server {
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
 
                     } else if (communicationType == TypeOfCommunication.CreateServer) {
-                        string serverName = args[1];
-                        string serverDescription = args[2];
+                        string serverName = args[0];
+                        string serverDescription = args[1];
 
-                        string SerializedChannelsString = args[3];
+                        string SerializedChannelsString = args[2];
                         byte[] SerializedChannels = Convert.FromBase64String(SerializedChannelsString);
 
                         List<string> Channels = DeserializeList<string>(SerializedChannels);

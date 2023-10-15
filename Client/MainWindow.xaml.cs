@@ -141,6 +141,20 @@ namespace Client {
 
         }
 
+        static async Task<List<string[]>> FetchServers(WebSocketClient Client) {
+            string[] data = new string[0];
+            string response = await Client.SendAndRecieve(TypeOfCommunication.FetchServers, data);
+
+            if (response == "-1") {
+                return new List<string[]>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> serverList = DeserializeList<string[]>(dataBytes);
+
+            return serverList;
+        }
+
         static async Task<List<string>> FetchFriends(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
@@ -686,8 +700,9 @@ namespace Client {
 
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
 
-            foreach (string serverName in FetchServers()) {
-                AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, serverName, serverName);
+            foreach (string[] server in await FetchServers(Client)) {
+
+                AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[0], server[0]);
             }
 
             // Second Column: Boxes with Icons and Text
