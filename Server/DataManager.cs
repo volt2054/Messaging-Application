@@ -144,14 +144,14 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServerChannels(string serverID) { //TODO TEST
+        public static List<string[]> FetchServerChannels(string serverID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
                     "SELECT channel_id, channel_name " +
                     "FROM Channels " +
-                    "WHERE server_id IS @ServerID";
+                    "WHERE server_id = @ServerID";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ServerID", serverID);
