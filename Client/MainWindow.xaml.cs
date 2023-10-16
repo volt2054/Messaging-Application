@@ -247,7 +247,7 @@ namespace Client {
         }
 
         List<string> channels = new List<string>();
-        private void InitializeCreateServerUI() {
+        private async void InitializeCreateServerUI() {
             Grid mainGrid = new Grid {
                 Margin = new Thickness(30)
             };
@@ -336,15 +336,36 @@ namespace Client {
             serverOptionsBorder.Child = serverOptionsGrid;
 
 
-            Grid testGrid = new Grid();
+            Grid friendsGrid = new Grid();
             RowDefinition friendsGridRow = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
             RowDefinition friendsGridRow2 = new RowDefinition { Height = new GridLength(4, GridUnitType.Star) };
             RowDefinition friendsGridRow3 = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
 
 
-            testGrid.RowDefinitions.Add(friendsGridRow);
-            testGrid.RowDefinitions.Add(friendsGridRow2);
-            testGrid.RowDefinitions.Add(friendsGridRow3);
+            friendsGrid.RowDefinitions.Add(friendsGridRow);
+            friendsGrid.RowDefinitions.Add(friendsGridRow2);
+            friendsGrid.RowDefinitions.Add(friendsGridRow3);
+
+            // ScrollViewer in the second column
+            Border scrollViewer2Border = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(5),
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+
+            ScrollViewer scrollViewer2 = new ScrollViewer {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+            StackPanel friendsStackPanel = new StackPanel();
+
+            scrollViewer2.Content = friendsStackPanel;
+            scrollViewer2Border.Child = scrollViewer2;
+            
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend, false, friendsStackPanel);
+            }
 
             Button goBack = new Button();
             goBack.Margin = new Thickness(0, 0, 0, 20);
@@ -364,41 +385,36 @@ namespace Client {
                 byte[] SerializedChannels = SerializeList<string>(channels);
                 string SerializedChannelsString = Convert.ToBase64String(SerializedChannels);
 
-                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString};
+                List<string> friends = new List<string>();
+
+                foreach (Border friendsBorder in friendsStackPanel.Children) {
+                    friends.Add((string)friendsBorder.Tag);
+                }
+
+                byte[] SerializedFriends = SerializeList<string>(friends);
+                string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
+
+
+                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString, SerializedFriendsString};
 
                 Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
             };
 
-            // ScrollViewer in the second column
-            Border scrollViewer2Border = new Border {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(5),
-                VerticalAlignment = VerticalAlignment.Stretch
-            };
-
-            ScrollViewer scrollViewer2 = new ScrollViewer {
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
-            };
-            StackPanel scrollViewer2Content = new StackPanel();
-
-            scrollViewer2.Content = scrollViewer2Content;
-            scrollViewer2Border.Child = scrollViewer2;
+            
 
             Grid.SetRow(goBack, 0);
             Grid.SetRow(scrollViewer2Border, 1);
             Grid.SetRow(createServer, 2);
 
-            testGrid.Children.Add(goBack);
-            testGrid.Children.Add(scrollViewer2Border);
-            testGrid.Children.Add(createServer);
+            friendsGrid.Children.Add(goBack);
+            friendsGrid.Children.Add(scrollViewer2Border);
+            friendsGrid.Children.Add(createServer);
 
             Grid.SetColumn(serverOptionsBorder, 0);
-            Grid.SetColumn(testGrid, 1);
+            Grid.SetColumn(friendsGrid, 1);
 
             mainGrid.Children.Add(serverOptionsBorder);
-            mainGrid.Children.Add(testGrid);
+            mainGrid.Children.Add(friendsGrid);
 
             // Set the mainGrid as the content of the Window
             this.Content = mainGrid;
@@ -908,6 +924,7 @@ namespace Client {
             friendBorder.BorderBrush = Brushes.LightGray;
             friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             friendBorder.Padding = new Thickness(5);
+            friendBorder.Tag = username;
 
             StackPanel friendStackPanel = new StackPanel();
             friendStackPanel.Orientation = Orientation.Horizontal;
