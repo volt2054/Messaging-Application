@@ -404,7 +404,8 @@ namespace Client {
 
                 string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString, SerializedFriendsString};
 
-                Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
+                await Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
+                InitializeMessagingUI();
             };
 
             
