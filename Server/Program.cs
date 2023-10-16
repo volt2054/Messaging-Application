@@ -181,9 +181,11 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.FetchChannels) { //TODO FETCH SERVER CHANNELS //FIXME
 
                         List<string[]> userChannels;
+                        
 
                         if (args.Length != 0) {
-                            userChannels = FetchServerChannels(userID);
+                            string serverID = args[0];
+                            userChannels = FetchServerChannels(serverID);
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }

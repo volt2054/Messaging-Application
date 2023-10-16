@@ -167,7 +167,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT server_name,server_owner FROM UserServers, Servers " +
+                "SELECT server_name,Servers.server_id FROM UserServers, Servers " +
                 "WHERE UserServers.server_id = Servers.server_id " +
                 "AND user_id = @UserID";
 
