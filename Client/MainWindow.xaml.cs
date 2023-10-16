@@ -740,7 +740,7 @@ namespace Client {
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
 
             foreach (string[] server in await FetchServers(Client)) {
-                AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
+                    AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
             }
 
             // Second Column: Boxes with Icons and Text

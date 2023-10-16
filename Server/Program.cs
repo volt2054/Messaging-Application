@@ -235,8 +235,6 @@ namespace Server {
                         foreach (string friend in Friends) {
                             SendMessageToUser(argsToSend, friend, TypeOfCommunication.NotifyServer);
                         }
-                        SendMessageToUser(argsToSend, userID, TypeOfCommunication.NotifyServer);
-
                     } else if (communicationType == TypeOfCommunication.CreateChannel) {
                         string channelName = args[0];
                         string serverID = args[1];
