@@ -505,10 +505,6 @@ namespace Client {
                     string message = Client.GetNextMessage();
 
                     HandleServerMessage(message, uiContext);
-
-                    message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
-
-                    string[] args = message.Split(WebSocketMetadata.DELIMITER);
                 }
             });
         }
