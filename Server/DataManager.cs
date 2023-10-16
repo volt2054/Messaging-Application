@@ -349,7 +349,7 @@ namespace Server.Database {
         public static string CreateChannel(string channel_name, string server_id) {
             int channelID = -1;
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
+                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID); SELECT SCOPE_IDENTITY();";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@ChannelName", channel_name);

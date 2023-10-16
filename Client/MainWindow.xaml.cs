@@ -240,6 +240,28 @@ namespace Client {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
             } else {
+
+                Button button = new Button() {
+                    Content = "New Channel"
+                };
+
+                button.Click += (s, e) => {
+                    TextBox newChannelTextBox = new TextBox();
+                    channelListStackPanel.Children.Add(newChannelTextBox);
+                    newChannelTextBox.Focus();
+                    newChannelTextBox.Background = Brushes.LightGray;
+
+                    newChannelTextBox.KeyDown += async (s, e) => {
+                        if (e.Key == Key.Enter) {
+                            string[] data = { newChannelTextBox.Text, CurrentServerID };
+                            string channelID = await Client.SendAndRecieve(TypeOfCommunication.CreateChannel, data);
+                            channelListStackPanel.Children.Remove(newChannelTextBox);
+                        }
+                    };
+                };
+
+                channelListStackPanel.Children.Add(button);
+
                 foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
                     AddChannel(channelListStackPanel, channel[1], channel[0], CurrentServerID);
                 }

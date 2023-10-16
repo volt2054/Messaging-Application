@@ -191,14 +191,14 @@ namespace Server {
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
 
-                    } else if (communicationType==TypeOfCommunication.FetchServers) {
+                    } else if (communicationType == TypeOfCommunication.FetchServers) {
                         List<string[]> userServers;
 
                         userServers = FetchServers(userID);
 
-                        byte[] serversData= SerializeList(userServers);
-                        responseMessage= Convert.ToBase64String(serversData);
-                    
+                        byte[] serversData = SerializeList(userServers);
+                        responseMessage = Convert.ToBase64String(serversData);
+
 
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
@@ -237,6 +237,22 @@ namespace Server {
                         }
                         SendMessageToUser(argsToSend, userID, TypeOfCommunication.NotifyServer);
 
+                    } else if (communicationType == TypeOfCommunication.CreateChannel) {
+                        string channelName = args[0];
+                        string serverID = args[1];
+
+                        string channelID = CreateChannel(channelName, serverID);
+
+                        responseMessage = channelID;
+
+                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        string[] argsToSend = new string[3];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        argsToSend[2] = serverID;
+                        foreach(string user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        }
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);

@@ -10,6 +10,7 @@ namespace SharedLibrary {
             public static readonly string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCHANNEL + USERID) RETURNS CHANNEL ID
             public static readonly string CreateGroupChannel = "CREATEGROUPDCHANNEL"; // (CREATEGROUPCHANNEL + USERID) RETURNS CHANNEL ID
             public static readonly string CreateServer = "CREATESERVER"; // (CREATESERVER + SERVER NAME + SERVER DESC + CHANNEL LIST) RETURNS WHETHER SUCCESSFUL
+            public static readonly string CreateChannel = "CREATECHANNEL"; // (CREATECHANNEL + CHANNEL NAME + SERVER ID) RETURNS CHANNELID
             public static readonly string FetchServers = "FETCHSERVERS"; // (FETCHSERVERS) RETURNS LIST OF SERVERS
             public static readonly string AddFriend = "ADDFRIEND"; // (ADDFRIEND + FRIENDID)
             public static readonly string RemoveFriend = "REMFRIEND"; // (REMFRIEND + FRIENDID)
