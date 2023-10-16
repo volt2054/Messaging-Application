@@ -338,25 +338,29 @@ namespace Server.Database {
             return channelID.ToString();
         }
 
-        public static string CreateServer(string server_name, string server_description, string UserID, List<string> channels) {
-            int id = 0;
+        public static string CreateServer(string server_name, string server_description, string UserID, List<string> channels, List<string> friends) {
+            int serverID = 0;
             ExecuteDatabaseOperations(connection => {
                 string insertQuery = "INSERT INTO Servers (server_name, server_owner) VALUES (@ServerName, @ServerOwner); SELECT SCOPE_IDENTITY();";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@ServerName", server_name);
                 command.Parameters.AddWithValue("@ServerOwner", UserID);
-                id = Convert.ToInt32(command.ExecuteScalar());
+                serverID = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO UserServers (server_id, user_id) VALUES (@ServerID, @UserID)";
+            friends.Add(UserID);
+            foreach (string friend in friends) {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO UserServers (server_id, user_id) VALUES (@ServerID, @UserID)";
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@ServerID", id);
-                command.Parameters.AddWithValue("@UserID", UserID);
-                ExecuteNonQuery(connection, command);
-            });
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@ServerID", serverID);
+                    command.Parameters.AddWithValue("@UserID", friend);
+                    ExecuteNonQuery(connection, command);
+                });
+            }
+            
 
             foreach(string channel in channels) {
                 ExecuteDatabaseOperations(connection => {
@@ -364,13 +368,13 @@ namespace Server.Database {
 
                     SqlCommand command = new SqlCommand(insertQuery, connection);
                     command.Parameters.AddWithValue("@ChannelName", channel);
-                    command.Parameters.AddWithValue("@ServerID", id.ToString());
+                    command.Parameters.AddWithValue("@ServerID", serverID.ToString());
 
                     ExecuteNonQuery(connection,command);
                 });
             }
 
-            return id.ToString();
+            return serverID.ToString();
         }
 
 

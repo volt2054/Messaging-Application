@@ -381,7 +381,7 @@ namespace Client {
             createServer.Content = "Create Server";
             createServer.VerticalAlignment = VerticalAlignment.Bottom;
 
-            createServer.Click += (s, e) => {
+            createServer.Click += async (s, e) => {
                 byte[] SerializedChannels = SerializeList<string>(channels);
                 string SerializedChannelsString = Convert.ToBase64String(SerializedChannels);
 
@@ -391,7 +391,14 @@ namespace Client {
                     friends.Add((string)friendsBorder.Tag);
                 }
 
-                byte[] SerializedFriends = SerializeList<string>(friends);
+                List<string> friendIDs = new List<string>();
+                foreach (string friendUsername in friends) {
+                    string[] dataForGetID = { friendUsername };
+                    string friendID = await Client.SendAndRecieve(TypeOfCommunication.GetID, dataForGetID);
+                    friendIDs.Add(friendID);
+                }
+
+                byte[] SerializedFriends = SerializeList<string>(friendIDs);
                 string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
 
 

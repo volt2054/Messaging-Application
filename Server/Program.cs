@@ -222,11 +222,20 @@ namespace Server {
 
                         List<string> Channels = DeserializeList<string>(SerializedChannels);
 
-                        string id = CreateServer(serverName, serverDescription, userID, Channels);
+                        string SerializedFriendsString = args[3];
+                        byte[] SerializedFriends = Convert.FromBase64String(SerializedFriendsString);
+
+                        List<string> Friends = DeserializeList<string>(SerializedFriends);
+
+                        string id = CreateServer(serverName, serverDescription, userID, Channels, Friends);
                         string[] argsToSend = new string[2];
                         argsToSend[0] = id;
                         argsToSend[1] = serverName;
+                        foreach (string friend in Friends) {
+                            SendMessageToUser(argsToSend, friend, TypeOfCommunication.NotifyServer);
+                        }
                         SendMessageToUser(argsToSend, userID, TypeOfCommunication.NotifyServer);
+
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);
