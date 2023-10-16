@@ -373,7 +373,9 @@ namespace Client {
             goBack.Content = "Go Back";
             goBack.VerticalAlignment = VerticalAlignment.Top;
 
-            goBack.Click += GoBack_Click;
+            goBack.Click += (s , e) => {
+                InitializeMessagingUI();
+            };
 
             Button createServer = new Button();
             createServer.Margin = new Thickness(0,20, 0,0);
@@ -426,14 +428,6 @@ namespace Client {
 
             // Set the mainGrid as the content of the Window
             this.Content = mainGrid;
-        }
-
-        private void CreateServer_Click(object sender, RoutedEventArgs e) {
-
-        }
-
-        private void GoBack_Click(object sender, RoutedEventArgs e) {
-            InitializeMessagingUI();
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
