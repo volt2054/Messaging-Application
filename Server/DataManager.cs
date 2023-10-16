@@ -68,6 +68,31 @@ namespace Server.Database {
 
                 users = ExecuteQuery<string>(connection, command);
             });
+
+            
+            if (users.Count > 0 ) { return users; }
+
+            List<string> servers = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                "SELECT server_id FROM Channels WHERE channel_id = @ChannelID;";
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ChannelID", ChannelID);
+
+                servers = ExecuteQuery<string>(connection, command);
+            });
+
+            if (servers.Count > 0) {
+                ExecuteDatabaseOperations(connection => {
+                    string selectQuery =
+                        "SELECT user_id FROM UserServers WHERE server_id = @ServerID;";
+
+                    SqlCommand command = new SqlCommand(selectQuery, connection);
+                    command.Parameters.AddWithValue("@ServerID", servers.First());
+
+                    users = ExecuteQuery<string>(connection, command);
+                });
+            }
             return users;
         }
 

@@ -165,7 +165,6 @@ namespace Server {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
 
-
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
                         string message_from = args[1];
@@ -181,7 +180,6 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.FetchChannels) { //TODO FETCH SERVER CHANNELS //FIXME
 
                         List<string[]> userChannels;
-                        
 
                         if (args.Length != 0) {
                             string serverID = args[0];

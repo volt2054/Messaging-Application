@@ -471,7 +471,6 @@ namespace Client {
         }
 
         private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
-
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = ChannelElement.Tag as string;
 
