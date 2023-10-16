@@ -210,9 +210,10 @@ namespace Server {
                         responseMessage = channelID;
 
                         List<string> usersInChannel = FetchUsersInChannel(channelID);
-                        string[] argsToSend = new string[2];
+                        string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = channelName;
+                        argsToSend[2] = "-1";
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
 
                     } else if (communicationType == TypeOfCommunication.CreateServer) {

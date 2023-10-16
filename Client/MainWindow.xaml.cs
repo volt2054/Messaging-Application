@@ -231,17 +231,17 @@ namespace Client {
             if (Tag == SpecialServerIDs.DirectMessages) {
 
                 // FRIENDS CHANNEL
-                AddChannel(channelListStackPanel, "Friends", "-1");
+                AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
                 foreach (string[] channel in await FetchDMs(Client)) {
-                    AddChannel(channelListStackPanel, channel[1], channel[0]);
+                    AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
                 }
             } else if (Tag == SpecialServerIDs.CreateServer) {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
             } else {
                 foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
-                    AddChannel(channelListStackPanel, channel[1], channel[0]);
+                    AddChannel(channelListStackPanel, channel[1], channel[0], CurrentServerID);
                 }
             }
         }
@@ -316,7 +316,7 @@ namespace Client {
                 Margin = new Thickness(0, 5, 0, 0)
             };
             addChannelButton.Click += (s, e) => {
-                AddChannel(scrollViewerContent, addChannelTextBox.Text, "-2");
+                AddChannel(scrollViewerContent, addChannelTextBox.Text, "-2", SpecialServerIDs.CreateServer);
                 channels.Add(addChannelTextBox.Text);
             };
 
@@ -435,8 +435,12 @@ namespace Client {
             InitializeMessagingUI();
         }
 
-        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
+        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
 
+            if (CurrentServerID != serverID) {
+                return;
+            }
+            
             string iconPath;
 
             if (channelID == SpecialChannelIDs.Friends) {
@@ -519,7 +523,7 @@ namespace Client {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
-                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
+                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0], args[2]), null);
             } else if (message.StartsWith(TypeOfCommunication.NotifyServer)) {
                 message = message.Substring(TypeOfCommunication.NotifyServer.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -764,10 +768,10 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            AddChannel(channelListStackPanel, "Friends", "-1");
+            AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
             foreach (string[] channel in await FetchDMs(Client)) {
-                AddChannel(channelListStackPanel, channel[1], channel[0]);
+                AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
             }
 
             foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
