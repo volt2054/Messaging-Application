@@ -400,6 +400,7 @@ namespace Client {
             goBack.VerticalAlignment = VerticalAlignment.Top;
 
             goBack.Click += (s , e) => {
+                channels.Clear();
                 InitializeMessagingUI();
             };
 
