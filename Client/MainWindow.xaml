@@ -5,65 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Client"
         mc:Ignorable="d"
-        Title="PrimaryWindow" Height="450" Width="800"
-        Name="PrimaryWindow">
-
+        Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="10*"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- First Column: Circles -->
-        <ScrollViewer Grid.Column="0">
-            <StackPanel>
-                <!-- Add your circle elements here -->
-                <Ellipse Width="50" Height="50" Fill="Blue"/>
-                <Ellipse Width="50" Height="50" Fill="Red"/>
-                <!-- Add more circles as needed -->
-            </StackPanel>
-        </ScrollViewer>
-
-        <!-- Second Column: Boxes with Icons and Text -->
-        <ScrollViewer Grid.Column="1">
-            <StackPanel>
-                <!-- Add your box elements with icons and text here -->
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="icon.png" Width="30" Height="30"/>
-                    <TextBlock Text="Icon 1 Text" Margin="10,0,0,0"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="icon.png" Width="30" Height="30"/>
-                    <TextBlock Text="Icon 2 Text" Margin="10,0,0,0"/>
-                </StackPanel>
-                <!-- Add more boxes with icons and text as needed -->
-            </StackPanel>
-        </ScrollViewer>
-
-        <!-- Third Column: Message Container with Text Box -->
-        <ScrollViewer Grid.Column="2">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse Width="25" Height="25" Fill="Blue"/>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="Username1" FontWeight="Bold" Margin="5,0,0,3"/>
-                        <TextBlock Text="Message 2" Margin="5,0,0,10"/>
-                    </StackPanel>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Ellipse Width="25" Height="25" Fill="Red"/>
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text="Username2" FontWeight="Bold" Margin="5,0,0,3"/>
-                        <TextBlock Text="Message 2" Margin="5,0,0,10"/>
-                    </StackPanel>
-                </StackPanel>
-                <!-- Add more messages as needed -->
-
-                <!-- Text Box for user input -->
-                <TextBox DockPanel.Dock="Bottom"/>
-            </StackPanel>
-        </ScrollViewer>
     </Grid>
-    
 </Window>

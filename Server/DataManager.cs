@@ -68,6 +68,31 @@ namespace Server.Database {
 
                 users = ExecuteQuery<string>(connection, command);
             });
+
+            
+            if (users.Count > 0 ) { return users; }
+
+            List<string> servers = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                "SELECT server_id FROM Channels WHERE channel_id = @ChannelID;";
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ChannelID", ChannelID);
+
+                servers = ExecuteQuery<string>(connection, command);
+            });
+
+            if (servers.Count > 0) {
+                ExecuteDatabaseOperations(connection => {
+                    string selectQuery =
+                        "SELECT user_id FROM UserServers WHERE server_id = @ServerID;";
+
+                    SqlCommand command = new SqlCommand(selectQuery, connection);
+                    command.Parameters.AddWithValue("@ServerID", servers.First());
+
+                    users = ExecuteQuery<string>(connection, command);
+                });
+            }
             return users;
         }
 
@@ -144,14 +169,14 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServerChannels(string serverID) { //TODO TEST
+        public static List<string[]> FetchServerChannels(string serverID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
                     "SELECT channel_id, channel_name " +
                     "FROM Channels " +
-                    "WHERE server_id IS @ServerID";
+                    "WHERE server_id = @ServerID";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ServerID", serverID);
@@ -162,7 +187,23 @@ namespace Server.Database {
             return result;
         }
 
+        public static List<string[]> FetchServers(string userID) {
+            List<string[]> result = new List<string[]>();
 
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                "SELECT server_name,Servers.server_id FROM UserServers, Servers " +
+                "WHERE UserServers.server_id = Servers.server_id " +
+                "AND user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                result = ExecuteQuery<string[]>(connection, command);
+            });
+
+            return result;
+        }
 
 
 
@@ -308,7 +349,7 @@ namespace Server.Database {
         public static string CreateChannel(string channel_name, string server_id) {
             int channelID = -1;
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
+                string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID); SELECT SCOPE_IDENTITY();";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@ChannelName", channel_name);
@@ -320,6 +361,45 @@ namespace Server.Database {
             // need to add users to channel
 
             return channelID.ToString();
+        }
+
+        public static string CreateServer(string server_name, string server_description, string UserID, List<string> channels, List<string> friends) {
+            int serverID = 0;
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO Servers (server_name, server_owner) VALUES (@ServerName, @ServerOwner); SELECT SCOPE_IDENTITY();";
+
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ServerName", server_name);
+                command.Parameters.AddWithValue("@ServerOwner", UserID);
+                serverID = Convert.ToInt32(command.ExecuteScalar());
+            });
+
+            friends.Add(UserID);
+            foreach (string friend in friends) {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO UserServers (server_id, user_id) VALUES (@ServerID, @UserID)";
+
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@ServerID", serverID);
+                    command.Parameters.AddWithValue("@UserID", friend);
+                    ExecuteNonQuery(connection, command);
+                });
+            }
+            
+
+            foreach(string channel in channels) {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Channels (channel_name, server_id) VALUES (@ChannelName, @ServerID)";
+
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@ChannelName", channel);
+                    command.Parameters.AddWithValue("@ServerID", serverID.ToString());
+
+                    ExecuteNonQuery(connection,command);
+                });
+            }
+
+            return serverID.ToString();
         }
 
 

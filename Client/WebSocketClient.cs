@@ -41,7 +41,7 @@ namespace Client {
         private void OnMessageReceived(string message) {
             _taskCompletionSource.TrySetResult(true);
             
-            if (message.StartsWith(TypeOfCommunication.NotifyMessage) || message.StartsWith(TypeOfCommunication.NotifyChannel)) { // disgusting FIX TODO
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage) || message.StartsWith(TypeOfCommunication.NotifyChannel) || message.StartsWith(TypeOfCommunication.NotifyServer)) { // disgusting FIX TODO
                 messageQueue.Add(message);
             } else {
                 responseMessages.Enqueue(message);
@@ -72,7 +72,7 @@ namespace Client {
 
 
         private async Task ConnectWebSocket() {
-            Uri serverUri = new Uri(SERVER_URL);
+            Uri serverUri = new Uri(WebSocketMetadata.SERVER_URL);
             await _webSocket.ConnectAsync(serverUri, CancellationToken.None);
 
             MessageBox.Show("Connect");

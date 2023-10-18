@@ -24,11 +24,6 @@ using Azure.Messaging;
 namespace Server {
     
     class Server {
-
-        // TODO - Loading options from file??
-
-
-
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
@@ -168,7 +163,6 @@ namespace Server {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
 
-
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
                         string message_from = args[1];
@@ -186,13 +180,23 @@ namespace Server {
                         List<string[]> userChannels;
 
                         if (args.Length != 0) {
-                            userChannels = FetchServerChannels(userID);
+                            string serverID = args[0];
+                            userChannels = FetchServerChannels(serverID);
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
 
                         byte[] channelsData = SerializeList(userChannels);
                         responseMessage = Convert.ToBase64String(channelsData);
+
+                    } else if (communicationType == TypeOfCommunication.FetchServers) {
+                        List<string[]> userServers;
+
+                        userServers = FetchServers(userID);
+
+                        byte[] serversData = SerializeList(userServers);
+                        responseMessage = Convert.ToBase64String(serversData);
+
 
                     } else if (communicationType == TypeOfCommunication.CreateDMChannel) {
                         string user1 = userID;
@@ -202,10 +206,49 @@ namespace Server {
                         responseMessage = channelID;
 
                         List<string> usersInChannel = FetchUsersInChannel(channelID);
-                        string[] argsToSend = new string[2];
+                        string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = channelName;
+                        argsToSend[2] = "-1";
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
+
+                    } else if (communicationType == TypeOfCommunication.CreateServer) {
+                        string serverName = args[0];
+                        string serverDescription = args[1];
+
+                        string SerializedChannelsString = args[2];
+                        byte[] SerializedChannels = Convert.FromBase64String(SerializedChannelsString);
+
+                        List<string> Channels = DeserializeList<string>(SerializedChannels);
+
+                        string SerializedFriendsString = args[3];
+                        byte[] SerializedFriends = Convert.FromBase64String(SerializedFriendsString);
+
+                        List<string> Friends = DeserializeList<string>(SerializedFriends);
+
+                        string id = CreateServer(serverName, serverDescription, userID, Channels, Friends);
+                        string[] argsToSend = new string[2];
+                        argsToSend[0] = id;
+                        argsToSend[1] = serverName;
+                        foreach (string friend in Friends) {
+                            SendMessageToUser(argsToSend, friend, TypeOfCommunication.NotifyServer);
+                        }
+                    } else if (communicationType == TypeOfCommunication.CreateChannel) {
+                        string channelName = args[0];
+                        string serverID = args[1];
+
+                        string channelID = CreateChannel(channelName, serverID);
+
+                        responseMessage = channelID;
+
+                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        string[] argsToSend = new string[3];
+                        argsToSend[0] = channelID;
+                        argsToSend[1] = channelName;
+                        argsToSend[2] = serverID;
+                        foreach(string user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        }
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);

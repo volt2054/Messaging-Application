@@ -43,6 +43,7 @@ namespace Client {
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
         public static readonly string CreateChannel = "-2";
+        public static readonly string NotMade = "-3";
     }
 
     public class Icons {
@@ -140,6 +141,20 @@ namespace Client {
 
         }
 
+        static async Task<List<string[]>> FetchServers(WebSocketClient Client) {
+            string[] data = new string[0];
+            string response = await Client.SendAndRecieve(TypeOfCommunication.FetchServers, data);
+
+            if (response == "-1") {
+                return new List<string[]>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string[]> serverList = DeserializeList<string[]>(dataBytes);
+
+            return serverList;
+        }
+
         static async Task<List<string>> FetchFriends(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
@@ -170,11 +185,6 @@ namespace Client {
             base.OnClosing(e);
         }
 
-
-
-
-
-
         private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
 
             Grid ServerIcon = new Grid();
@@ -197,7 +207,7 @@ namespace Client {
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
-               
+
             };
 
             ServerIcon.Children.Add(ServerBackground);
@@ -221,39 +231,240 @@ namespace Client {
             if (Tag == SpecialServerIDs.DirectMessages) {
 
                 // FRIENDS CHANNEL
-                AddChannel(channelListStackPanel, "Friends", "-1");
+                AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
                 foreach (string[] channel in await FetchDMs(Client)) {
-                    AddChannel(channelListStackPanel, channel[1], channel[0]);
+                    AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
                 }
-            } else if(Tag == SpecialServerIDs.CreateServer) {
+            } else if (Tag == SpecialServerIDs.CreateServer) {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
             } else {
+
+                Button button = new Button() {
+                    Content = "New Channel"
+                };
+
+                button.Click += (s, e) => {
+                    TextBox newChannelTextBox = new TextBox();
+                    channelListStackPanel.Children.Add(newChannelTextBox);
+                    newChannelTextBox.Focus();
+                    newChannelTextBox.Background = Brushes.LightGray;
+
+                    newChannelTextBox.KeyDown += async (s, e) => {
+                        if (e.Key == Key.Enter) {
+                            string[] data = { newChannelTextBox.Text, CurrentServerID };
+                            string channelID = await Client.SendAndRecieve(TypeOfCommunication.CreateChannel, data);
+                            channelListStackPanel.Children.Remove(newChannelTextBox);
+                        }
+                    };
+                };
+
+                channelListStackPanel.Children.Add(button);
+
                 foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
-                    AddChannel(channelListStackPanel, channel[1], channel[0]);
+                    AddChannel(channelListStackPanel, channel[1], channel[0], CurrentServerID);
                 }
             }
         }
 
-        private void InitializeCreateServerUI() {
+        List<string> channels = new List<string>();
+        private async void InitializeCreateServerUI() {
+            Grid mainGrid = new Grid {
+                Margin = new Thickness(30)
+            };
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(7, GridUnitType.Star) });
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
 
-        }
+            // ServerOptionsGrid
+            Border serverOptionsBorder = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(10),
+                Margin = new Thickness(0, 0, 25, 0)
+            };
 
-        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID) {
+            Grid serverOptionsGrid = new Grid();
+            serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            serverOptionsGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-            string iconPath;
+            // First row of ServerOptionsGrid
+            StackPanel stackPanel1 = new StackPanel {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            stackPanel1.Children.Add(new Label { Content = "Name:" });
 
-            switch (channelID) {
+            TextBox serverName = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) };
+            stackPanel1.Children.Add(serverName);
+            stackPanel1.Children.Add(new Label { Content = "Description:", Margin = new Thickness(10, 0, 0, 0) });
+            TextBox serverDescription = new TextBox { Width = 150, Margin = new Thickness(5, 0, 0, 0) };
+            stackPanel1.Children.Add(serverDescription);
 
-                case "-1":
-                    iconPath = Icons.Friends;
-                    break;
-                default:
-                    iconPath = Icons.Chat;
-                    break;
+            // Second row of ServerOptionsGrid
+            Grid channelGrid = new Grid();
+            channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+            channelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            // ScrollViewer in the first column of channelgrid
+            Border scrollViewerBorder = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                Margin = new Thickness(20)
+            };
+
+            ScrollViewer scrollViewer = new ScrollViewer {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+            StackPanel scrollViewerContent = new StackPanel();
+
+            scrollViewer.Content = scrollViewerContent;
+            scrollViewerBorder.Child = scrollViewer;
+
+            // Textbox and Button in the second column of channelgrid
+            StackPanel stackPanel2 = new StackPanel {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10)
+            };
+
+            TextBox addChannelTextBox = new TextBox();
+            
+
+            Button addChannelButton = new Button {
+                Content = "Add Channel",
+                Margin = new Thickness(0, 5, 0, 0)
+            };
+            addChannelButton.Click += (s, e) => {
+                AddChannel(scrollViewerContent, addChannelTextBox.Text, "-2", SpecialServerIDs.CreateServer);
+                channels.Add(addChannelTextBox.Text);
+            };
+
+            stackPanel2.Children.Add(addChannelTextBox);
+            stackPanel2.Children.Add(addChannelButton);
+
+            channelGrid.Children.Add(scrollViewerBorder);
+            Grid.SetColumn(scrollViewerBorder, 0);
+            channelGrid.Children.Add(stackPanel2);
+            Grid.SetColumn(stackPanel2, 1);
+
+            serverOptionsGrid.Children.Add(stackPanel1);
+            Grid.SetRow(stackPanel1, 0);
+            serverOptionsGrid.Children.Add(channelGrid);
+            Grid.SetRow(channelGrid, 1);
+
+            serverOptionsBorder.Child = serverOptionsGrid;
+
+
+            Grid friendsGrid = new Grid();
+            RowDefinition friendsGridRow = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+            RowDefinition friendsGridRow2 = new RowDefinition { Height = new GridLength(4, GridUnitType.Star) };
+            RowDefinition friendsGridRow3 = new RowDefinition { Height = new GridLength(1, GridUnitType.Star) };
+
+
+            friendsGrid.RowDefinitions.Add(friendsGridRow);
+            friendsGrid.RowDefinitions.Add(friendsGridRow2);
+            friendsGrid.RowDefinitions.Add(friendsGridRow3);
+
+            // ScrollViewer in the second column
+            Border scrollViewer2Border = new Border {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(5),
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+
+            ScrollViewer scrollViewer2 = new ScrollViewer {
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
+            StackPanel friendsStackPanel = new StackPanel();
+
+            scrollViewer2.Content = friendsStackPanel;
+            scrollViewer2Border.Child = scrollViewer2;
+            
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend, false, friendsStackPanel);
             }
 
+            Button goBack = new Button();
+            goBack.Margin = new Thickness(0, 0, 0, 20);
+            goBack.FontSize = 24;
+            goBack.Content = "Go Back";
+            goBack.VerticalAlignment = VerticalAlignment.Top;
+
+            goBack.Click += (s , e) => {
+                InitializeMessagingUI();
+            };
+
+            Button createServer = new Button();
+            createServer.Margin = new Thickness(0,20, 0,0);
+            createServer.FontSize = 24;
+            createServer.Content = "Create Server";
+            createServer.VerticalAlignment = VerticalAlignment.Bottom;
+
+            createServer.Click += async (s, e) => {
+                byte[] SerializedChannels = SerializeList<string>(channels);
+                string SerializedChannelsString = Convert.ToBase64String(SerializedChannels);
+
+                List<string> friends = new List<string>();
+
+                foreach (Border friendsBorder in friendsStackPanel.Children) {
+                    friends.Add((string)friendsBorder.Tag);
+                }
+
+                List<string> friendIDs = new List<string>();
+                foreach (string friendUsername in friends) {
+                    string[] dataForGetID = { friendUsername };
+                    string friendID = await Client.SendAndRecieve(TypeOfCommunication.GetID, dataForGetID);
+                    friendIDs.Add(friendID);
+                }
+
+                byte[] SerializedFriends = SerializeList<string>(friendIDs);
+                string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
+
+
+                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString, SerializedFriendsString};
+
+                await Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
+                InitializeMessagingUI();
+            };
+
+            
+
+            Grid.SetRow(goBack, 0);
+            Grid.SetRow(scrollViewer2Border, 1);
+            Grid.SetRow(createServer, 2);
+
+            friendsGrid.Children.Add(goBack);
+            friendsGrid.Children.Add(scrollViewer2Border);
+            friendsGrid.Children.Add(createServer);
+
+            Grid.SetColumn(serverOptionsBorder, 0);
+            Grid.SetColumn(friendsGrid, 1);
+
+            mainGrid.Children.Add(serverOptionsBorder);
+            mainGrid.Children.Add(friendsGrid);
+
+            // Set the mainGrid as the content of the Window
+            this.Content = mainGrid;
+        }
+
+        private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
+
+            if (CurrentServerID != serverID) {
+                return;
+            }
+            
+            string iconPath;
+
+            if (channelID == SpecialChannelIDs.Friends) {
+                iconPath = Icons.Friends;
+            } else {
+                iconPath = Icons.Chat;
+            }
 
             StackPanel ChannelElement = new StackPanel {
                 Orientation = Orientation.Horizontal,
@@ -271,7 +482,9 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
-            ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
+            if (channelID != SpecialChannelIDs.NotMade) {
+                ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
+            }
 
             ChannelElement.Children.Add(icon);
             ChannelElement.Children.Add(textBlock);
@@ -280,7 +493,6 @@ namespace Client {
         }
 
         private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
-
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = ChannelElement.Tag as string;
 
@@ -309,29 +521,27 @@ namespace Client {
                     string message = Client.GetNextMessage();
 
                     HandleServerMessage(message, uiContext);
-
-                    message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
-
-                    string[] args = message.Split(WebSocketMetadata.DELIMITER);
                 }
             });
         }
 
         private void HandleServerMessage(string message, SynchronizationContext uiContext) {
-
-
             if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
                 message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
-            } else if(message.StartsWith(TypeOfCommunication.NotifyChannel)) {
+            } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
-                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0]), null);
-            }
+                uiContext.Post(_ => AddChannel(channelListStackPanel, args[1], args[0], args[2]), null);
+            } else if (message.StartsWith(TypeOfCommunication.NotifyServer)) {
+                message = message.Substring(TypeOfCommunication.NotifyServer.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
+                uiContext.Post(_ => AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, args[0], args[1]), null);
+            }
         }
 
         public void AddMessage(string channelID, string username, string messageContent) {
@@ -507,7 +717,9 @@ namespace Client {
             }
         }
 
+        StackPanel serverStackPanel = new StackPanel();
         private async void InitializeMessagingUI() {
+            serverStackPanel = new StackPanel();
             Grid messagingGrid = new Grid();
 
             Content = messagingGrid;
@@ -517,16 +729,19 @@ namespace Client {
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10, GridUnitType.Star) });
 
             // First Column: Circles
-            StackPanel circleStackPanel = new StackPanel();
-            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = circleStackPanel };
+            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = serverStackPanel };
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
-            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
 
             // FETCH SERVERS
 
-            AddServerIcon(circleStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
+
+            foreach (string[] server in await FetchServers(Client)) {
+                    AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
+            }
 
             // Second Column: Boxes with Icons and Text
             channelListStackPanel = new StackPanel();
@@ -565,10 +780,10 @@ namespace Client {
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
 
-            AddChannel(channelListStackPanel, "Friends", "-1");
+            AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
             foreach (string[] channel in await FetchDMs(Client)) {
-                AddChannel(channelListStackPanel, channel[1], channel[0]);
+                AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
             }
 
             foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
@@ -646,7 +861,7 @@ namespace Client {
 
             Grid.SetRow(headerGrid, 0);
 
-            
+
 
             // Define the friend list StackPanel
             FriendsStackPanel = new StackPanel();
@@ -663,7 +878,7 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (string friend in await FetchFriends(Client)) {
-                AddFriendElement(friend);
+                AddFriendElement(friend, true, FriendsStackPanel);
             }
 
             // Set the main Grid as the Window content
@@ -679,10 +894,10 @@ namespace Client {
             List<string> UserIDs = new List<string>();
             UserIDs.Add(CurrentUserID);
             foreach (Border item in FriendsStackPanel.Children) {
-                Grid grid = item.Child as Grid;
-                CheckBox checkbox = grid.Children[0] as CheckBox;
+                StackPanel stackpanel = item.Child as StackPanel;
+                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
-                    Label label = grid.Children[2] as Label;
+                    Label label = stackpanel.Children[2] as Label;
 
                     string UserID = await GetID(label.Content.ToString(), Client);
                     UserIDs.Add(UserID);
@@ -691,17 +906,17 @@ namespace Client {
             byte[] SerializedData = SerializeList<string>(UserIDs);
             string B64Data = Convert.ToBase64String(SerializedData);
 
-            string[] data = {B64Data};
+            string[] data = { B64Data };
 
             Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
         }
 
         private async void DmButton_Click(object sender, RoutedEventArgs e) {
-            foreach(Border item in FriendsStackPanel.Children) {
-                Grid grid = item.Child as Grid;
-                CheckBox checkbox = grid.Children[0] as CheckBox;
+            foreach (Border item in FriendsStackPanel.Children) {
+                StackPanel stackpanel = item.Child as StackPanel;
+                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
                 if (checkbox.IsChecked == true) {
-                    Label label = grid.Children[2] as Label;
+                    Label label = stackpanel.Children[2] as Label;
 
                     string ID = await GetID(label.Content.ToString(), Client);
 
@@ -722,33 +937,37 @@ namespace Client {
             string[] data = { ID };
             await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
-            AddFriendElement(text.Text);
+            AddFriendElement(text.Text, true, FriendsStackPanel);
         }
 
-        private void AddFriendElement(string username) {
+        private void AddFriendElement(string username, bool removeButtonToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
             friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             friendBorder.Padding = new Thickness(5);
+            friendBorder.Tag = username;
 
-            Grid friendGrid = new Grid();
+            StackPanel friendStackPanel = new StackPanel();
+            friendStackPanel.Orientation = Orientation.Horizontal;
 
             CheckBox checkBox = new CheckBox {
                 IsChecked = false,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 10, 0)
             };
 
             Ellipse ellipse = new Ellipse();
             ellipse.Width = 25;
             ellipse.Height = 25;
             ellipse.Fill = Brushes.Red;
+            ellipse.HorizontalAlignment = HorizontalAlignment.Left;
 
             Label label = new Label();
             label.Content = username;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
-            label.Margin = new Thickness(35, 0, 60, 0);
 
             Button removeButton = new Button();
             removeButton.Content = "X";
@@ -757,23 +976,27 @@ namespace Client {
             removeButton.Width = 20;
             removeButton.Click += RemoveFriend_Click;
 
-            // Add elements to the friendGrid
-            friendGrid.Children.Add(checkBox);
-            friendGrid.Children.Add(ellipse);
-            friendGrid.Children.Add(label);
-            friendGrid.Children.Add(removeButton);
 
-            friendBorder.Child = friendGrid;
+            // Add elements to the friendGrid
+            friendStackPanel.Children.Add(checkBox);
+            friendStackPanel.Children.Add(ellipse);
+            friendStackPanel.Children.Add(label);
+
+            if (removeButtonToggle) {
+                friendStackPanel.Children.Add(removeButton);
+            }
+
+            friendBorder.Child = friendStackPanel;
 
             // Add the friendBorder to the FriendsStackPanel
-            FriendsStackPanel.Children.Add(friendBorder);
+            stackPanel.Children.Add(friendBorder);
         }
 
         private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
-            Grid grid = button.Parent as Grid;
-            Label label = grid.Children[2] as Label;
-            Border border = grid.Parent as Border;
+            StackPanel stackPanel = button.Parent as StackPanel;
+            Label label = stackPanel.Children[2] as Label;
+            Border border = stackPanel.Parent as Border;
             string username = label.Content.ToString();
             string id = await GetID(username, Client);
             string[] data = { id };
