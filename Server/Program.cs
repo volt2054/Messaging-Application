@@ -24,8 +24,6 @@ using Azure.Messaging;
 namespace Server {
     
     class Server {
-
-
         static bool isRunning = true;
 
         static async Task Main(string[] args) {

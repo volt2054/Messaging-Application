@@ -15,7 +15,7 @@ namespace Server {
         private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
-        public WebSocketServer( Func<string, string> messageHandler) {
+        public WebSocketServer(Func<string, string> messageHandler) {
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add($"http://{WebSocketMetadata.IP_ADDRESS}:{WebSocketMetadata.PORT}/");
             _messageHandler = messageHandler;
