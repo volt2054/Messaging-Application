@@ -44,6 +44,7 @@ namespace Client {
         public static readonly string Friends = "-1";
         public static readonly string CreateChannel = "-2";
         public static readonly string NotMade = "-3";
+        public static readonly string UsersList = "-4";
     }
 
     public class Icons {
@@ -184,7 +185,7 @@ namespace Client {
 
             base.OnClosing(e);
         }
-
+        
         private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
 
             Grid ServerIcon = new Grid();
@@ -262,6 +263,8 @@ namespace Client {
 
                 channelListStackPanel.Children.Add(button);
 
+                AddChannel(channelListStackPanel, "User List", SpecialChannelIDs.UsersList, CurrentServerID);
+
                 foreach (string[] channel in await FetchChannels(CurrentServerID, Client)) {
                     AddChannel(channelListStackPanel, channel[1], channel[0], CurrentServerID);
                 }
@@ -325,7 +328,7 @@ namespace Client {
             scrollViewerBorder.Child = scrollViewer;
 
             // Textbox and Button in the second column of channelgrid
-            StackPanel stackPanel2 = new StackPanel {
+            StackPanel ChannelsStackPanel = new StackPanel {
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(10)
             };
@@ -342,13 +345,14 @@ namespace Client {
                 channels.Add(addChannelTextBox.Text);
             };
 
-            stackPanel2.Children.Add(addChannelTextBox);
-            stackPanel2.Children.Add(addChannelButton);
+            ChannelsStackPanel.Children.Add(addChannelTextBox);
+            ChannelsStackPanel.Children.Add(addChannelButton);
+
 
             channelGrid.Children.Add(scrollViewerBorder);
             Grid.SetColumn(scrollViewerBorder, 0);
-            channelGrid.Children.Add(stackPanel2);
-            Grid.SetColumn(stackPanel2, 1);
+            channelGrid.Children.Add(ChannelsStackPanel);
+            Grid.SetColumn(ChannelsStackPanel, 1);
 
             serverOptionsGrid.Children.Add(stackPanel1);
             Grid.SetRow(stackPanel1, 0);
@@ -496,8 +500,10 @@ namespace Client {
             StackPanel ChannelElement = sender as StackPanel;
             CurrentChannelID = ChannelElement.Tag as string;
 
-            if (CurrentChannelID == "-1") {
+            if (CurrentChannelID == SpecialChannelIDs.Friends) {
                 InitializeFriendsUI();
+            } else if (CurrentChannelID == SpecialChannelIDs.UsersList) {
+                InitializeUserListUI();
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
@@ -879,6 +885,47 @@ namespace Client {
 
             foreach (string friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, true, FriendsStackPanel);
+            }
+
+            // Set the main Grid as the Window content
+            this.Content = mainGrid;
+
+        }
+
+        private async void InitializeUserListUI() {
+            Grid mainGrid = new Grid();
+
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+
+            // Define the user list StackPanel
+            StackPanel UsersStackPanel = new StackPanel();
+            UsersStackPanel.Margin = new Thickness(10, 40, 10, 10);
+
+            ScrollViewer usersScrollViewer = new ScrollViewer();
+            usersScrollViewer.Content = UsersStackPanel;
+            Grid.SetRow(usersScrollViewer, 1);
+
+            usersScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
+
+            // Define the friend list StackPanel
+            FriendsStackPanel = new StackPanel();
+            FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
+
+            ScrollViewer friendsScrollViewer = new ScrollViewer();
+            friendsScrollViewer.Content = FriendsStackPanel;
+            Grid.SetRow(friendsScrollViewer, 2);
+
+            friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
+
+            mainGrid.Children.Add(friendsScrollViewer);
+            mainGrid.Children.Add(usersScrollViewer);
+
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend, false, FriendsStackPanel);
+            }
+            foreach (string friend in await FetchFriends(Client)) {
+                AddFriendElement(friend, true, UsersStackPanel);
             }
 
             // Set the main Grid as the Window content
