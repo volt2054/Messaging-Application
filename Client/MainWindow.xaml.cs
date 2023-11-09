@@ -890,7 +890,6 @@ namespace Client {
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
-
         }
 
         private async void InitializeUserListUI() {
@@ -905,17 +904,17 @@ namespace Client {
 
             ScrollViewer usersScrollViewer = new ScrollViewer();
             usersScrollViewer.Content = UsersStackPanel;
-            Grid.SetRow(usersScrollViewer, 1);
+            Grid.SetColumn(usersScrollViewer, 0);
 
             usersScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
 
             // Define the friend list StackPanel
-            FriendsStackPanel = new StackPanel();
+            StackPanel FriendsStackPanel = new StackPanel();
             FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
             ScrollViewer friendsScrollViewer = new ScrollViewer();
             friendsScrollViewer.Content = FriendsStackPanel;
-            Grid.SetRow(friendsScrollViewer, 2);
+            Grid.SetColumn(friendsScrollViewer, 1);
 
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
 
@@ -923,7 +922,7 @@ namespace Client {
             mainGrid.Children.Add(usersScrollViewer);
 
             foreach (string friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, false, FriendsStackPanel);
+                AddFriendElement(friend, true, FriendsStackPanel);
             }
             foreach (string friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, true, UsersStackPanel);
