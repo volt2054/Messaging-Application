@@ -9,9 +9,7 @@ using Microsoft.Data.SqlClient;
 
 
 using static Server.Database.DatabaseManager;
-using System.Threading.Channels;
-using System.Runtime.Intrinsics.X86;
-using System.Collections;
+using SharedLibrary;
 
 namespace Server.Database {
     public class DataManager {
@@ -35,8 +33,8 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchMessages(string channelID, string messageID, bool fetchBefore, int count) {
-            List<string[]> messages = new List<string[]>();
+        public static List<Message> FetchMessages(string channelID, string messageID, bool fetchBefore, int count) {
+            List<Message> messages = new List<Message>();
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
@@ -57,8 +55,8 @@ namespace Server.Database {
             return messages;
         }
 
-        public static List<string> FetchUsersInChannel(string ChannelID) {
-            List<string> users = new List<string>();
+        public static List<User> FetchUsersInChannel(string ChannelID) {
+            List<User> users = new List<User>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
                     "SELECT user_id FROM ChannelUsers WHERE channel_id = @ChannelId;";
@@ -134,7 +132,7 @@ namespace Server.Database {
             }
         }
 
-        public static List<string> GetFriends(string userID) {
+        public static List<User> GetFriends(string userID) {
             List<string> result = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
@@ -150,7 +148,7 @@ namespace Server.Database {
         }
 
 
-        public static List<string[]> FetchUserDMs(string userID) {
+        public static List<Channel> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
 
             
@@ -169,7 +167,7 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServerChannels(string serverID) {
+        public static List<Channel> FetchServerChannels(string serverID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
@@ -187,7 +185,7 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServers(string userID) {
+        public static List<Server> FetchServers(string userID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
