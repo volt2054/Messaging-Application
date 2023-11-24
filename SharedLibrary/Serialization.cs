@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using System.IO;
+using System.Security.Cryptography;
 
 namespace SharedLibrary {
     public class Serialization {
@@ -15,24 +16,23 @@ namespace SharedLibrary {
                 return new byte[0];
             }
 
-            using (MemoryStream memoryStream = new MemoryStream()) {
-                using (BinaryWriter writer = new BinaryWriter(memoryStream)) {
-                    writer.Write(list.Count);
-                    foreach (T item in list) {
-                        if (typeof(T) == typeof(string)) {
-                            writer.Write((string)(object)item);
-                        } else if (typeof(T) == typeof(string[])) {
-                            string[] arrayItem = (string[])(object)item;
-                            writer.Write(arrayItem.Length);
-                            foreach (string str in arrayItem) {
-                                writer.Write(str);
-                            }
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream)) {
+                writer.Write(list.Count);
+                foreach (T item in list) {
+                    if (typeof(T) == typeof(string)) {
+                        writer.Write((string)(object)item);
+                    } else if (typeof(T) == typeof(string[])) {
+                        string[] arrayItem = (string[])(object)item;
+                        writer.Write(arrayItem.Length);
+                        foreach (string str in arrayItem) {
+                            writer.Write(str);
                         }
-                        // Add more cases here if needed for different types
                     }
                 }
                 return memoryStream.ToArray();
             }
+
         }
 
         public static List<T> DeserializeList<T>(byte[] data) {
@@ -42,26 +42,53 @@ namespace SharedLibrary {
             }
 
             List<T> list = new List<T>();
-            using (MemoryStream memoryStream = new MemoryStream(data)) {
-                using (BinaryReader reader = new BinaryReader(memoryStream)) {
-                    int count = reader.ReadInt32();
-                    for (int i = 0; i < count; i++) {
-                        if (typeof(T) == typeof(string)) {
-                            string item = reader.ReadString();
-                            list.Add((T)(object)item);
-                        } else if (typeof(T) == typeof(string[])) {
-                            int arrayLength = reader.ReadInt32();
-                            string[] arrayItem = new string[arrayLength];
-                            for (int j = 0; j < arrayLength; j++) {
-                                arrayItem[j] = reader.ReadString();
-                            }
-                            list.Add((T)(object)arrayItem);
+            using (MemoryStream memoryStream = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(memoryStream)) {
+                int count = reader.ReadInt32();
+                for (int i = 0; i < count; i++) {
+                    if (typeof(T) == typeof(string)) {
+                        string item = reader.ReadString();
+                        list.Add((T)(object)item);
+                    } else if (typeof(T) == typeof(string[])) {
+                        int arrayLength = reader.ReadInt32();
+                        string[] arrayItem = new string[arrayLength];
+                        for (int j = 0; j < arrayLength; j++) {
+                            arrayItem[j] = reader.ReadString();
                         }
+                        list.Add((T)(object)arrayItem);
                     }
                 }
             }
+
             return list;
         }
 
+        public byte[] SerializeObject<T>(T Object) {
+            using (MemoryStream stream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(stream)) {
+                if (typeof(T) == typeof(User)) {
+                    User user = (User)(object)Object;
+                    writer.Write(user.ID);
+                    writer.Write(user.username);
+                    return stream.ToArray();
+                } else {
+                    return new byte[0];
+                }
+
+            }
+        }
+
+        public static T DeserializeObject<T>(byte[] data) {
+            using (MemoryStream stream = new MemoryStream(data))
+            using (BinaryReader reader = new BinaryReader(stream)) {
+                if (typeof(T) == typeof(User)) {
+                    string id = reader.ReadString();
+                    string username = reader.ReadString();
+                    return (T)(object)new User(id, username);
+                } else {
+                    return (T)(object)null;
+                }
+            }
+        }
     }
 }

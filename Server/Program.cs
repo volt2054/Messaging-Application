@@ -147,7 +147,6 @@ namespace Server {
                             responseMessage = userID;
                         } else { responseMessage = "Bad Password"; }
                     }
-
                 } else {
                     if (communicationType == TypeOfCommunication.SendMessage) {           // SEND MESSAGES
                         string message_content = args[0];
@@ -263,7 +262,6 @@ namespace Server {
                         foreach (string user in users) {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
                         }
-
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;
                         string user2 = args[0];
@@ -287,7 +285,5 @@ namespace Server {
                 return "-1";
             }
         }
-
-        
     }
 }
