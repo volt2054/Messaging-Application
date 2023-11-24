@@ -57,7 +57,6 @@ namespace SharedLibrary {
                             }
                             list.Add((T)(object)arrayItem);
                         }
-                        // Add more cases here if needed for different types
                     }
                 }
             }

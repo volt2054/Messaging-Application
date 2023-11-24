@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace SharedLibrary {
     public class WebSocketMetadata {
         public const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
-        public static readonly string PORT = "7256";
-        public static readonly string IP_ADDRESS = "127.0.0.1";
-        public static readonly string SERVER_URL = $"ws://{IP_ADDRESS}:{PORT}";
+        public const string PORT = "7256";
+        public const string IP_ADDRESS = "127.0.0.1";
+        public const string SERVER_URL = $"ws://{IP_ADDRESS}:{PORT}";
 
     }
 }

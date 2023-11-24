@@ -228,7 +228,6 @@ namespace Server.Database {
             using (SqlCommand command = new SqlCommand(sql, connection)) {
                 try {
                     int rowsAffected = command.ExecuteNonQuery();
-                    //Console.WriteLine("Rows Affected: " + rowsAffected);
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
                 }
@@ -239,7 +238,6 @@ namespace Server.Database {
             using (command) {
                 try {
                     int rowsAffected = command.ExecuteNonQuery();
-                    //Console.WriteLine("Rows Affected: " + rowsAffected);
                 } catch (Exception e) {
                     Console.WriteLine("Error: " + e.Message);
                 }
