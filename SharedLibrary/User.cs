@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace SharedLibrary {
     public class User {
+        private string username;
+        private string userID;
 
         private string _id;
         private string _username;
@@ -23,5 +25,9 @@ namespace SharedLibrary {
             _username = stringArray[1];
         }
 
+        public override string ToString() {
+            string UserToString = userID + ":" + username;
+            return UserToString;
+        }
     }
 }
