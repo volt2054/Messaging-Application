@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 namespace SharedLibrary {
     public class Serialization {
         public static byte[] SerializeList<T>(List<T> list) {
+
             if (list.Count == 0) {
                 return new byte[0];
             }
@@ -34,8 +35,8 @@ namespace SharedLibrary {
 
         }
 
-
         public static List<T> DeserializeList<T>(byte[] data) {
+
             if (data.Length == 0) {
                 return new List<T>();
             }
