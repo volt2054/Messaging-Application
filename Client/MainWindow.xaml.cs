@@ -156,6 +156,20 @@ namespace Client {
             return serverList;
         }
 
+        static async Task<List<string>> FetchUsersInServer(WebSocketClient Client, string serverID) {
+            string[] data = { serverID };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetUsersInServer, data);
+
+            if (response == "-1") {
+                return new List<string>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<string> UsersList = DeserializeList<string>(dataBytes);
+
+            return UsersList;
+        }
+
         static async Task<List<string>> FetchFriends(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
@@ -417,7 +431,11 @@ namespace Client {
                 List<string> friends = new List<string>();
 
                 foreach (Border friendsBorder in friendsStackPanel.Children) {
-                    friends.Add((string)friendsBorder.Tag);
+                    StackPanel stackpanel = friendsBorder.Child as StackPanel;
+                    CheckBox checkbox = stackpanel.Children[0] as CheckBox;
+                    if (checkbox.IsChecked == true) {
+                        friends.Add((string)friendsBorder.Tag);
+                    }
                 }
 
                 List<string> friendIDs = new List<string>();
@@ -921,11 +939,11 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
             mainGrid.Children.Add(usersScrollViewer);
 
+            foreach (string friend in await FetchUsersInServer(Client, CurrentServerID)) {
+                AddFriendElement(friend, false, FriendsStackPanel);
+            } // Fetch Users In Server
             foreach (string friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, true, FriendsStackPanel);
-            }
-            foreach (string friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, true, UsersStackPanel);
+                AddFriendElement(friend, false, UsersStackPanel);
             }
 
             // Set the main Grid as the Window content

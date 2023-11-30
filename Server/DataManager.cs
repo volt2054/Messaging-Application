@@ -149,11 +149,25 @@ namespace Server.Database {
             return result;
         }
 
+        public static List<string> GetUsersInServer(string serverID) {
+            List<string> result = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery =
+                "SELECT user_id " +
+                "FROM UserServers " +
+                "WHERE server_id = @ServerID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@ServerID", serverID);
+                result = ExecuteQuery<string>(connection, command);
+            });
+
+            return result;
+        }
+
 
         public static List<string[]> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
-
-            
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery = "SELECT c.channel_id, c.channel_name " +

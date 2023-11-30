@@ -246,7 +246,7 @@ namespace Server {
                         argsToSend[0] = channelID;
                         argsToSend[1] = channelName;
                         argsToSend[2] = serverID;
-                        foreach(string user in usersInChannel) {
+                        foreach (string user in usersInChannel) {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
                         }
 
@@ -273,10 +273,18 @@ namespace Server {
                         responseMessage = RemoveFriend(user1, user2);
                     } else if (communicationType == TypeOfCommunication.GetFriends) {
                         string user1 = userID;
-                        
+
                         List<string> friends = GetFriends(userID);
                         byte[] friendsData = SerializeList(friends);
                         responseMessage = Convert.ToBase64String(friendsData);
+
+                    } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
+                        string serverID = args[0];
+
+                        List<string> users = GetUsersInServer(serverID);
+                        byte[] usersData = SerializeList(users);
+                        responseMessage = Convert.ToBase64String(usersData);
+
                     } else if (communicationType == TypeOfCommunication.GetUsername) {
                         string UserIDToCheck = args[0];
                         string username = GetUsername(userID);

@@ -14,7 +14,8 @@ namespace SharedLibrary {
             public const string FetchServers = "FETCHSERVERS"; // (FETCHSERVERS) RETURNS LIST OF SERVERS
             public const string AddFriend = "ADDFRIEND"; // (ADDFRIEND + FRIENDID)
             public const string RemoveFriend = "REMFRIEND"; // (REMFRIEND + FRIENDID)
-            public const string GetFriends = "GETFRIEND"; // (GETFRIEND + USERID)
+            public const string GetFriends = "GETFRIENDS"; // (GETFRIEND + USERID)
+            public const string GetUsersInServer = "GETUSERSINSERVER"; // (GETUSERSINSERVER + SERVERID)
             public const string GetUsername = "GETUSERNAME";
 
             public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
