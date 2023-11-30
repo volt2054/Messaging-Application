@@ -15,6 +15,7 @@ namespace SharedLibrary {
             public const string AddFriend = "ADDFRIEND"; // (ADDFRIEND + FRIENDID)
             public const string RemoveFriend = "REMFRIEND"; // (REMFRIEND + FRIENDID)
             public const string GetFriends = "GETFRIEND"; // (GETFRIEND + USERID)
+            public const string GetUsername = "GETUSERNAME";
 
             public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
             public const string NotifyChannel = "CHANNEL:"; // (CHANNEL: + CHANNELID + CHANNELNAME)

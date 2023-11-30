@@ -39,10 +39,10 @@ namespace Server.Database {
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
                     "SELECT TOP " + count + " user_id, message_content, message_id " +
-                    "FROM Messages " +
+                    "FROM Messages s " +
                     "WHERE channel_id = @ChannelID AND " +
-                    (fetchBefore ? "message_id < @MessageID" : "message_id > @MessageID") +
-                    " ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
+                    (fetchBefore ? "message_id < @MessageID " : "message_id > @MessageID ") +
+                    "ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", channelID);
@@ -226,6 +226,21 @@ namespace Server.Database {
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@Username", username);
+
+                List<string> queryResult = ExecuteQuery<string>(connection, command);
+                result = queryResult.First();
+            });
+
+            return result;
+        }
+
+        public static string GetUsername(string userID) {
+            string result = "";
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT username FROM Users WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
 
                 List<string> queryResult = ExecuteQuery<string>(connection, command);
                 result = queryResult.First();

@@ -125,7 +125,7 @@ namespace Client {
                 if (_webSocket != null && _webSocket.State == WebSocketState.Open) {
                     await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", CancellationToken.None);
                 } else {
-                    MessageBox.Show("No connection to close");
+                    // No connection to close
                 }
             } catch (Exception ex) {
                 MessageBox.Show($"Error during WebSocket closure: {ex.Message}");

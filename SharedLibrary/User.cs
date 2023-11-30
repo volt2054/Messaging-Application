@@ -22,5 +22,6 @@ namespace SharedLibrary {
             _id = stringArray[0];
             _username = stringArray[1];
         }
+
     }
 }
