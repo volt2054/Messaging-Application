@@ -167,7 +167,6 @@ namespace Server.Database {
             return result;
         }
 
-
         public static List<string[]> FetchUserDMs(string userID) {
             List<string[]> result = new List<string[]>();
 

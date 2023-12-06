@@ -28,6 +28,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.DirectoryServices.ActiveDirectory;
 using System.Diagnostics.Eventing.Reader;
+using System.Text.RegularExpressions;
 
 namespace Client {
 
@@ -487,6 +488,24 @@ namespace Client {
                 iconPath = Icons.Friends;
             } else {
                 iconPath = Icons.Chat;
+            }
+
+            string pattern = @"^DM_\d+_\d+$";
+
+            Regex regex = new Regex(pattern);
+            Match match = regex.Match(channelName);
+
+            if (match.Success) {
+                string[] parts = channelName.Split("_");
+                string user1 = parts[1];
+                string user2 = parts[2];
+
+                if (CurrentUserID == user1) {
+                    channelName = user2;
+                } else {
+                    channelName = user1;
+                }
+
             }
 
             StackPanel ChannelElement = new StackPanel {
