@@ -153,9 +153,10 @@ namespace Server.Database {
             List<string> result = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT user_id " +
-                "FROM UserServers " +
-                "WHERE server_id = @ServerID";
+                "SELECT u.username AS username " +
+                "FROM Users u " +
+                "INNER JOIN UserServers s ON u.user_id = s.user_id " +
+                "WHERE s.server_id = @ServerID";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ServerID", serverID);
@@ -386,9 +387,7 @@ namespace Server.Database {
 
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
-
             // need to add users to channel
-
             return channelID.ToString();
         }
 
