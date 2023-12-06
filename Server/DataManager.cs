@@ -40,9 +40,10 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP " + count + " user_id, message_content, message_id " +
-                    "FROM Messages s " +
+                    "SELECT TOP " + count + " u.username, message_content, message_id, s.user_id " +
+                    "FROM Messages s, Users u " +
                     "WHERE channel_id = @ChannelID AND " +
+                    "u.user_id = s.user_id AND " +
                     (fetchBefore ? "message_id < @MessageID " : "message_id > @MessageID ") +
                     "ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
 
