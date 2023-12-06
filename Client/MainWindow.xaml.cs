@@ -483,7 +483,7 @@ namespace Client {
             
             string iconPath;
 
-            if (channelID == SpecialChannelIDs.Friends) {
+            if (channelID == SpecialChannelIDs.Friends || channelID == SpecialChannelIDs.UsersList) {
                 iconPath = Icons.Friends;
             } else {
                 iconPath = Icons.Chat;
