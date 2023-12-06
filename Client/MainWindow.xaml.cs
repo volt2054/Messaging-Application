@@ -916,13 +916,21 @@ namespace Client {
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) });
+
             // Define the user list StackPanel
             StackPanel UsersStackPanel = new StackPanel();
             UsersStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
+            Label FriendsLAbel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center};
+            Grid.SetColumn(FriendsLAbel, 0);
+            Grid.SetRow(FriendsLAbel, 0);
+
             ScrollViewer usersScrollViewer = new ScrollViewer();
             usersScrollViewer.Content = UsersStackPanel;
             Grid.SetColumn(usersScrollViewer, 0);
+            Grid.SetRow(usersScrollViewer, 1);
 
             usersScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
 
@@ -930,14 +938,23 @@ namespace Client {
             StackPanel FriendsStackPanel = new StackPanel();
             FriendsStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
+            Label UserListLabel = new Label() { Content = "User List", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center };
+            Grid.SetColumn(UserListLabel, 1);
+            Grid.SetRow(UserListLabel, 0);
+
             ScrollViewer friendsScrollViewer = new ScrollViewer();
             friendsScrollViewer.Content = FriendsStackPanel;
             Grid.SetColumn(friendsScrollViewer, 1);
+            Grid.SetRow(friendsScrollViewer, 1);
+
 
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
 
             mainGrid.Children.Add(friendsScrollViewer);
             mainGrid.Children.Add(usersScrollViewer);
+
+            mainGrid.Children.Add(UserListLabel);
+            mainGrid.Children.Add(FriendsLAbel);
 
             foreach (string friend in await FetchUsersInServer(Client, CurrentServerID)) {
                 AddFriendElement(friend, false, FriendsStackPanel);
