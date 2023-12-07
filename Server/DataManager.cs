@@ -171,7 +171,7 @@ namespace Server.Database {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT c.channel_id, c.channel_name " +
+                string selectQuery = "SELECT c.channel_id, channel_name " +
                 "FROM Channels c " +
                 "INNER JOIN ChannelUsers cu ON c.channel_id = cu.channel_id " +
                 "WHERE cu.user_id = @UserID " +
@@ -180,6 +180,25 @@ namespace Server.Database {
                 command.Parameters.AddWithValue("@UserID", userID);
                 result = ExecuteQuery<string[]>(connection, command);
             });
+
+            foreach (string[] channel in result) {
+                string channelID = channel[0];
+                List<string> username = new List<string>();
+                ExecuteDatabaseOperations(connection => {
+                    string selectQuery = "SELECT Users.username " +
+                    "FROM ChannelUsers, Users " +
+                    "WHERE ChannelUsers.user_id = Users.user_id " +
+                    "AND channel_id = @ChannelID " +
+                    "AND Users.user_id != @UserID";
+                    SqlCommand command = new SqlCommand(selectQuery, connection);
+                    command.Parameters.AddWithValue("@ChannelID", channelID);
+                    command.Parameters.AddWithValue("@UserID", userID);
+                    username = ExecuteQuery<string>(connection, command);
+
+                    channel[1] = username.First();
+                });
+            }
+            
 
             return result;
         }

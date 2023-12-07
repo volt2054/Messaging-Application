@@ -250,6 +250,10 @@ namespace Client {
                 AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
                 foreach (string[] channel in await FetchDMs(Client)) {
+
+
+
+
                     AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
                 }
             } else if (Tag == SpecialServerIDs.CreateServer) {
@@ -488,24 +492,6 @@ namespace Client {
                 iconPath = Icons.Friends;
             } else {
                 iconPath = Icons.Chat;
-            }
-
-            string pattern = @"^DM_\d+_\d+$";
-
-            Regex regex = new Regex(pattern);
-            Match match = regex.Match(channelName);
-
-            if (match.Success) {
-                string[] parts = channelName.Split("_");
-                string user1 = parts[1];
-                string user2 = parts[2];
-
-                if (CurrentUserID == user1) {
-                    channelName = user2;
-                } else {
-                    channelName = user1;
-                }
-
             }
 
             StackPanel ChannelElement = new StackPanel {
