@@ -32,7 +32,8 @@ namespace Server.Database {
                     "   [username]      VARCHAR (255) NOT NULL," +
                     "   [email]         VARCHAR (255) NOT NULL," +
                     "   [password]      VARCHAR (255) NOT NULL," +
-                    "   [date_created]  DATETIME      NOT NULL DEFAULT(getdate())," +
+                    "   [date_created]  DATETIME      NOT NULL DEFAULT(getdate()), " +
+                    "   [profile_picture]   VARCHAR(255) NULL  DEFAULT('PFP.png'), " +
                     "   PRIMARY KEY CLUSTERED ([user_id] ASC)" +
                     ");";
 
