@@ -29,6 +29,7 @@ using System.Threading;
 
 using static SharedLibrary.ContentDeliveryInterface;
 using System.Runtime.CompilerServices;
+using Microsoft.Win32;
 
 
 
@@ -662,7 +663,18 @@ namespace Client {
         }
 
         private void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
+            Button button = sender as Button;
+            StackPanel stackpanel = button.Parent as StackPanel;
+
+            Image ProfilePicture = stackpanel.Children[0] as Image;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image files(*.png; *.jpeg; *.jpg)| *.png; *.jpeg; *.jpg | All files(*.*) | *.* ";
+            if (openFileDialog.ShowDialog() == true) {
+                string imagePath = openFileDialog.FileName;
+                // Save the file path and update the UI
+                ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
+            }
         }
 
         private void changePasswordButton_Click(object sender, RoutedEventArgs e) {
