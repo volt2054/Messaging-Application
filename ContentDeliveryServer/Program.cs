@@ -2,9 +2,36 @@
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Xml;
+using Newtonsoft.Json;
 
 class ContentDeliveryServer {
+
+    private static string filenameMappingsFilePath = "filenameMappings.json";
+
+    // Load filenameMappings from a file at the start of the program
+    // Save filenameMappings to file
+    private static void SaveFilenameMappings() {
+        string mappingsJson = JsonConvert.SerializeObject(filenameMappings);
+        File.WriteAllText(filenameMappingsFilePath, mappingsJson);
+        Console.WriteLine("Filename mappings saved to file.");
+    }
+
+    // Load filenameMappings from file
+    private static void LoadFilenameMappings() {
+        if (File.Exists(filenameMappingsFilePath)) {
+            string mappingsJson = File.ReadAllText(filenameMappingsFilePath);
+            filenameMappings = JsonConvert.DeserializeObject<Dictionary<string, string>>(mappingsJson);
+            Console.WriteLine("Filename mappings loaded from file.");
+        }
+    }
+
     static void Main() {
+
+        LoadFilenameMappings();
+
+        AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
         // Get the current directory of the executable
         string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -50,6 +77,10 @@ class ContentDeliveryServer {
         }
     }
 
+    private static void CurrentDomain_ProcessExit(object? sender, EventArgs e) {
+        SaveFilenameMappings();
+    }
+
     private static void HandleStaticFileRequest(HttpListenerContext context, string rootDirectory) {
         string requestedUrl = context.Request.Url.LocalPath;
         string filePath = Path.Combine(rootDirectory, requestedUrl.TrimStart('/'));
@@ -77,7 +108,7 @@ class ContentDeliveryServer {
                 // Randomized filename created to avoid file overlap
                 string randomizedFileName = GenerateRandomFileName(fileName);
 
-                Console.WriteLine($"$[UPLOAD] {fileName}->{randomizedFileName}");
+                Console.WriteLine($"[UPLOAD] {fileName}->{randomizedFileName}");
 
                 // Combine the filename with the root directory to get the full filepath
                 string filePath = Path.Combine(rootDirectory, randomizedFileName);
