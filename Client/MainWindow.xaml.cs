@@ -28,6 +28,7 @@ using System.Net.WebSockets;
 using System.Threading;
 
 using static SharedLibrary.ContentDeliveryInterface;
+using System.Runtime.CompilerServices;
 
 
 
@@ -41,6 +42,7 @@ namespace Client {
     public class SpecialServerIDs {
         public static readonly string DirectMessages = "-1";
         public static readonly string CreateServer = "-2";
+        public static readonly string Settings = "-3";
     }
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
@@ -259,6 +261,9 @@ namespace Client {
             } else if (Tag == SpecialServerIDs.CreateServer) {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
+            } else if (Tag == SpecialServerIDs.Settings) {
+                // SETTINGS UI
+                InitializeSettingsUI();
             } else {
 
                 Button button = new Button() {
@@ -478,6 +483,11 @@ namespace Client {
 
             // Set the mainGrid as the content of the Window
             this.Content = mainGrid;
+        }
+
+
+        private async void InitializeSettingsUI() {
+
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
@@ -762,6 +772,9 @@ namespace Client {
             ScrollViewer circleScrollViewer = new ScrollViewer() { Content = serverStackPanel };
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
+
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.Settings, "SETTINGS"); // USER SETTINGS ETC
+
 
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
 
