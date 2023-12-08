@@ -44,8 +44,8 @@ namespace SharedLibrary {
             }
         }
 
-        public static async Task DownloadFileAsync(string fileName, string saveDirectory) {
-            string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}/{fileName}";
+        public static async Task<string> DownloadFileAsync(string fileName, string saveDirectory) {
+            string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}{fileName}";
             using (HttpClient client = new HttpClient()) {
                 try {
                     // Send a GET request to the file URL
@@ -53,9 +53,12 @@ namespace SharedLibrary {
 
                     // Check if the request was successful (status code 200 OK)
                     if (response.IsSuccessStatusCode) {
-                        string originalFileName = "file.txt";
+                        string originalFileName = "";
                         if (response.Headers.TryGetValues("X-Original-File-Name", out var originalFileNames)) {
                             originalFileName = originalFileNames.FirstOrDefault();
+                        }
+                        if (originalFileName == "") {
+                            originalFileName = "pfp.png";
                         }
 
                         // Read and save the file content to the specified path
@@ -63,11 +66,14 @@ namespace SharedLibrary {
                         string savePath = Path.Combine(saveDirectory, originalFileName);
                         await File.WriteAllBytesAsync(savePath, fileContent);
                         Console.WriteLine($"File downloaded successfully to: {savePath}");
+                        return savePath;
                     } else {
                         Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                        return "";
                     }
                 } catch (Exception ex) {
                     Console.WriteLine($"Error: {ex.Message}");
+                    return "";
                 }
             }
         }

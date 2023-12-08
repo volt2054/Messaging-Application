@@ -192,8 +192,8 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            //Init();
-            InitializeSettingsUI();
+            Init();
+            //InitializeSettingsUI();
         }
 
         private void Init() {
@@ -260,10 +260,6 @@ namespace Client {
                 AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
                 foreach (string[] channel in await FetchDMs(Client)) {
-
-
-
-
                     AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
                 }
             } else if (Tag == SpecialServerIDs.CreateServer) {
@@ -518,6 +514,15 @@ namespace Client {
 
             Image profilePicture = new Image { Name = "ProfilePicture", Width = 100, Height = 100 };
 
+            string[] data = { CurrentUserID };
+            string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
+
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+
+            DownloadFileAsync(pfpFileName, path);
+
+            profilePicture.Source = new BitmapImage(new Uri(path + pfpFileName));
+
             Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
             changeProfilePicButton.Click += changeProfilePicButton_Click;
 
@@ -624,9 +629,18 @@ namespace Client {
             navigationPanel.HorizontalAlignment = HorizontalAlignment.Left;
 
             Button accountButton = new Button { Content = "Account", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
-            accountButton.Click += (s, e) => {
+            accountButton.Click += async (s, e) => {
                 appearanceSection.Visibility = Visibility.Collapsed;
                 accountSection.Visibility = Visibility.Visible;
+
+                string[] data = { CurrentUserID };
+                string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
+
+                string path = AppDomain.CurrentDomain.BaseDirectory;
+
+                string savePath = await DownloadFileAsync(pfpFileName, path);
+
+                profilePicture.Source = new BitmapImage(new Uri(savePath));
             };
 
             Button appearanceButton = new Button { Content = "Appearance", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
@@ -674,7 +688,9 @@ namespace Client {
                 string imagePath = openFileDialog.FileName;
 
                 string pfpUrl = await UploadFileAsync(imagePath);
-
+                MessageBox.Show(pfpUrl);
+                string[] data = { pfpUrl };
+                Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
 
                 // Save the file path and update the UI
                 ProfilePicture.Source = new BitmapImage(new Uri(imagePath));

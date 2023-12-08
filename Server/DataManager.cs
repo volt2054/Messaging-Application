@@ -285,6 +285,32 @@ namespace Server.Database {
             return result;
         }
 
+        public static string GetProfilePicture(string userID) {
+            string result = "";
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT profile_picture From Users WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                List<string> queryResult = ExecuteQuery<string>(connection, command);
+                result = queryResult.First();
+            });
+            return result;
+        }
+
+        public static void SetProfilePicture(string fileName, string userID) {
+            ExecuteDatabaseOperations(connection => {
+                string updateQuery = "UPDATE Users SET profile_picture = @FileName WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@FileName", fileName);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                ExecuteNonQuery(connection, command);
+            });
+        }
+
         public static void DeleteUser(string userID) {
             ExecuteDatabaseOperations(connection => {
                 string deleteQuery = "DELETE FROM Users WHERE user_id = @UserID";

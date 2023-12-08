@@ -289,8 +289,18 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetUsername) {
                         string UserIDToCheck = args[0];
                         string username = GetUsername(userID);
+                        //TODO WHAT IS HAPPENING HERE?
 
                         responseMessage = username;
+                    } else if (communicationType == TypeOfCommunication.GetProfilePicture) {
+                        string userIDToCheck = args[0];
+
+                        string profilePicture = GetProfilePicture(userIDToCheck);
+                        responseMessage = profilePicture;
+                    } else if (communicationType == TypeOfCommunication.SetProfilePicture) {
+                        string fileName = args[0];
+                        SetProfilePicture(fileName, userID);
+                        responseMessage = "1";
                     }
                 }
 
