@@ -52,13 +52,14 @@ class ContentDeliveryServer {
 
     private static void HandleStaticFileRequest(HttpListenerContext context, string rootDirectory) {
         string requestedUrl = context.Request.Url.LocalPath;
-        string filePath = Path.Combine(rootDirectory, GetOriginalFileName(requestedUrl.TrimStart('/')));
+        string filePath = Path.Combine(rootDirectory, requestedUrl.TrimStart('/'));
 
         if (File.Exists(filePath)) {
             byte[] fileBytes = File.ReadAllBytes(filePath);
             string extension = Path.GetExtension(filePath);
             string contentType = GetContentType(extension);
             context.Response.ContentType = contentType;
+            context.Response.Headers.Add("X-Original-File-Name", GetOriginalFileName(requestedUrl.TrimStart('/')));
             context.Response.OutputStream.Write(fileBytes, 0, fileBytes.Length);
         } else {
             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
