@@ -208,7 +208,7 @@ namespace Server {
                         List<string> usersInChannel = FetchUsersInChannel(channelID);
                         string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
-                        argsToSend[1] = channelName;
+                        argsToSend[1] = GetUsername(userID);
                         argsToSend[2] = "-1";
                         SendMessageToUser(argsToSend, user2, TypeOfCommunication.NotifyChannel);
 
