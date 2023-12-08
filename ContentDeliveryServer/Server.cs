@@ -43,7 +43,8 @@ class ContentDeliveryServer {
 
         // Use the 'static' folder as the root directory for serving and storing files
         string rootDirectory = staticFolder;
-        string url = "http://localhost:7257/";
+
+        string url = "http://127.0.0.1:7257/";
 
         HttpListener listener = new HttpListener();
         listener.Prefixes.Add(url);

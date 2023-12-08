@@ -5,10 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 
+using static SharedLibrary.WebSocketMetadata;      
+                                               
 namespace SharedLibrary {
 
     public static class ContentDeliveryInterface {
-        public static async Task<string> UploadFileAsync(string serverUrl, string filePath) {
+
+
+        public static async Task<string> UploadFileAsync(string filePath) {
             using (HttpClient client = new HttpClient()) {
                 try {
                     // Read the file content
@@ -22,12 +26,12 @@ namespace SharedLibrary {
                     };
 
                     // Send a POST request to the server URL with the file content
-                    HttpResponseMessage response = await client.PostAsync(serverUrl, content);
+                    HttpResponseMessage response = await client.PostAsync(WebSocketMetadata.CDSERVER_URL, content);
                     string randomizedFileName = await response.Content.ReadAsStringAsync();
 
                     // Check if the request was successful (status code 200 OK)
                     if (response.IsSuccessStatusCode) {
-                        Console.WriteLine($"File uploaded successfully to: {serverUrl}");
+                        Console.WriteLine($"File uploaded successfully to: {WebSocketMetadata.CDSERVER_URL}");
                         return randomizedFileName;
                     } else {
                         Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
@@ -40,8 +44,8 @@ namespace SharedLibrary {
             }
         }
 
-        public static async Task DownloadFileAsync(string serverUrl, string fileName, string saveDirectory) {
-            string fileUrl = $"{serverUrl}/{fileName}";
+        public static async Task DownloadFileAsync(string fileName, string saveDirectory) {
+            string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}/{fileName}";
             using (HttpClient client = new HttpClient()) {
                 try {
                     // Send a GET request to the file URL

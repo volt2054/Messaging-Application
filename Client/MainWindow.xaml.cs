@@ -662,7 +662,7 @@ namespace Client {
             }
         }
 
-        private void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
+        private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
             StackPanel stackpanel = button.Parent as StackPanel;
 
@@ -672,6 +672,10 @@ namespace Client {
             openFileDialog.Filter = "Image files(*.png; *.jpeg; *.jpg)| *.png; *.jpeg; *.jpg | All files(*.*) | *.* ";
             if (openFileDialog.ShowDialog() == true) {
                 string imagePath = openFileDialog.FileName;
+
+                string pfpUrl = await UploadFileAsync(imagePath);
+
+
                 // Save the file path and update the UI
                 ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
             }
