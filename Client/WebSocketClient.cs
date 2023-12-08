@@ -128,7 +128,7 @@ namespace Client {
                     // No connection to close
                 }
             } catch (Exception ex) {
-                MessageBox.Show($"Error during WebSocket closure: {ex.Message}");
+                //MessageBox.Show($"Error during WebSocket closure: {ex.Message}");
             }
         }
     }

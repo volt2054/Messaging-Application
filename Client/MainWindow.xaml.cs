@@ -191,14 +191,21 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            Client = new WebSocketClient();
+            //Init();
+            InitializeSettingsUI();
+        }
 
+        private void Init() {
+            Client = new WebSocketClient();
             InitializeLoginUI();
         }
 
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
-            await Client.CloseWebSocket();
+
+            if (Client != null) {
+                await Client.CloseWebSocket();
+            }
 
             base.OnClosing(e);
         }
@@ -487,7 +494,187 @@ namespace Client {
 
 
         private async void InitializeSettingsUI() {
+            // Main Grid
+            Grid mainGrid = new Grid();
+            mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
+            mainGrid.VerticalAlignment = VerticalAlignment.Stretch;
 
+            
+
+            // Main section content
+            Grid contentGrid = new Grid();
+            contentGrid.Margin = new Thickness(150, 0, 0, 0);
+
+            // Account section
+            StackPanel accountSection = new StackPanel();
+            accountSection.Name = "AccountSection";
+
+            // Profile Picture
+            StackPanel profilePicturePanel = new StackPanel();
+            profilePicturePanel.Orientation = Orientation.Horizontal;
+            profilePicturePanel.HorizontalAlignment = HorizontalAlignment.Center;
+            profilePicturePanel.Margin = new Thickness(0, 20, 0, 10);
+
+            Image profilePicture = new Image { Name = "ProfilePicture", Width = 100, Height = 100 };
+
+            Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
+            changeProfilePicButton.Click += changeProfilePicButton_Click;
+
+            profilePicturePanel.Children.Add(profilePicture);
+            profilePicturePanel.Children.Add(changeProfilePicButton);
+
+            // Account Information
+            StackPanel accountInfoPanel = new StackPanel();
+            accountInfoPanel.Margin = new Thickness(0, 10, 0, 0);
+            accountInfoPanel.HorizontalAlignment = HorizontalAlignment.Center;
+
+            Grid accountInfoGrid = new Grid();
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            for (int i = 0; i < 3; i++) {
+
+                TextBlock textBlock = new TextBlock { Text = i == 0 ? "Username:" : (i == 1 ? "Email:" : "Password:") };
+
+                TextBox textBox = new TextBox { Name = i == 0 ? "UsernameTextBox" : (i == 1 ? "EmailTextBox" : "PasswordTextBox"), Margin = new Thickness(10, 0, 10, 0), MinWidth = 200 };
+
+                Button changeButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
+
+                if (i == 0) changeButton.Click += changeUsernameButton_Click;
+                else if (i == 1) changeButton.Click += changeEmailButton_Click;
+                else changeButton.Click += changePasswordButton_Click;
+
+                Grid.SetRow(textBlock, i);
+                Grid.SetColumn(textBlock, 0);
+                Grid.SetRow(textBox, i);
+                Grid.SetColumn(textBox, 1);
+                Grid.SetRow(changeButton, i);
+                Grid.SetColumn(changeButton, 2);
+
+                accountInfoGrid.Children.Add(textBlock);
+                accountInfoGrid.Children.Add(textBox);
+                accountInfoGrid.Children.Add(changeButton);
+            }
+
+            accountInfoPanel.Children.Add(accountInfoGrid);
+
+            accountSection.Children.Add(profilePicturePanel);
+            accountSection.Children.Add(accountInfoPanel);
+
+            contentGrid.Children.Add(accountSection);
+
+            // Appearance section
+            StackPanel appearanceSection = new StackPanel();
+            appearanceSection.Name = "AppearanceSection";
+            appearanceSection.Visibility = Visibility.Collapsed;
+
+            // List of 5 rows
+            for (int i = 0; i < 5; i++) {
+                // Each row
+                StackPanel rowPanel = new StackPanel();
+                rowPanel.Orientation = Orientation.Horizontal;
+                rowPanel.Margin = new Thickness(0, 10, 0, 0);
+
+                // TextBlock for color label
+                TextBlock label = new TextBlock();
+                label.Text = GetColorLabel(i);
+                label.Margin = new Thickness(0, 0, 10, 0);
+
+                // TextBox for color entry
+                TextBox colorTextBox = new TextBox();
+                colorTextBox.Name = $"ColorTextBox_{i}";
+                colorTextBox.Width = 100;
+                
+
+                // Little square for color preview
+                Rectangle colorPreview = new Rectangle();
+                colorPreview.Width = 20;
+                colorPreview.Height = 20;
+                colorPreview.Margin = new Thickness(10, 0, 0, 0);
+
+                colorTextBox.TextChanged += (s, e) => {
+                    try {
+                        Brush colorBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorTextBox.Text));
+                        colorPreview.Fill = colorBrush;
+                    } catch {
+
+                    }
+                };
+
+                // Add elements to rowPanel
+                rowPanel.Children.Add(label);
+                rowPanel.Children.Add(colorTextBox);
+                rowPanel.Children.Add(colorPreview);
+
+                // Add the rowPanel to the Appearance section
+                appearanceSection.Children.Add(rowPanel);
+            }
+
+            contentGrid.Children.Add(appearanceSection);
+
+            // Navigation bar on the left
+            StackPanel navigationPanel = new StackPanel();
+            navigationPanel.Width = 150;
+            navigationPanel.Background = new SolidColorBrush(Color.FromRgb(238, 238, 238));
+            navigationPanel.HorizontalAlignment = HorizontalAlignment.Left;
+
+            Button accountButton = new Button { Content = "Account", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            accountButton.Click += (s, e) => {
+                appearanceSection.Visibility = Visibility.Collapsed;
+                accountSection.Visibility = Visibility.Visible;
+            };
+
+            Button appearanceButton = new Button { Content = "Appearance", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            appearanceButton.Click += (s, e) => {
+                accountSection.Visibility = Visibility.Collapsed;
+                appearanceSection.Visibility = Visibility.Visible;
+            };
+
+            Button logOutButton = new Button { Content = "Log Out", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            logOutButton.Click += (s, e) => {
+                Init();
+            };
+
+            navigationPanel.Children.Add(accountButton);
+            navigationPanel.Children.Add(appearanceButton);
+            navigationPanel.Children.Add(logOutButton);
+
+            mainGrid.Children.Add(navigationPanel);
+
+            mainGrid.Children.Add(contentGrid);
+
+            this.Content = mainGrid;
+        }
+
+        private string GetColorLabel(int index) {
+            switch (index) {
+                case 0: return "Background Color:";
+                case 1: return "Text Color:";
+                case 2: return "Header Color:";
+                case 3: return "Link Color:";
+                case 4: return "Border Color:";
+                default: return "";
+            }
+        }
+
+        private void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void changePasswordButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void changeEmailButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void changeUsernameButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
