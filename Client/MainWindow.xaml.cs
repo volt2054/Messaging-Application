@@ -26,9 +26,10 @@ using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
 using System.Net.WebSockets;
 using System.Threading;
-using System.DirectoryServices.ActiveDirectory;
-using System.Diagnostics.Eventing.Reader;
-using System.Text.RegularExpressions;
+
+using static SharedLibrary.ContentDeliveryInterface;
+
+
 
 namespace Client {
 
@@ -58,7 +59,6 @@ namespace Client {
     public partial class MainWindow : Window {
 
         // TODO - Loading options from file??
-
         WebSocketClient Client;
 
         string CurrentUserID;
