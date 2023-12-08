@@ -52,7 +52,7 @@ class ContentDeliveryServer {
 
     private static void HandleStaticFileRequest(HttpListenerContext context, string rootDirectory) {
         string requestedUrl = context.Request.Url.LocalPath;
-        string filePath = Path.Combine(rootDirectory, requestedUrl.TrimStart('/'));
+        string filePath = Path.Combine(rootDirectory, GetOriginalFileName(requestedUrl.TrimStart('/')));
 
         if (File.Exists(filePath)) {
             byte[] fileBytes = File.ReadAllBytes(filePath);
@@ -65,31 +65,49 @@ class ContentDeliveryServer {
         }
     }
 
+    private static Dictionary<string, string> filenameMappings = new Dictionary<string, string>();
     private static void HandleFileUpload(HttpListenerContext context, string rootDirectory) {
         if (context.Request.HasEntityBody) {
             using (Stream body = context.Request.InputStream) {
-                using (StreamReader reader = new StreamReader(body)) {
-                    // Read the entire request body (uploaded file content)
-                    string content = reader.ReadToEnd();
 
-                    // Get the filename from the Content-Disposition header
-                    string fileName = GetFileNameFromContentDisposition(context.Request.Headers["Content-Disposition"]);
+                // Get the filename from the Content-Disposition header
+                string fileName = GetFileNameFromContentDisposition(context.Request.Headers["Content-Disposition"]);
 
-                    // Combine the filename with the root directory to get the full filepath
-                    string filePath = Path.Combine(rootDirectory, fileName);
+                // Randomized filename created to avoid file overlap
+                string randomizedFileName = GenerateRandomFileName(fileName);
 
-                    // Write the content to the file
-                    File.WriteAllText(filePath, content);
+                Console.WriteLine($"$[UPLOAD] {fileName}->{randomizedFileName}");
 
-                    // Respond with a success message
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
-                    byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes("File uploaded successfully.");
-                    context.Response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
+                // Combine the filename with the root directory to get the full filepath
+                string filePath = Path.Combine(rootDirectory, randomizedFileName);
+
+                // Write the content to the file
+                using (FileStream fileStream = File.Create(filePath)) {
+                    body.CopyTo(fileStream);
                 }
+
+                filenameMappings[randomizedFileName] = fileName;
+
+                // Respond with a success message
+                context.Response.StatusCode = (int)HttpStatusCode.OK;
+                byte[] responseBytes = System.Text.Encoding.UTF8.GetBytes($"{randomizedFileName}");
+                context.Response.OutputStream.Write(responseBytes, 0, responseBytes.Length);
             }
         } else {
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
         }
+    }
+    private static string GenerateRandomFileName(string originalFileName) {
+        string extension = Path.GetExtension(originalFileName);
+        string randomizedFileName = Guid.NewGuid().ToString("N") + extension;
+        return randomizedFileName;
+    }
+
+    private static string GetOriginalFileName(string randomizedFileName) {
+        if (filenameMappings.ContainsKey(randomizedFileName)) {
+            return filenameMappings[randomizedFileName];
+        }
+        return null;
     }
 
     private static string GetFileNameFromContentDisposition(string contentDisposition) {
