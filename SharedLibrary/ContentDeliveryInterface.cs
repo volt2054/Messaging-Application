@@ -64,8 +64,9 @@ namespace SharedLibrary {
                         // Read and save the file content to the specified path
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
                         string savePath = Path.Combine(saveDirectory, originalFileName);
+
+                        // Need to add cache system
                         await File.WriteAllBytesAsync(savePath, fileContent);
-                        Console.WriteLine($"File downloaded successfully to: {savePath}");
                         return savePath;
                     } else {
                         Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
