@@ -27,7 +27,7 @@ namespace Server {
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
-            //CreateDatabase();
+            CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();

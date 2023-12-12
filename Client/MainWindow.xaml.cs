@@ -519,7 +519,7 @@ namespace Client {
 
             string path = AppDomain.CurrentDomain.BaseDirectory;
 
-            DownloadFileAsync(pfpFileName, path);
+            await DownloadFileAsync(pfpFileName, path);
 
             profilePicture.Source = new BitmapImage(new Uri(path + pfpFileName));
 
