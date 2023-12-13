@@ -162,7 +162,7 @@ namespace Server {
                         string username = args[0];
                         responseMessage = GetID(username);
 
-                    } else if (communicationType == TypeOfCommunication.FetchChannels) { //TODO FETCH SERVER CHANNELS //FIXME
+                    } else if (communicationType == TypeOfCommunication.FetchChannels) { 
 
                         List<string[]> userChannels;
 

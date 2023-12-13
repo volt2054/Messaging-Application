@@ -786,7 +786,7 @@ namespace Client {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                    AddMessage(messageStackPanel, message[3], message[0], message[1], false);
                     messageScrollViewer.ScrollToBottom();
                 }
             }
@@ -1075,7 +1075,7 @@ namespace Client {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                AddMessage(messageStackPanel, message[3], message[0], message[1], false);
                 messageScrollViewer.ScrollToBottom();
             }
 
@@ -1229,6 +1229,7 @@ namespace Client {
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e) {
+            CurrentServerID = SpecialServerIDs.DirectMessages;
             InitializeMessagingUI();
         }
 
