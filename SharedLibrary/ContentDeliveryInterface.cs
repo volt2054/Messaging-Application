@@ -50,7 +50,18 @@ namespace SharedLibrary {
             return originalFileName;
         }
 
-        public static async Task<string> DownloadFileAsync(string fileName, string saveDirectory) {
+
+        private static string saveDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}/Cache";
+        public static async Task<string> DownloadFileAsync(string fileName) {
+
+            if (!Directory.Exists(saveDirectory)) {
+                Directory.CreateDirectory(saveDirectory);
+            }
+
+            if (File.Exists(Path.Combine(saveDirectory, fileName))) {
+                return Path.Combine(saveDirectory, fileName);
+            }
+
             string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}{fileName}";
             using (HttpClient client = new HttpClient()) {
                 try {
@@ -68,11 +79,9 @@ namespace SharedLibrary {
 
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
 
-                        string uuid = Guid.NewGuid().ToString();
-                        string randomizedFileName = $"{uuid}{Path.GetExtension(originalFileName)}";
-                        string savePath = Path.Combine(saveDirectory, randomizedFileName);
+                        string savePath = Path.Combine(saveDirectory, fileName);
 
-                        FileNameMapping.Add(uuid, originalFileName);
+                        FileNameMapping.Add(fileName, originalFileName);
 
                         // Need to add cache system
                         await File.WriteAllBytesAsync(savePath, fileContent);

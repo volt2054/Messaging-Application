@@ -517,11 +517,9 @@ namespace Client {
             string[] data = { CurrentUserID };
             string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
 
-            string path = AppDomain.CurrentDomain.BaseDirectory;
+            string pfp = await DownloadFileAsync(pfpFileName);
 
-            await DownloadFileAsync(pfpFileName, path);
-
-            profilePicture.Source = new BitmapImage(new Uri(path + pfpFileName));
+            profilePicture.Source = new BitmapImage(new Uri(pfp));
 
             Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
             changeProfilePicButton.Click += changeProfilePicButton_Click;
@@ -636,9 +634,7 @@ namespace Client {
                 string[] data = { CurrentUserID };
                 string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
 
-                string path = AppDomain.CurrentDomain.BaseDirectory;
-
-                string savePath = await DownloadFileAsync(pfpFileName, path);
+                string savePath = await DownloadFileAsync(pfpFileName);
 
                 profilePicture.Source = new BitmapImage(new Uri(savePath));
             };
@@ -688,9 +684,8 @@ namespace Client {
                 string imagePath = openFileDialog.FileName;
 
                 string pfpUrl = await UploadFileAsync(imagePath);
-                MessageBox.Show(pfpUrl);
                 string[] data = { pfpUrl };
-                Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
+                await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
 
                 // Save the file path and update the UI
                 ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
