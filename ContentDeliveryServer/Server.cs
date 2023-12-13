@@ -5,7 +5,6 @@ class ContentDeliveryServer {
 
     private static string filenameMappingsFilePath = "filenameMappings.json";
 
-    // Load filenameMappings from a file at the start of the program
     // Save filenameMappings to file
     private static void SaveFilenameMappings() {
         string mappingsJson = JsonConvert.SerializeObject(filenameMappings);
