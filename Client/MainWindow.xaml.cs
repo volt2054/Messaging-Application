@@ -496,15 +496,12 @@ namespace Client {
             mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
             mainGrid.VerticalAlignment = VerticalAlignment.Stretch;
 
-            
-
             // Main section content
             Grid contentGrid = new Grid();
             contentGrid.Margin = new Thickness(150, 0, 0, 0);
 
             // Account section
             StackPanel accountSection = new StackPanel();
-            accountSection.Name = "AccountSection";
 
             // Profile Picture
             StackPanel profilePicturePanel = new StackPanel();
@@ -573,32 +570,49 @@ namespace Client {
 
             // Appearance section
             StackPanel appearanceSection = new StackPanel();
-            appearanceSection.Name = "AppearanceSection";
             appearanceSection.Visibility = Visibility.Collapsed;
+            appearanceSection.HorizontalAlignment = HorizontalAlignment.Left;
+            appearanceSection.VerticalAlignment = VerticalAlignment.Center;
+
+            Grid appearanceSectionGrid = new Grid();
+
+            appearanceSection.Children.Add(appearanceSectionGrid);
+
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
 
             // List of 5 rows
-            for (int i = 0; i < 5; i++) {
-                // Each row
-                StackPanel rowPanel = new StackPanel();
-                rowPanel.Orientation = Orientation.Horizontal;
-                rowPanel.Margin = new Thickness(0, 10, 0, 0);
+            for (int i = 0; i < 3; i++) {
 
                 // TextBlock for color label
                 TextBlock label = new TextBlock();
                 label.Text = GetColorLabel(i);
-                label.Margin = new Thickness(0, 0, 10, 0);
+                label.Margin = new Thickness(0, 0, 10, 10);
 
                 // TextBox for color entry
                 TextBox colorTextBox = new TextBox();
                 colorTextBox.Name = $"ColorTextBox_{i}";
                 colorTextBox.Width = 100;
-                
+                colorTextBox.Margin = new Thickness(0, 0, 0, 10);
+
 
                 // Little square for color preview
+                Border colorPreviewBorder = new Border();
+                colorPreviewBorder.BorderThickness = new Thickness(1, 1, 1, 1);
+                colorPreviewBorder.BorderBrush = Brushes.Black;
+                colorPreviewBorder.Margin = new Thickness(10, 0, 0, 10);
+
                 Rectangle colorPreview = new Rectangle();
                 colorPreview.Width = 20;
                 colorPreview.Height = 20;
-                colorPreview.Margin = new Thickness(10, 0, 0, 0);
+                colorPreview.Margin = new Thickness(10, 0, 0, 10);
+
+                colorPreviewBorder.Child = colorPreview;
 
                 colorTextBox.TextChanged += (s, e) => {
                     try {
@@ -609,13 +623,17 @@ namespace Client {
                     }
                 };
 
-                // Add elements to rowPanel
-                rowPanel.Children.Add(label);
-                rowPanel.Children.Add(colorTextBox);
-                rowPanel.Children.Add(colorPreview);
+                appearanceSectionGrid.Children.Add(label);
+                appearanceSectionGrid.Children.Add(colorTextBox);
+                appearanceSectionGrid.Children.Add(colorPreviewBorder);
 
-                // Add the rowPanel to the Appearance section
-                appearanceSection.Children.Add(rowPanel);
+                Grid.SetRow(label, i);
+                Grid.SetRow(colorTextBox, i);
+                Grid.SetRow(colorPreviewBorder, i);
+                Grid.SetColumn(label, 0);
+                Grid.SetColumn(colorTextBox, 1);
+                Grid.SetColumn(colorPreviewBorder, 2);
+
             }
 
             contentGrid.Children.Add(appearanceSection);
@@ -625,6 +643,11 @@ namespace Client {
             navigationPanel.Width = 150;
             navigationPanel.Background = new SolidColorBrush(Color.FromRgb(238, 238, 238));
             navigationPanel.HorizontalAlignment = HorizontalAlignment.Left;
+
+            Button goBackButton = new Button { Content = "Go Back", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            goBackButton.Click += (s, e) => {
+                InitializeMessagingUI();
+            };
 
             Button accountButton = new Button { Content = "Account", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
             accountButton.Click += async (s, e) => {
@@ -650,6 +673,7 @@ namespace Client {
                 Init();
             };
 
+            navigationPanel.Children.Add(goBackButton);
             navigationPanel.Children.Add(accountButton);
             navigationPanel.Children.Add(appearanceButton);
             navigationPanel.Children.Add(logOutButton);
@@ -665,12 +689,12 @@ namespace Client {
             switch (index) {
                 case 0: return "Background Color:";
                 case 1: return "Text Color:";
-                case 2: return "Header Color:";
-                case 3: return "Link Color:";
-                case 4: return "Border Color:";
+                case 2: return "Accent Color:";
                 default: return "";
             }
         }
+
+
 
         private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
             Button button = sender as Button;
