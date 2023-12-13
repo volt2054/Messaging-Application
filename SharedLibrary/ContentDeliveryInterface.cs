@@ -11,6 +11,7 @@ namespace SharedLibrary {
 
     public static class ContentDeliveryInterface {
 
+        private static readonly Dictionary<string, string> FileNameMapping = new Dictionary<string, string>();
 
         public static async Task<string> UploadFileAsync(string filePath) {
             using (HttpClient client = new HttpClient()) {
@@ -44,13 +45,17 @@ namespace SharedLibrary {
             }
         }
 
+        public static string GetOriginalFileName(string uuid) {
+            FileNameMapping.TryGetValue(uuid, out var originalFileName);
+            return originalFileName;
+        }
+
         public static async Task<string> DownloadFileAsync(string fileName, string saveDirectory) {
             string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}{fileName}";
             using (HttpClient client = new HttpClient()) {
                 try {
                     // Send a GET request to the file URL
                     HttpResponseMessage response = await client.GetAsync(fileUrl);
-
                     // Check if the request was successful (status code 200 OK)
                     if (response.IsSuccessStatusCode) {
                         string originalFileName = "";
@@ -61,9 +66,13 @@ namespace SharedLibrary {
                             originalFileName = "pfp.png";
                         }
 
-                        // Read and save the file content to the specified path
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
-                        string savePath = Path.Combine(saveDirectory, originalFileName);
+
+                        string uuid = Guid.NewGuid().ToString();
+                        string randomizedFileName = $"{uuid}{Path.GetExtension(originalFileName)}";
+                        string savePath = Path.Combine(saveDirectory, randomizedFileName);
+
+                        FileNameMapping.Add(uuid, originalFileName);
 
                         // Need to add cache system
                         await File.WriteAllBytesAsync(savePath, fileContent);
@@ -79,6 +88,5 @@ namespace SharedLibrary {
             }
         }
     }
-
 }
 

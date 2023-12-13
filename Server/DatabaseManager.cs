@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 
 namespace Server.Database {
     public class DatabaseManager {
-        private static string ConnectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
+
+        private static string databaseName = "messaging_application";
+
         public static void TestDatabaseConnection() {
             try {
                 ExecuteDatabaseOperations(connection => {
@@ -213,7 +215,8 @@ namespace Server.Database {
 
 
         public static void ExecuteDatabaseOperations(Action<SqlConnection> databaseOperation) {
-            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
+            string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={AppDomain.CurrentDomain.BaseDirectory}\{databaseName}_database.mdf;Integrated Security=True;Database={databaseName}";
+
 
             using (SqlConnection connection = new SqlConnection(connectionString)) {
                 try {
@@ -293,17 +296,47 @@ namespace Server.Database {
             return resultList;
         }
 
+        public static void DropDatabase() {
+            try {
+                Console.WriteLine($"Dropping database {databaseName}");
+
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
+
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
+                    connection.Open();
+
+                    string command = $"DROP DATABASE {databaseName}";
+                    ExecuteNonQuery(connection, command);
+
+                    connection.Close();
+
+                }
+
+            } catch (SqlException ex) {
+                Console.WriteLine($"An error occured: {ex.Message}");
+            } finally {
+                Console.WriteLine("Database droppped");
+            }
+        }
+
         public static void CreateDatabase() {
             try {
                 Console.WriteLine("CreatingDatabase");
-                ExecuteDatabaseOperations(connection => {
-                    string command = "CREATE DATABASE messaging_application ON PRIMARY " +
+
+                string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;Integrated Security=True";
+
+                using (SqlConnection connection = new SqlConnection(connectionString)) {
+                    connection.Open();
+
+                    string command = $"CREATE DATABASE {databaseName} ON PRIMARY " +
                     "(NAME = messaging_application, " +
-                    "FILENAME = 'C:\\Users\\ethan\\Documents\\dev\\c#\\Messaging-Application\\database.mdf'," +
+                    $"FILENAME = '{AppDomain.CurrentDomain.BaseDirectory}\\{databaseName}_database.mdf'," +
                     "SIZE = 3MB, MAXSIZE = 100MB, FILEGROWTH = 10%) ";
                     ExecuteNonQuery(connection, command);
 
-                });
+                    connection.Close();
+
+                }
             } catch (SqlException ex) {
                 Console.WriteLine($"An error occured: {ex.Message}");
             } finally {
