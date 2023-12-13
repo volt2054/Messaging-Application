@@ -137,12 +137,12 @@ namespace Client {
 
             foreach (string[] message in messageList) {
                 string userId = message[3];
-                string userPFP = "PFP.png";
                 if (!userProfileCache.ContainsKey(userId)) {
-                    userPFP = await GetPFP(userId, Client);
+                    string userPFP = await GetPFP(userId, Client);
                     userProfileCache.Add(userId, userPFP);
                 }
-                message[3] = userPFP;
+                userProfileCache.TryGetValue(userId, out string pfpName);
+                message[3] = pfpName;
             }
 
 
