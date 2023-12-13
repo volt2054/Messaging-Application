@@ -1,25 +1,10 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Data;
-using System.Runtime.CompilerServices;
-using Microsoft.Data.SqlClient;
-using System.Net.Sockets;
-using System.Net.WebSockets;
-using System.Net;
-using System.Threading;
-using System.Text;
-using System.Diagnostics;
-
-
-using SharedLibrary;
+﻿using SharedLibrary;
 using static SharedLibrary.Serialization;
 
 using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
-using System.Threading.Channels;
-using Azure.Messaging;
 
 namespace Server {
     

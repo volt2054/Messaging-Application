@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 
 
 using static Server.Database.DatabaseManager;
-using System.Threading.Channels;
-using System.Runtime.Intrinsics.X86;
-using System.Collections;
 
 namespace Server.Database {
     public class DataManager {

@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net.Http;
-
-using static SharedLibrary.WebSocketMetadata;      
-                                               
-namespace SharedLibrary {
+﻿namespace SharedLibrary {
 
     public static class ContentDeliveryInterface {
 

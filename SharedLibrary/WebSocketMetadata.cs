@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SharedLibrary {
+﻿namespace SharedLibrary {
     public class WebSocketMetadata {
         public const string DELIMITER = "|< delimiter >|"; //TODO replace with something else
         public const string PORT = "7256";
