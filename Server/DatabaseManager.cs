@@ -23,20 +23,6 @@ namespace Server.Database {
         public static void CreateTables() {
             try {
 
-                Console.WriteLine("Creating table files");
-
-                ExecuteDatabaseOperations(connection => {
-                    string command =
-                    "CREATE TABLE [dbo].[Files] (" +
-                    "   [file_id]           INT         NOT NULL   IDENTITY(1,1)," +
-                    "   [file_name]          VARCHAR(255)         NOT NULL," +
-                    "   [date_created]       DATETIME    NOT NULL DEFAULT(getdate()), " +
-                    "   PRIMARY KEY CLUSTERED ([file_id] ASC)" +
-                    ");";
-
-                    ExecuteNonQuery(connection, command);
-                });
-
                 Console.WriteLine("Creating table users");
 
                 ExecuteDatabaseOperations(connection => {
@@ -47,9 +33,8 @@ namespace Server.Database {
                     "   [email]         VARCHAR (255) NOT NULL," +
                     "   [password]      VARCHAR (255) NOT NULL," +
                     "   [date_created]  DATETIME      NOT NULL DEFAULT(getdate()), " +
-                    "   [profile_picture]   INT       NULL  DEFAULT(1), " +
-                    "   PRIMARY KEY CLUSTERED ([user_id] ASC), " +
-                    "   FOREIGN KEY (profile_picture) REFERENCES Files(file_id)" +
+                    "   [profile_picture]   VARCHAR(255) NULL  DEFAULT('PFP.png'), " +
+                    "   PRIMARY KEY CLUSTERED ([user_id] ASC)" +
                     ");";
 
                     ExecuteNonQuery(connection, command);
@@ -193,8 +178,6 @@ namespace Server.Database {
                     ExecuteNonQuery(connection, command);
                 });
 
-                
-
 
 
             } catch (SqlException ex) {
@@ -214,7 +197,6 @@ namespace Server.Database {
                                         "DROP TABLE [dbo].[ChannelRoles];" +
                                         "DROP TABLE [dbo].[ChannelUsers];" +
                                         "DROP TABLE [dbo].[UserServers];" +
-                                        "DROP TABLE [dbo].[Files];" +
                                         "DROP TABLE [dbo].[Messages];" +
                                         "DROP TABLE [dbo].[Roles];" +
                                         "DROP TABLE [dbo].[Channels];" +
