@@ -1,25 +1,10 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Data;
-using System.Runtime.CompilerServices;
-using Microsoft.Data.SqlClient;
-using System.Net.Sockets;
-using System.Net.WebSockets;
-using System.Net;
-using System.Threading;
-using System.Text;
-using System.Diagnostics;
-
-
-using SharedLibrary;
+﻿using SharedLibrary;
 using static SharedLibrary.Serialization;
 
 using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
-using System.Threading.Channels;
-using Azure.Messaging;
 
 namespace Server {
     
@@ -27,7 +12,8 @@ namespace Server {
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
-            //CreateDatabase();
+            DropDatabase();
+            CreateDatabase();
 
             //Console.WriteLine("Dropping Tables");
             DropTables();
@@ -154,11 +140,12 @@ namespace Server {
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
-                        string[] argsToSend = new string[3];
+                        string[] argsToSend = new string[4];
 
                         argsToSend[0] = channel;
                         argsToSend[1] = GetUsername(userID);
                         argsToSend[2] = message_content;
+                        argsToSend[3] = GetProfilePicture(userID);
                         foreach (string user in usersInChannel) {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
@@ -175,7 +162,7 @@ namespace Server {
                         string username = args[0];
                         responseMessage = GetID(username);
 
-                    } else if (communicationType == TypeOfCommunication.FetchChannels) { //TODO FETCH SERVER CHANNELS //FIXME
+                    } else if (communicationType == TypeOfCommunication.FetchChannels) { 
 
                         List<string[]> userChannels;
 
@@ -289,8 +276,18 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetUsername) {
                         string UserIDToCheck = args[0];
                         string username = GetUsername(userID);
+                        //TODO WHAT IS HAPPENING HERE?
 
                         responseMessage = username;
+                    } else if (communicationType == TypeOfCommunication.GetProfilePicture) {
+                        string userIDToCheck = args[0];
+
+                        string profilePicture = GetProfilePicture(userIDToCheck);
+                        responseMessage = profilePicture;
+                    } else if (communicationType == TypeOfCommunication.SetProfilePicture) {
+                        string fileName = args[0];
+                        SetProfilePicture(fileName, userID);
+                        responseMessage = "1";
                     }
                 }
 

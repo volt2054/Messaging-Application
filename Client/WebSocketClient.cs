@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.WebSockets;
@@ -128,7 +126,7 @@ namespace Client {
                     // No connection to close
                 }
             } catch (Exception ex) {
-                MessageBox.Show($"Error during WebSocket closure: {ex.Message}");
+                //MessageBox.Show($"Error during WebSocket closure: {ex.Message}");
             }
         }
     }

@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 
 
 using static Server.Database.DatabaseManager;
-using System.Threading.Channels;
-using System.Runtime.Intrinsics.X86;
-using System.Collections;
 
 namespace Server.Database {
     public class DataManager {
@@ -283,6 +273,32 @@ namespace Server.Database {
             });
 
             return result;
+        }
+
+        public static string GetProfilePicture(string userID) {
+            string result = "";
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT profile_picture From Users WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                List<string> queryResult = ExecuteQuery<string>(connection, command);
+                result = queryResult.First();
+            });
+            return result;
+        }
+
+        public static void SetProfilePicture(string fileName, string userID) {
+            ExecuteDatabaseOperations(connection => {
+                string updateQuery = "UPDATE Users SET profile_picture = @FileName WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@FileName", fileName);
+                command.Parameters.AddWithValue("@UserID", userID);
+
+                ExecuteNonQuery(connection, command);
+            });
         }
 
         public static void DeleteUser(string userID) {

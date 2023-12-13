@@ -1,34 +1,22 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using System.Net.Sockets;
-using System.Net;
-using System.IO;
-using System.Net.Http;
-using System.Windows.Threading;
-
-
 using SharedLibrary;
-using static Client.WebSocketClient;
 using static SharedLibrary.Serialization;
-using System.Net.WebSockets;
 using System.Threading;
-using System.DirectoryServices.ActiveDirectory;
-using System.Diagnostics.Eventing.Reader;
-using System.Text.RegularExpressions;
+
+using static SharedLibrary.ContentDeliveryInterface;
+using Microsoft.Win32;
+
+
 
 namespace Client {
 
@@ -40,6 +28,7 @@ namespace Client {
     public class SpecialServerIDs {
         public static readonly string DirectMessages = "-1";
         public static readonly string CreateServer = "-2";
+        public static readonly string Settings = "-3";
     }
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
@@ -58,7 +47,6 @@ namespace Client {
     public partial class MainWindow : Window {
 
         // TODO - Loading options from file??
-
         WebSocketClient Client;
 
         string CurrentUserID;
@@ -87,6 +75,12 @@ namespace Client {
         static async Task<string> GetID(string username, WebSocketClient Client) {
             string[] data = { username };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetID, data);
+            return response;
+        }
+
+        static async Task<string> GetPFP(string userID, WebSocketClient Client) {
+            string[] data = { userID };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
             return response;
         }
 
@@ -128,6 +122,8 @@ namespace Client {
             return userChannels;
         }
 
+        static Dictionary<string, string> userProfileCache = new Dictionary<string, string>();
+
         static async Task<List<string[]>> FetchMessages(string channelID, string messageID, string before, WebSocketClient Client) {
             string[] data = { channelID, messageID, before };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchMessages, data);
@@ -138,6 +134,17 @@ namespace Client {
 
             byte[] dataBytes = Convert.FromBase64String(response);
             List<string[]> messageList = DeserializeList<string[]>(dataBytes);
+
+            foreach (string[] message in messageList) {
+                string userId = message[3];
+                if (!userProfileCache.ContainsKey(userId)) {
+                    string userPFP = await GetPFP(userId, Client);
+                    userProfileCache.Add(userId, userPFP);
+                }
+                userProfileCache.TryGetValue(userId, out string pfpName);
+                message[3] = pfpName;
+            }
+
 
             return messageList;
 
@@ -189,14 +196,21 @@ namespace Client {
         public MainWindow() {
             InitializeComponent();
 
-            Client = new WebSocketClient();
+            Init();
+            //InitializeSettingsUI();
+        }
 
+        private void Init() {
+            Client = new WebSocketClient();
             InitializeLoginUI();
         }
 
         // Make sure websocket is closed
         protected override async void OnClosing(System.ComponentModel.CancelEventArgs e) {
-            await Client.CloseWebSocket();
+
+            if (Client != null) {
+                await Client.CloseWebSocket();
+            }
 
             base.OnClosing(e);
         }
@@ -250,15 +264,14 @@ namespace Client {
                 AddChannel(channelListStackPanel, "Friends", "-1", SpecialServerIDs.DirectMessages);
 
                 foreach (string[] channel in await FetchDMs(Client)) {
-
-
-
-
                     AddChannel(channelListStackPanel, channel[1], channel[0], SpecialServerIDs.DirectMessages);
                 }
             } else if (Tag == SpecialServerIDs.CreateServer) {
                 // CREATE SERVER UI
                 InitializeCreateServerUI();
+            } else if (Tag == SpecialServerIDs.Settings) {
+                // SETTINGS UI
+                InitializeSettingsUI();
             } else {
 
                 Button button = new Button() {
@@ -480,6 +493,242 @@ namespace Client {
             this.Content = mainGrid;
         }
 
+
+        private async void InitializeSettingsUI() {
+            // Main Grid
+            Grid mainGrid = new Grid();
+            mainGrid.HorizontalAlignment = HorizontalAlignment.Stretch;
+            mainGrid.VerticalAlignment = VerticalAlignment.Stretch;
+
+            // Main section content
+            Grid contentGrid = new Grid();
+            contentGrid.Margin = new Thickness(160, 0, 10, 0);
+
+            // Account section
+            StackPanel accountSection = new StackPanel();
+
+            // Profile Picture
+            StackPanel profilePicturePanel = new StackPanel();
+            profilePicturePanel.Orientation = Orientation.Horizontal;
+            profilePicturePanel.HorizontalAlignment = HorizontalAlignment.Center;
+            profilePicturePanel.Margin = new Thickness(0, 20, 0, 10);
+
+            Image profilePicture = new Image { Name = "ProfilePicture", Width = 100, Height = 100 };
+
+            string pfpFileName = await GetPFP(CurrentUserID, Client);
+
+            string pfp = await DownloadFileAsync(pfpFileName);
+
+            profilePicture.Source = new BitmapImage(new Uri(pfp));
+
+            Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
+            changeProfilePicButton.Click += changeProfilePicButton_Click;
+
+            profilePicturePanel.Children.Add(profilePicture);
+            profilePicturePanel.Children.Add(changeProfilePicButton);
+
+            // Account Information
+            StackPanel accountInfoPanel = new StackPanel();
+            accountInfoPanel.Margin = new Thickness(0, 10, 0, 0);
+            accountInfoPanel.HorizontalAlignment = HorizontalAlignment.Center;
+
+            Grid accountInfoGrid = new Grid();
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            for (int i = 0; i < 3; i++) {
+
+                TextBlock textBlock = new TextBlock { Text = i == 0 ? "Username:" : (i == 1 ? "Email:" : "Password:") };
+
+                TextBox textBox = new TextBox { Name = i == 0 ? "UsernameTextBox" : (i == 1 ? "EmailTextBox" : "PasswordTextBox"), Margin = new Thickness(10, 0, 10, 0), MinWidth = 200 };
+
+                Button changeButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
+
+                if (i == 0) changeButton.Click += changeUsernameButton_Click;
+                else if (i == 1) changeButton.Click += changeEmailButton_Click;
+                else changeButton.Click += changePasswordButton_Click;
+
+                Grid.SetRow(textBlock, i);
+                Grid.SetColumn(textBlock, 0);
+                Grid.SetRow(textBox, i);
+                Grid.SetColumn(textBox, 1);
+                Grid.SetRow(changeButton, i);
+                Grid.SetColumn(changeButton, 2);
+
+                accountInfoGrid.Children.Add(textBlock);
+                accountInfoGrid.Children.Add(textBox);
+                accountInfoGrid.Children.Add(changeButton);
+            }
+
+            accountInfoPanel.Children.Add(accountInfoGrid);
+
+            accountSection.Children.Add(profilePicturePanel);
+            accountSection.Children.Add(accountInfoPanel);
+
+            contentGrid.Children.Add(accountSection);
+
+            // Appearance section
+            StackPanel appearanceSection = new StackPanel();
+            appearanceSection.Visibility = Visibility.Collapsed;
+            appearanceSection.HorizontalAlignment = HorizontalAlignment.Left;
+            appearanceSection.VerticalAlignment = VerticalAlignment.Center;
+
+            Grid appearanceSectionGrid = new Grid();
+
+            appearanceSection.Children.Add(appearanceSectionGrid);
+
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+
+            // List of 5 rows
+            for (int i = 0; i < 3; i++) {
+
+                // TextBlock for color label
+                TextBlock label = new TextBlock();
+                label.Text = GetColorLabel(i);
+                label.Margin = new Thickness(0, 0, 10, 10);
+
+                // TextBox for color entry
+                TextBox colorTextBox = new TextBox();
+                colorTextBox.Name = $"ColorTextBox_{i}";
+                colorTextBox.Width = 100;
+                colorTextBox.Margin = new Thickness(0, 0, 0, 10);
+
+
+                // Little square for color preview
+                Border colorPreviewBorder = new Border();
+                colorPreviewBorder.BorderThickness = new Thickness(1, 1, 1, 1);
+                colorPreviewBorder.BorderBrush = Brushes.Black;
+                colorPreviewBorder.Margin = new Thickness(10, 0, 0, 10);
+
+                Rectangle colorPreview = new Rectangle();
+                colorPreview.Width = 20;
+                colorPreview.Height = 20;
+
+                colorPreviewBorder.Child = colorPreview;
+
+                colorTextBox.TextChanged += (s, e) => {
+                    try {
+                        Brush colorBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorTextBox.Text));
+                        colorPreview.Fill = colorBrush;
+                    } catch {
+
+                    }
+                };
+
+                appearanceSectionGrid.Children.Add(label);
+                appearanceSectionGrid.Children.Add(colorTextBox);
+                appearanceSectionGrid.Children.Add(colorPreviewBorder);
+
+                Grid.SetRow(label, i);
+                Grid.SetRow(colorTextBox, i);
+                Grid.SetRow(colorPreviewBorder, i);
+                Grid.SetColumn(label, 0);
+                Grid.SetColumn(colorTextBox, 1);
+                Grid.SetColumn(colorPreviewBorder, 2);
+
+            }
+
+            contentGrid.Children.Add(appearanceSection);
+
+            // Navigation bar on the left
+            StackPanel navigationPanel = new StackPanel();
+            navigationPanel.Width = 150;
+            navigationPanel.Background = new SolidColorBrush(Color.FromRgb(238, 238, 238));
+            navigationPanel.HorizontalAlignment = HorizontalAlignment.Left;
+
+            Button goBackButton = new Button { Content = "Go Back", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            goBackButton.Click += (s, e) => {
+                InitializeMessagingUI();
+            };
+
+            Button accountButton = new Button { Content = "Account", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            accountButton.Click += async (s, e) => {
+                appearanceSection.Visibility = Visibility.Collapsed;
+                accountSection.Visibility = Visibility.Visible;
+
+                string pfpFileName = await GetPFP(CurrentUserID, Client);
+
+                string savePath = await DownloadFileAsync(pfpFileName);
+
+                profilePicture.Source = new BitmapImage(new Uri(savePath));
+            };
+
+            Button appearanceButton = new Button { Content = "Appearance", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            appearanceButton.Click += (s, e) => {
+                accountSection.Visibility = Visibility.Collapsed;
+                appearanceSection.Visibility = Visibility.Visible;
+            };
+
+            Button logOutButton = new Button { Content = "Log Out", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
+            logOutButton.Click += (s, e) => {
+                Init();
+            };
+
+            navigationPanel.Children.Add(goBackButton);
+            navigationPanel.Children.Add(accountButton);
+            navigationPanel.Children.Add(appearanceButton);
+            navigationPanel.Children.Add(logOutButton);
+
+            mainGrid.Children.Add(navigationPanel);
+
+            mainGrid.Children.Add(contentGrid);
+
+            this.Content = mainGrid;
+        }
+
+        private string GetColorLabel(int index) {
+            switch (index) {
+                case 0: return "Background Color:";
+                case 1: return "Text Color:";
+                case 2: return "Accent Color:";
+                default: return "";
+            }
+        }
+
+
+
+        private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
+            Button button = sender as Button;
+            StackPanel stackpanel = button.Parent as StackPanel;
+
+            Image ProfilePicture = stackpanel.Children[0] as Image;
+
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image files(*.png; *.jpeg; *.jpg)| *.png; *.jpeg; *.jpg | All files(*.*) | *.* ";
+            if (openFileDialog.ShowDialog() == true) {
+                string imagePath = openFileDialog.FileName;
+
+                string pfpUrl = await UploadFileAsync(imagePath);
+                string[] data = { pfpUrl };
+                await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
+
+                // Save the file path and update the UI
+                ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
+            }
+        }
+
+        private void changePasswordButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void changeEmailButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
+        private void changeUsernameButton_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
+        }
+
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
 
             if (CurrentServerID != serverID) {
@@ -537,7 +786,7 @@ namespace Client {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                    AddMessage(messageStackPanel, message[3], message[0], message[1], false);
                     messageScrollViewer.ScrollToBottom();
                 }
             }
@@ -560,7 +809,7 @@ namespace Client {
                 message = message.Substring(TypeOfCommunication.NotifyMessage.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
-                uiContext.Post(_ => AddMessage(args[0], args[1], args[2]), null);
+                uiContext.Post(_ => AddMessage(args[0], args[1], args[2], args[3]), null);
             } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -574,21 +823,24 @@ namespace Client {
             }
         }
 
-        public void AddMessage(string channelID, string username, string messageContent) {
+        public void AddMessage(string channelID, string username, string messageContent, string userPFP) {
             if (CurrentChannelID == channelID) {
-                AddMessage(messageStackPanel, Color.FromRgb(0, 0, 0), username, messageContent, false);
+                AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
-        private void AddMessage(StackPanel parentStackPanel, Color color, string username, string message, bool before) {
-
+        private async void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
+            BitmapImage pfp = new BitmapImage(new Uri(await DownloadFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
+
             Ellipse ellipse = new Ellipse {
                 Width = 25,
                 Height = 25,
-                Fill = new SolidColorBrush(color)
+                Fill = imageBrush
             };
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
@@ -763,6 +1015,9 @@ namespace Client {
             messagingGrid.Children.Add(circleScrollViewer);
             Grid.SetColumn(circleScrollViewer, 0);
 
+            AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.Settings, "SETTINGS"); // USER SETTINGS ETC
+
+
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.DirectMessages, "DM"); // This is where we will access DMs from
 
             // FETCH SERVERS
@@ -820,7 +1075,7 @@ namespace Client {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                AddMessage(messageStackPanel, message[3], message[0], message[1], false);
                 messageScrollViewer.ScrollToBottom();
             }
 
@@ -831,7 +1086,7 @@ namespace Client {
             if (e.VerticalOffset == 0) {
                 foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, Colors.Black, message[0], message[1], true);
+                    AddMessage(messageStackPanel, message[3], message[0], message[1], true);
                 }
             }
         }
@@ -974,6 +1229,7 @@ namespace Client {
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e) {
+            CurrentServerID = SpecialServerIDs.DirectMessages;
             InitializeMessagingUI();
         }
 
