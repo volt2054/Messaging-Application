@@ -9,7 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedLibrary", "SharedLibrary\SharedLibrary.csproj", "{9D967C96-4141-4817-AB66-2E8AF3A62CFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentDeliveryServer", "ContentDeliveryServer\ContentDeliveryServer.csproj", "{2FE21332-5C8C-46EA-A4D5-76D01C434F92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContentDeliveryServer", "ContentDeliveryServer\ContentDeliveryServer.csproj", "{2FE21332-5C8C-46EA-A4D5-76D01C434F92}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9D967C96-4141-4817-AB66-2E8AF3A62CFD} = {9D967C96-4141-4817-AB66-2E8AF3A62CFD}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
