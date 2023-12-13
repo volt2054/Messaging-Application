@@ -140,11 +140,12 @@ namespace Server {
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
                         List<string> usersInChannel = FetchUsersInChannel(channel);
-                        string[] argsToSend = new string[3];
+                        string[] argsToSend = new string[4];
 
                         argsToSend[0] = channel;
                         argsToSend[1] = GetUsername(userID);
                         argsToSend[2] = message_content;
+                        argsToSend[3] = GetProfilePicture(userID);
                         foreach (string user in usersInChannel) {
                             SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
                         }
