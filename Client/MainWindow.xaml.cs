@@ -498,7 +498,7 @@ namespace Client {
 
             // Main section content
             Grid contentGrid = new Grid();
-            contentGrid.Margin = new Thickness(150, 0, 0, 0);
+            contentGrid.Margin = new Thickness(160, 0, 10, 0);
 
             // Account section
             StackPanel accountSection = new StackPanel();
@@ -610,7 +610,6 @@ namespace Client {
                 Rectangle colorPreview = new Rectangle();
                 colorPreview.Width = 20;
                 colorPreview.Height = 20;
-                colorPreview.Margin = new Thickness(10, 0, 0, 10);
 
                 colorPreviewBorder.Child = colorPreview;
 
