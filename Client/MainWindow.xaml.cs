@@ -828,17 +828,19 @@ namespace Client {
                 AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
-        private void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
+        private async void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
-            MessageBox.Show(PFP);
+            BitmapImage pfp = new BitmapImage(new Uri(await DownloadFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
 
             Ellipse ellipse = new Ellipse {
                 Width = 25,
                 Height = 25,
-                Fill = new SolidColorBrush(Color.FromRgb(0,0,0))
+                Fill = imageBrush
             };
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
