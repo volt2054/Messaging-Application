@@ -78,6 +78,12 @@ namespace Client {
             return response;
         }
 
+        static async Task<string> GetPFP(string userID, WebSocketClient Client) {
+            string[] data = { userID };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
+            return response;
+        }
+
         static async void SendMessage(string message, string channelID, WebSocketClient Client) {
             string[] data = { message, channelID };
             await Client.SendAndRecieve(TypeOfCommunication.SendMessage, data);
@@ -499,8 +505,7 @@ namespace Client {
 
             Image profilePicture = new Image { Name = "ProfilePicture", Width = 100, Height = 100 };
 
-            string[] data = { CurrentUserID };
-            string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
+            string pfpFileName = await GetPFP(CurrentUserID, Client);
 
             string pfp = await DownloadFileAsync(pfpFileName);
 
@@ -616,8 +621,7 @@ namespace Client {
                 appearanceSection.Visibility = Visibility.Collapsed;
                 accountSection.Visibility = Visibility.Visible;
 
-                string[] data = { CurrentUserID };
-                string pfpFileName = await Client.SendAndRecieve(TypeOfCommunication.GetProfilePicture, data);
+                string pfpFileName = await GetPFP(CurrentUserID, Client);
 
                 string savePath = await DownloadFileAsync(pfpFileName);
 
