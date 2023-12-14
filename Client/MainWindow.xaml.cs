@@ -195,9 +195,7 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-
             Init();
-            //InitializeSettingsUI();
         }
 
         private void Init() {
