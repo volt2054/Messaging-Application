@@ -200,6 +200,7 @@ namespace Client {
 
         private void Init() {
             Client = new WebSocketClient();
+            ClearCache();
             InitializeLoginUI();
         }
 
