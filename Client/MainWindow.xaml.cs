@@ -1038,12 +1038,26 @@ namespace Client {
             messageStackPanel = new StackPanel();
             messageStackPanel.VerticalAlignment = VerticalAlignment.Bottom;
 
+            StackPanel messageSendingStackPanel = new StackPanel {
+                Orientation = Orientation.Horizontal,
+            };
+
+            Button attachmentButton = new Button {
+                Content = "+",
+                Height = 30,
+                Width = 30
+            };
+
             TextBox messageBox = new TextBox {
                 Height = 30,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Bottom,
+                HorizontalAlignment = HorizontalAlignment.Stretch
             };
             messageBox.KeyDown += TextBox_KeyDown;
+
+            messageSendingStackPanel.Children.Add(attachmentButton);
+            messageSendingStackPanel.Children.Add(messageBox);
 
             messageScrollViewer = new ScrollViewer() {
                 Content = messageStackPanel,
@@ -1057,10 +1071,10 @@ namespace Client {
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // TextBox
             messageGrid.Children.Add(messageScrollViewer);
-            messageGrid.Children.Add(messageBox);
+            messageGrid.Children.Add(messageSendingStackPanel);
 
             Grid.SetRow(messageScrollViewer, 0);
-            Grid.SetRow(messageBox, 1);
+            Grid.SetRow(messageSendingStackPanel, 1);
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
