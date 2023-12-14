@@ -43,6 +43,13 @@
 
 
         private static string saveDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}/Cache";
+
+        public static void ClearCache() {
+            foreach(string file in Directory.EnumerateFiles(saveDirectory)) {
+                File.Delete(file);
+            }
+        }
+
         public static async Task<string> DownloadFileAsync(string fileName) {
 
             if (!Directory.Exists(saveDirectory)) {

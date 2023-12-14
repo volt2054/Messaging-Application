@@ -141,7 +141,7 @@ namespace Client {
                     string userPFP = await GetPFP(userId, Client);
                     userProfileCache.Add(userId, userPFP);
                 }
-                userProfileCache.TryGetValue(userId, out string pfpName);
+                string pfpName = userProfileCache[userId];
                 message[3] = pfpName;
             }
 
@@ -195,13 +195,12 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-
             Init();
-            //InitializeSettingsUI();
         }
 
         private void Init() {
             Client = new WebSocketClient();
+            ClearCache();
             InitializeLoginUI();
         }
 
@@ -704,7 +703,7 @@ namespace Client {
             Image ProfilePicture = stackpanel.Children[0] as Image;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image files(*.png; *.jpeg; *.jpg)| *.png; *.jpeg; *.jpg | All files(*.*) | *.* ";
+            openFileDialog.Filter = "Image Files(*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true) {
                 string imagePath = openFileDialog.FileName;
 
