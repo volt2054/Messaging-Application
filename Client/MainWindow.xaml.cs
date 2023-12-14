@@ -141,7 +141,7 @@ namespace Client {
                     string userPFP = await GetPFP(userId, Client);
                     userProfileCache.Add(userId, userPFP);
                 }
-                userProfileCache.TryGetValue(userId, out string pfpName);
+                string pfpName = userProfileCache[userId];
                 message[3] = pfpName;
             }
 
