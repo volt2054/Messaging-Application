@@ -11,11 +11,6 @@
             _username = username;
         }
 
-        public User(string[] stringArray) {
-            _id = stringArray[0];
-            _username = stringArray[1];
-        }
-
         public override string ToString() {
             string UserToString = _id + ":" + _username;
             return UserToString;
