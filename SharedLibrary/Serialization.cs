@@ -18,6 +18,9 @@
                         foreach (string str in arrayItem) {
                             writer.Write(str);
                         }
+                    } else if (typeof(T) == typeof(User)) {
+                        User user = (User)(object)item;
+                        writer.Write(SerializeObject(user));
                     }
                 }
                 return memoryStream.ToArray();
@@ -46,6 +49,10 @@
                             arrayItem[j] = reader.ReadString();
                         }
                         list.Add((T)(object)arrayItem);
+                    } else if (typeof(T) == typeof(User)) {
+                        byte[] userBytes = reader.ReadBytes(reader.ReadInt32());
+                        T userObject = DeserializeObject<T>(userBytes);
+                        list.Add((T)(object)userObject);
                     }
                 }
             }
@@ -53,7 +60,7 @@
             return list;
         }
 
-        public byte[] SerializeObject<T>(T Object) {
+        public static byte[] SerializeObject<T>(T Object) {
             using (MemoryStream stream = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(stream)) {
                 if (typeof(T) == typeof(User)) {

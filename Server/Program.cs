@@ -65,9 +65,6 @@ namespace Server {
                     string userId = commandParts[1];
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
-                } else if (command == "TEST") {
-                    string username = commandParts[1];
-                    GetFriends(username);
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
@@ -261,14 +258,14 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetFriends) {
                         string user1 = userID;
 
-                        List<string> friends = GetFriends(userID);
+                        List<User> friends = GetFriends(userID);
                         byte[] friendsData = SerializeList(friends);
                         responseMessage = Convert.ToBase64String(friendsData);
 
                     } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
                         string serverID = args[0];
 
-                        List<string> users = GetUsersInServer(serverID);
+                        List<User> users = GetUsersInServer(serverID);
                         byte[] usersData = SerializeList(users);
                         responseMessage = Convert.ToBase64String(usersData);
 

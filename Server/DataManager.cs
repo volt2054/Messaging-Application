@@ -129,36 +129,42 @@ namespace Server.Database {
             }
         }
 
-        public static List<string> GetFriends(string userID) {
-            List<string> result = new List<string>();
+        public static List<User> GetFriends(string userID) {
+            List<User> friends;
+            List<string[]> queryResult = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT u.username AS friend_username " +
-                "FROM Users u " +
-                "INNER JOIN UserFriendships f ON u.user_id = f.friend_id " +
-                "WHERE f.user_id = @UserID";
+                "SELECT friend_id, Users.username " +
+                "FROM UserFriendships, Users " +
+                "WHERE UserFriendships.user_id = 1 " +
+                "AND friend_id = Users.user_id";
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
-                result = ExecuteQuery<string>(connection, command);
+                queryResult = ExecuteQuery<string[]>(connection, command);
             });
-            return result;
+            friends = User.StringListToUserList(queryResult);
+
+            return friends;
         }
 
-        public static List<string> GetUsersInServer(string serverID) {
-            List<string> result = new List<string>();
+        public static List<User> GetUsersInServer(string serverID) {
+            List<User> users;
+            List<string[]> result = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT u.username AS username " +
+                "SELECT u.user_id, u.username AS username " +
                 "FROM Users u " +
                 "INNER JOIN UserServers s ON u.user_id = s.user_id " +
                 "WHERE s.server_id = @ServerID";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ServerID", serverID);
-                result = ExecuteQuery<string>(connection, command);
+                result = ExecuteQuery<string[]>(connection, command);
             });
 
-            return result;
+            users = User.StringListToUserList(result);
+
+            return users;
         }
 
         public static List<string[]> FetchUserDMs(string userID) {

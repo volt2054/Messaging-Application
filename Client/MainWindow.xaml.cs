@@ -164,30 +164,30 @@ namespace Client {
             return serverList;
         }
 
-        static async Task<List<string>> FetchUsersInServer(WebSocketClient Client, string serverID) {
+        static async Task<List<User>> FetchUsersInServer(WebSocketClient Client, string serverID) {
             string[] data = { serverID };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetUsersInServer, data);
 
             if (response == "-1") {
-                return new List<string>();
+                return new List<User>();
             }
 
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> UsersList = DeserializeList<string>(dataBytes);
+            List<User> UsersList = DeserializeList<User>(dataBytes);
 
             return UsersList;
         }
 
-        static async Task<List<string>> FetchFriends(WebSocketClient Client) {
+        static async Task<List<User>> FetchFriends(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
 
             if (response == "-1") {
-                return new List<string>();
+                return new List<User>();
             }
 
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> friendsList = DeserializeList<string>(dataBytes);
+            List<User> friendsList = DeserializeList<User>(dataBytes);
 
             return friendsList;
 
@@ -420,7 +420,7 @@ namespace Client {
             scrollViewer2.Content = friendsStackPanel;
             scrollViewer2Border.Child = scrollViewer2;
             
-            foreach (string friend in await FetchFriends(Client)) {
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, false, friendsStackPanel);
             }
 
@@ -1161,7 +1161,7 @@ namespace Client {
             mainGrid.Children.Add(headerGrid);
             mainGrid.Children.Add(friendsScrollViewer);
 
-            foreach (string friend in await FetchFriends(Client)) {
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, true, FriendsStackPanel);
             }
 
@@ -1215,10 +1215,10 @@ namespace Client {
             mainGrid.Children.Add(UserListLabel);
             mainGrid.Children.Add(FriendsLAbel);
 
-            foreach (string friend in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddFriendElement(friend, false, FriendsStackPanel);
+            foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
+                AddFriendElement(user, false, FriendsStackPanel);
             } // Fetch Users In Server
-            foreach (string friend in await FetchFriends(Client)) {
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, false, UsersStackPanel);
             }
 
@@ -1279,16 +1279,18 @@ namespace Client {
             string[] data = { ID };
             await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
-            AddFriendElement(text.Text, true, FriendsStackPanel);
+            User user = new User(ID, text.Text);
+
+            AddFriendElement(user, true, FriendsStackPanel);
         }
 
-        private void AddFriendElement(string username, bool removeButtonToggle, StackPanel stackPanel) {
+        private void AddFriendElement(User user, bool removeButtonToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
             friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             friendBorder.Padding = new Thickness(5);
-            friendBorder.Tag = username;
+            friendBorder.Tag = user.username;
 
             StackPanel friendStackPanel = new StackPanel();
             friendStackPanel.Orientation = Orientation.Horizontal;
@@ -1307,7 +1309,7 @@ namespace Client {
             ellipse.HorizontalAlignment = HorizontalAlignment.Left;
 
             Label label = new Label();
-            label.Content = username;
+            label.Content = user.username;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
 
