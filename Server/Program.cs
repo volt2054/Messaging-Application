@@ -65,6 +65,21 @@ namespace Server {
                     string userId = commandParts[1];
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
+                } else if (command == "TEST") {
+                    List<User> users = new List<User>();
+                    users.Add(new User("12345", "John Doe"));
+                    users.Add(new User("67890", "Jane Smith"));
+
+                    byte[] data = SerializeList(users);
+                    List<User> deserializedUsers = DeserializeList<User>(data);
+
+                    bool isEqual = users.SequenceEqual(deserializedUsers);
+
+                    if (isEqual) {
+                        Console.WriteLine("The deserialized list is equal to the original list.");
+                    } else {
+                        Console.WriteLine("The deserialized list is not equal to the original list.");
+                    }
                 } else {
                     Console.WriteLine("Invalid command.");
                 }

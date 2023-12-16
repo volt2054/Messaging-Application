@@ -52,7 +52,10 @@ namespace Server.Database {
             List<string> queryResult = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT user_id, username FROM ChannelUsers WHERE channel_id = @ChannelId;";
+                    "SELECT ChannelUsers.user_id, Users.username " +
+                    "FROM ChannelUsers, Users " +
+                    "WHERE channel_id = @ChannelId " +
+                    "AND ChannelUsers.user_id = Users.user_id;";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", ChannelID);
@@ -136,7 +139,7 @@ namespace Server.Database {
                 string selectQuery =
                 "SELECT friend_id, Users.username " +
                 "FROM UserFriendships, Users " +
-                "WHERE UserFriendships.user_id = 1 " +
+                "WHERE UserFriendships.user_id = @UserID " +
                 "AND friend_id = Users.user_id";
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
