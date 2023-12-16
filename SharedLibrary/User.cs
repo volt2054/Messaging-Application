@@ -1,4 +1,6 @@
-﻿namespace SharedLibrary {
+﻿using System.Reflection.Metadata;
+
+namespace SharedLibrary {
     public class User {
         private string _id;
         private string _username;
@@ -11,9 +13,25 @@
             _username = username;
         }
 
-        public override string ToString() {
-            string UserToString = _id + ":" + _username;
-            return UserToString;
+        public User(string id) {
+            _id = id;
         }
+
+        static public List<User> StringListToUserList(List<string> list) {
+            List<User> users = new List<User>();
+            foreach (string UserID in list) {
+                users.Add(new User(UserID));
+            }
+            return users;
+        }
+
+        static public List<User> StringListToUserList(List<string[]> list) {
+            List<User> users = new List<User>();
+            foreach (string[] User in list) {
+                users.Add(new User(User[0], User[1]));
+            }
+            return users;
+        }
+
     }
 }

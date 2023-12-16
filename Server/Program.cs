@@ -139,15 +139,15 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-                        List<string> usersInChannel = FetchUsersInChannel(channel);
+                        List<User> usersInChannel = FetchUsersInChannel(channel);
                         string[] argsToSend = new string[4];
 
                         argsToSend[0] = channel;
                         argsToSend[1] = GetUsername(userID);
                         argsToSend[2] = message_content;
                         argsToSend[3] = GetProfilePicture(userID);
-                        foreach (string user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
                         }
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
@@ -192,7 +192,6 @@ namespace Server {
                         string channelID = CreateDMChannel(user1, user2, out channelName);
                         responseMessage = channelID;
 
-                        List<string> usersInChannel = FetchUsersInChannel(channelID);
                         string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = GetUsername(userID);
@@ -229,13 +228,13 @@ namespace Server {
 
                         responseMessage = channelID;
 
-                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        List<User> usersInChannel = FetchUsersInChannel(channelID);
                         string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = channelName;
                         argsToSend[2] = serverID;
-                        foreach (string user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyChannel);
                         }
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {

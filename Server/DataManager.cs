@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-
-
+using SharedLibrary;
 using static Server.Database.DatabaseManager;
 
 namespace Server.Database {
@@ -48,18 +47,20 @@ namespace Server.Database {
             return messages;
         }
 
-        public static List<string> FetchUsersInChannel(string ChannelID) {
-            List<string> users = new List<string>();
+        public static List<User> FetchUsersInChannel(string ChannelID) {
+            List<User> users;
+            List<string> queryResult = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT user_id FROM ChannelUsers WHERE channel_id = @ChannelId;";
+                    "SELECT user_id, username FROM ChannelUsers WHERE channel_id = @ChannelId;";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", ChannelID);
 
-                users = ExecuteQuery<string>(connection, command);
+                queryResult = ExecuteQuery<string>(connection, command);
             });
 
+            users = User.StringListToUserList(queryResult);
             
             if (users.Count > 0 ) { return users; }
 
@@ -81,9 +82,12 @@ namespace Server.Database {
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@ServerID", servers.First());
 
-                    users = ExecuteQuery<string>(connection, command);
+                    queryResult = ExecuteQuery<string>(connection, command);
                 });
             }
+
+            users = User.StringListToUserList(queryResult);
+
             return users;
         }
 
