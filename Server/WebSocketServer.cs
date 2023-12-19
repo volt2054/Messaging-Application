@@ -40,7 +40,7 @@ namespace Server {
             }
         }
 
-        private async void HandleWebSocket(System.Net.WebSockets.WebSocket webSocket, string clientID) {
+        private async void HandleWebSocket(WebSocket webSocket, string clientID) {
             try {
                 byte[] buffer = new byte[1024];
                 WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -50,7 +50,8 @@ namespace Server {
                     Console.WriteLine($"Received: {message}");
 
                     string requestID = message.Split(":")[0];
-                    string messageDetails = message.Split(":")[1];
+                    string messageDetails = message.Substring(requestID.Length + 1);
+                    Console.WriteLine(messageDetails );
 
                     string responseMessage = _messageHandler(messageDetails);
 
