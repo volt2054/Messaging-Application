@@ -1009,10 +1009,10 @@ namespace Client {
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3, GridUnitType.Star) });
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10, GridUnitType.Star) });
 
-            // First Column: Circles
-            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = serverStackPanel };
-            messagingGrid.Children.Add(circleScrollViewer);
-            Grid.SetColumn(circleScrollViewer, 0);
+            // First Column: SErvers
+            ScrollViewer serverScrollViewer = new ScrollViewer() { Content = serverStackPanel };
+            messagingGrid.Children.Add(serverScrollViewer);
+            Grid.SetColumn(serverScrollViewer, 0);
 
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.Settings, "SETTINGS"); // USER SETTINGS ETC
 
@@ -1027,13 +1027,13 @@ namespace Client {
                     AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
             }
 
-            // Second Column: Boxes with Icons and Text
+            // Second Column: Chann els
             channelListStackPanel = new StackPanel();
             ScrollViewer boxScrollViewer = new ScrollViewer() { Content = channelListStackPanel };
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
 
-            // Third Column: Message Container with Text Box
+            // Third Column: messages
             messageStackPanel = new StackPanel();
             messageStackPanel.VerticalAlignment = VerticalAlignment.Bottom;
 
