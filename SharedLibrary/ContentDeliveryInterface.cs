@@ -77,10 +77,9 @@
 
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
 
-                        FileNameMapping.Add(fileName, originalFileName);
 
                         // Need to add cache system
-                        await File.WriteAllBytesAsync(savePath, fileContent);
+                        await File.WriteAllBytesAsync(savePath += originalFileName, fileContent);
                         return savePath;
                     } else {
                         Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");

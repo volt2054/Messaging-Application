@@ -883,11 +883,10 @@ namespace Client {
             };
 
             AttachmentButton.Click += async (s, e) => {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                bool? result = saveFileDialog.ShowDialog();
+                System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
 
-                if (result == true) {
-                    string savePath = saveFileDialog.FileName;
+                if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                    string savePath = folderBrowserDialog.SelectedPath + "/";
 
                     try {
                         await DownloadFileAsync(fileId, savePath);
