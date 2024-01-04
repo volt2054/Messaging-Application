@@ -242,21 +242,6 @@ namespace Server.Database {
             return result;
         }
 
-
-
-
-        public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES (@MessageContent, @ChannelID, @UserID)";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", messageContent);
-                command.Parameters.AddWithValue("@ChannelID", channelID);
-                command.Parameters.AddWithValue("@UserID", userID);
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
-
         public static string GetID(string username) {
             string result = "";
 

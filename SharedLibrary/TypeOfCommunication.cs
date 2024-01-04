@@ -2,6 +2,7 @@
 namespace SharedLibrary {
     public class TypeOfCommunication {
         public const string SendMessage = "SEND"; // (SEND + MESSAGE CONTENT + CHANNEL ID) RETURNS WHETHER SUCCESSFUL
+        public const string SendAttachment = "SENDATTACHMENT"; // (SEND + FILE ID + CHANNEL ID) RETURNS WHETHER SUCCESSFUL
         public const string FetchMessages = "FETCHMESSAGES"; // (FETCHMESSAGES + CHANNEL ID + MESSAGE ID) RETURNS RECENTLY SENT MESSAGES
         public const string GetID = "GETUSERID"; // (GETUSERID + USERNAME)  RETURNS ID GIVEN USERNAME
         public const string RegisterUser = "CREATE"; // (CREATE + USERNAME + EMAIL + PASSWORD) RETURNS WHETHER SUCCESSFUL
