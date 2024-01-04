@@ -45,12 +45,56 @@
         private static string saveDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}/Cache";
 
         public static void ClearCache() {
-            foreach(string file in Directory.EnumerateFiles(saveDirectory)) {
+            foreach (string file in Directory.EnumerateFiles(saveDirectory)) {
                 File.Delete(file);
             }
         }
 
-        public static async Task<string> DownloadFileAsync(string fileName) {
+        public static async Task<string> DownloadFileAsync(string fileName, string savePath) {
+
+            if (!Directory.Exists(Path.GetDirectoryName(savePath))) {
+                Directory.CreateDirectory(Path.GetDirectoryName(savePath));
+            }
+
+            if (File.Exists(savePath)) {
+                return savePath;
+            }
+
+            string fileUrl = $"{WebSocketMetadata.CDSERVER_URL}{fileName}";
+            using (HttpClient client = new HttpClient()) {
+                try {
+                    // Send a GET request to the file URL
+                    HttpResponseMessage response = await client.GetAsync(fileUrl);
+                    // Check if the request was successful (status code 200 OK)
+                    if (response.IsSuccessStatusCode) {
+                        string originalFileName = "";
+                        if (response.Headers.TryGetValues("X-Original-File-Name", out var originalFileNames)) {
+                            originalFileName = originalFileNames.FirstOrDefault();
+                        }
+                        if (originalFileName == "") {
+                            originalFileName = "pfp.png";
+                        }
+
+                        byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
+
+                        FileNameMapping.Add(fileName, originalFileName);
+
+                        // Need to add cache system
+                        await File.WriteAllBytesAsync(savePath, fileContent);
+                        return savePath;
+                    } else {
+                        Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                        return "";
+                    }
+                } catch (Exception ex) {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return "";
+                }
+            }
+        }
+
+
+        public static async Task<string> CacheFileAsync(string fileName) {
 
             if (!Directory.Exists(saveDirectory)) {
                 Directory.CreateDirectory(saveDirectory);

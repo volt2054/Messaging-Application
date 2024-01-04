@@ -218,7 +218,7 @@ namespace Client {
 
             base.OnClosing(e);
         }
-        
+
         private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
 
             Grid ServerIcon = new Grid();
@@ -370,7 +370,7 @@ namespace Client {
             };
 
             TextBox addChannelTextBox = new TextBox();
-            
+
 
             Button addChannelButton = new Button {
                 Content = "Add Channel",
@@ -424,7 +424,7 @@ namespace Client {
 
             scrollViewer2.Content = friendsStackPanel;
             scrollViewer2Border.Child = scrollViewer2;
-            
+
             foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, false, friendsStackPanel);
             }
@@ -435,13 +435,13 @@ namespace Client {
             goBack.Content = "Go Back";
             goBack.VerticalAlignment = VerticalAlignment.Top;
 
-            goBack.Click += (s , e) => {
+            goBack.Click += (s, e) => {
                 channels.Clear();
                 InitializeMessagingUI();
             };
 
             Button createServer = new Button();
-            createServer.Margin = new Thickness(0,20, 0,0);
+            createServer.Margin = new Thickness(0, 20, 0, 0);
             createServer.FontSize = 24;
             createServer.Content = "Create Server";
             createServer.VerticalAlignment = VerticalAlignment.Bottom;
@@ -471,13 +471,13 @@ namespace Client {
                 string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
 
 
-                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString, SerializedFriendsString};
+                string[] data = { serverName.Text, serverDescription.Text, SerializedChannelsString, SerializedFriendsString };
 
                 await Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
                 InitializeMessagingUI();
             };
 
-            
+
 
             Grid.SetRow(goBack, 0);
             Grid.SetRow(scrollViewer2Border, 1);
@@ -521,7 +521,7 @@ namespace Client {
 
             string pfpFileName = await GetPFP(CurrentUserID, Client);
 
-            string pfp = await DownloadFileAsync(pfpFileName);
+            string pfp = await CacheFileAsync(pfpFileName);
 
             profilePicture.Source = new BitmapImage(new Uri(pfp));
 
@@ -585,13 +585,13 @@ namespace Client {
 
             appearanceSection.Children.Add(appearanceSectionGrid);
 
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             // List of 5 rows
             for (int i = 0; i < 3; i++) {
@@ -662,7 +662,7 @@ namespace Client {
 
                 string pfpFileName = await GetPFP(CurrentUserID, Client);
 
-                string savePath = await DownloadFileAsync(pfpFileName);
+                string savePath = await CacheFileAsync(pfpFileName);
 
                 profilePicture.Source = new BitmapImage(new Uri(savePath));
             };
@@ -738,7 +738,7 @@ namespace Client {
             if (CurrentServerID != serverID) {
                 return;
             }
-            
+
             string iconPath;
 
             if (channelID == SpecialChannelIDs.Friends || channelID == SpecialChannelIDs.UsersList) {
@@ -837,12 +837,76 @@ namespace Client {
                 AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
+
+        private async void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
+            StackPanel messageStackPanel = new StackPanel {
+                Orientation = Orientation.Horizontal
+            };
+
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
+
+            Ellipse ellipse = new Ellipse {
+                Width = 25,
+                Height = 25,
+                Fill = imageBrush
+            };
+
+            StackPanel usernameAndMessageStackPanel = new StackPanel {
+                Orientation = Orientation.Vertical,
+                Width = parentStackPanel.Width - 20
+            };
+
+            TextBlock usernameTextBlock = new TextBlock {
+                Text = username,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(5, 0, 0, 3)
+            };
+
+            Button AttachmentButton = new Button {
+                Content = $"Download {fileId}",
+                Margin = new Thickness(5, 0, 0, 10),
+                MaxHeight = 100,
+                BorderThickness = new Thickness(0)
+            };
+
+            AttachmentButton.Click += async (s, e) => {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                bool? result = saveFileDialog.ShowDialog();
+
+                if (result == true) {
+                    string savePath = saveFileDialog.FileName;
+
+                    try {
+                        await DownloadFileAsync(fileId, savePath);
+                        MessageBox.Show($"File downloaded successfully to: {savePath}", "Download Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    } catch (Exception ex) {
+                        MessageBox.Show($"Error downloading file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            };
+
+            usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
+            usernameAndMessageStackPanel.Children.Add(AttachmentButton);
+
+            messageStackPanel.Children.Add(ellipse);
+            messageStackPanel.Children.Add(usernameAndMessageStackPanel);
+
+            if (before) {
+                double newContentHeight = 50; // TODO FETCH NEW CONTENT HEIGHT
+                double currentVerticalOffset = messageScrollViewer.VerticalOffset;
+                parentStackPanel.Children.Insert(0, messageStackPanel);
+                messageScrollViewer.ScrollToVerticalOffset(currentVerticalOffset + newContentHeight);
+            } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
+        }
+
         private async void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
-            BitmapImage pfp = new BitmapImage(new Uri(await DownloadFileAsync(PFP)));
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
             ImageBrush imageBrush = new ImageBrush();
             imageBrush.ImageSource = pfp;
 
