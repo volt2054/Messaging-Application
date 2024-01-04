@@ -50,7 +50,9 @@ namespace Server {
                     Console.WriteLine($"Received: {message}");
 
                     string requestID = message.Split(":")[0];
-                    string messageDetails = message.Split(":")[1];
+
+                    string messageDetails = message.Substring(requestID.Length + 1);
+
 
                     string responseMessage = _messageHandler(messageDetails);
 

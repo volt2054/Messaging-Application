@@ -88,7 +88,7 @@ namespace Client {
             string[] data = { message, channelID };
             await Client.SendAndRecieve(TypeOfCommunication.SendMessage, data);
         }
-
+        
         static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
             string[] data = { user };
             string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
@@ -853,11 +853,13 @@ namespace Client {
                 Margin = new Thickness(5, 0, 0, 3)
             };
 
-            TextBlock messageTextBlock = new TextBlock {
+            TextBox messageTextBlock = new TextBox {
                 Text = message,
                 Margin = new Thickness(5, 0, 0, 10),
                 MaxHeight = 100,
-                TextWrapping = TextWrapping.Wrap
+                TextWrapping = TextWrapping.Wrap,
+                IsReadOnly = true,
+                BorderThickness = new Thickness(0)
             };
 
             usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
@@ -1000,6 +1002,7 @@ namespace Client {
 
         StackPanel serverStackPanel = new StackPanel();
         private async void InitializeMessagingUI() {
+
             serverStackPanel = new StackPanel();
             Grid messagingGrid = new Grid();
 
@@ -1037,27 +1040,48 @@ namespace Client {
             messageStackPanel = new StackPanel();
             messageStackPanel.VerticalAlignment = VerticalAlignment.Bottom;
 
-            StackPanel messageSendingStackPanel = new StackPanel {
-                Orientation = Orientation.Horizontal,
-            };
+            // Creating the Grid named "messagesendinggrid"
+            Grid messageSendingGrid = new Grid();
+            messageSendingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) }); // Button
+            messageSendingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(9, GridUnitType.Star) }); // TextBox
 
+
+            // Button
             Button attachmentButton = new Button {
                 Content = "+",
                 Height = 30,
-                Width = 30
+                Width = 30,
+            };
+            Grid.SetColumn(attachmentButton, 0);
+
+            attachmentButton.Click += async (s, e) => {
+                // Open file dialog
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                if (openFileDialog.ShowDialog() == true) {
+                    // Get the selected file name
+                    string selectedFileName = openFileDialog.FileName;
+                    string fileID = await UploadFileAsync(selectedFileName);
+
+                    string fileLink = $"{WebSocketMetadata.CDSERVER_URL + fileID}";
+                    SendMessage(fileLink, CurrentChannelID, Client);
+                }
             };
 
+            // TextBox
             TextBox messageBox = new TextBox {
                 Height = 30,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Bottom,
-                Margin = new Thickness(5)
+                Margin = new Thickness(0, 5, 10, 5)
             };
             messageBox.KeyDown += TextBox_KeyDown;
+            Grid.SetColumn(messageBox, 1);
 
-            messageSendingStackPanel.Children.Add(attachmentButton);
-            messageSendingStackPanel.Children.Add(messageBox);
+            // Adding Button and TextBox to the Grid
+            messageSendingGrid.Children.Add(attachmentButton);
+            messageSendingGrid.Children.Add(messageBox);
 
+            // Creating the ScrollViewer for the messageStackPanel
             messageScrollViewer = new ScrollViewer() {
                 Content = messageStackPanel,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -1065,15 +1089,16 @@ namespace Client {
             };
             messageScrollViewer.ScrollChanged += MessageScrollViewer_ScrollChanged;
 
-
+            // Creating the main Grid
             Grid messageGrid = new Grid();
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // TextBox
             messageGrid.Children.Add(messageScrollViewer);
-            messageGrid.Children.Add(messageSendingStackPanel);
+            messageGrid.Children.Add(messageSendingGrid); // Adding the messagesendinggrid to the main Grid
 
             Grid.SetRow(messageScrollViewer, 0);
-            Grid.SetRow(messageSendingStackPanel, 1);
+            Grid.SetRow(messageSendingGrid, 1);
+
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
