@@ -1051,7 +1051,7 @@ namespace Client {
                 Height = 30,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Bottom,
-                HorizontalAlignment = HorizontalAlignment.Stretch
+                Margin = new Thickness(5)
             };
             messageBox.KeyDown += TextBox_KeyDown;
 
