@@ -28,8 +28,8 @@ namespace Server.Database {
             string result = "";
 
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (@fileID, channel_id, user_id, message_type) " +
-                                     "VALUES (@MessageContent, @Channel, @User, 2)";
+                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
+                                     "VALUES (@fileID, @Channel, @User, 2)";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@fileID", fileId);
@@ -47,7 +47,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP " + count + " u.username, message_content, message_id, s.user_id " +
+                    "SELECT TOP " + count + " u.username, message_content, message_id, s.user_id, message_type " +
                     "FROM Messages s, Users u " +
                     "WHERE channel_id = @ChannelID AND " +
                     "u.user_id = s.user_id AND " +

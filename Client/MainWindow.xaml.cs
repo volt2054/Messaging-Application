@@ -790,7 +790,11 @@ namespace Client {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                    if (message[4] != "2") {
+                        await AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                    } else {
+                        AddAttachment(messageStackPanel, message[3], message[0], message[1], false);
+                    }
                     messageScrollViewer.ScrollToBottom();
                 }
             }
@@ -818,7 +822,7 @@ namespace Client {
                 message = message.Substring(TypeOfCommunication.NotifyAttachment.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
-
+                uiContext.Post(_ => AddAttachment(args[0], args[1], args[2], args[3]), null);
             } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -832,25 +836,31 @@ namespace Client {
             }
         }
 
-        public void AddMessage(string channelID, string username, string messageContent, string userPFP) {
+        public async void AddMessage(string channelID, string username, string messageContent, string userPFP) {
             if (CurrentChannelID == channelID) {
-                AddMessage(messageStackPanel, userPFP, username, messageContent, false);
+                await AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
 
-        private async void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
+        public void AddAttachment(string channelID, string username, string fileId, string userPFP) {
+            if (CurrentChannelID == channelID) {
+                AddAttachment(messageStackPanel, userPFP, username, fileId, false);
+            }
+        }
+
+        private void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
-            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
-            ImageBrush imageBrush = new ImageBrush();
-            imageBrush.ImageSource = pfp;
+            //BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            //ImageBrush imageBrush = new ImageBrush();
+            //imageBrush.ImageSource = pfp;
 
             Ellipse ellipse = new Ellipse {
                 Width = 25,
                 Height = 25,
-                Fill = imageBrush
+                Fill = Brushes.Red
             };
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
@@ -901,7 +911,7 @@ namespace Client {
             } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
         }
 
-        private async void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
+        private async Task AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
@@ -1187,7 +1197,11 @@ namespace Client {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                if (message[4] != "2") {
+                    await AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                } else {
+                    AddAttachment(messageStackPanel, message[3], message[0], message[1], false);
+                }
                 messageScrollViewer.ScrollToBottom();
             }
 
@@ -1198,7 +1212,11 @@ namespace Client {
             if (e.VerticalOffset == 0) {
                 foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                    if (message[4] != "2") {
+                        await AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                    } else {
+                        AddAttachment(messageStackPanel, message[3], message[0], message[1], true);
+                    }
                 }
             }
         }

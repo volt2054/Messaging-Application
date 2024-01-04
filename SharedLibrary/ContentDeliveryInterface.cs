@@ -116,7 +116,7 @@
                             originalFileName = originalFileNames.FirstOrDefault();
                         }
                         if (originalFileName == "") {
-                            originalFileName = "pfp.png";
+                            originalFileName = "PFP.png";
                         }
 
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
