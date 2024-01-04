@@ -799,7 +799,8 @@ namespace Client {
                 }
             }
         }
-
+        
+        // BROKEN
         private void ListenForMessages() {
             SynchronizationContext uiContext = SynchronizationContext.Current;
 
