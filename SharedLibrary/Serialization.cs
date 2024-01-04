@@ -18,6 +18,10 @@
                         foreach (string str in arrayItem) {
                             writer.Write(str);
                         }
+                    } else if (typeof(T) == typeof(User)) {
+                        User user = (User)(object)item;
+                        writer.Write(user.ID);
+                        writer.Write(user.username);
                     }
                 }
                 return memoryStream.ToArray();
@@ -46,39 +50,15 @@
                             arrayItem[j] = reader.ReadString();
                         }
                         list.Add((T)(object)arrayItem);
+                    } else if (typeof(T) == typeof(User)) {
+                        string id = reader.ReadString();
+                        string username = reader.ReadString();
+                        list.Add((T)(object)new User(id, username));
                     }
                 }
             }
 
             return list;
-        }
-
-        public byte[] SerializeObject<T>(T Object) {
-            using (MemoryStream stream = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(stream)) {
-                if (typeof(T) == typeof(User)) {
-                    User user = (User)(object)Object;
-                    writer.Write(user.ID);
-                    writer.Write(user.username);
-                    return stream.ToArray();
-                } else {
-                    return new byte[0];
-                }
-
-            }
-        }
-
-        public static T DeserializeObject<T>(byte[] data) {
-            using (MemoryStream stream = new MemoryStream(data))
-            using (BinaryReader reader = new BinaryReader(stream)) {
-                if (typeof(T) == typeof(User)) {
-                    string id = reader.ReadString();
-                    string username = reader.ReadString();
-                    return (T)(object)new User(id, username);
-                } else {
-                    return (T)(object)null;
-                }
-            }
         }
     }
 }
