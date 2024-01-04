@@ -88,7 +88,12 @@ namespace Client {
             string[] data = { message, channelID };
             await Client.SendAndRecieve(TypeOfCommunication.SendMessage, data);
         }
-        
+
+        static async void SendFile(string fileID, string channelID, WebSocketClient Client) {
+            string[] data = { fileID, channelID };
+            await Client.SendAndRecieve(TypeOfCommunication.SendAttachment, data);
+        }
+
         static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
             string[] data = { user };
             string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
@@ -809,6 +814,11 @@ namespace Client {
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 uiContext.Post(_ => AddMessage(args[0], args[1], args[2], args[3]), null);
+            } else if (message.StartsWith(TypeOfCommunication.NotifyAttachment)) {
+                message = message.Substring(TypeOfCommunication.NotifyAttachment.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+
             } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -1063,7 +1073,7 @@ namespace Client {
                     string fileID = await UploadFileAsync(selectedFileName);
 
                     string fileLink = $"{WebSocketMetadata.CDSERVER_URL + fileID}";
-                    SendMessage(fileLink, CurrentChannelID, Client);
+                    SendFile(fileID, CurrentChannelID, Client);
                 }
             };
 

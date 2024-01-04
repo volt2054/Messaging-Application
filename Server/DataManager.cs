@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Azure.Messaging;
+using Microsoft.Data.SqlClient;
 using SharedLibrary;
 using static Server.Database.DatabaseManager;
 
@@ -20,6 +21,23 @@ namespace Server.Database {
                 ExecuteNonQuery(connection, command);
             });
 
+            return result;
+        }
+
+        public static string InsertNewAttachment(string fileId, string channel, string user) {
+            string result = "";
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO Messages (@fileID, channel_id, user_id, message_type) " +
+                                     "VALUES (@MessageContent, @Channel, @User, 2)";
+
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@fileID", fileId);
+                command.Parameters.AddWithValue("@Channel", channel);
+                command.Parameters.AddWithValue("@User", user);
+
+                ExecuteNonQuery(connection, command);
+            });
 
             return result;
         }

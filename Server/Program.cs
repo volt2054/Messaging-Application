@@ -6,9 +6,10 @@ using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
 using System.ComponentModel.Design;
+using Azure.Messaging;
 
 namespace Server {
-    
+
     class Server {
         static bool isRunning = true;
 
@@ -114,7 +115,7 @@ namespace Server {
 
             try {
 
-                
+
 
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
@@ -164,6 +165,23 @@ namespace Server {
                             SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
                         }
 
+                    } else if (communicationType == TypeOfCommunication.SendAttachment) {
+                        string file_id = args[0];
+                        string channel = args[1];
+                        responseMessage = InsertNewAttachment(file_id, channel, userID);
+
+                        List<User> usersInChannel = FetchUsersInChannel(channel);
+                        string[] argsToSend = new string[4];
+
+                        // TODO CONVERT TO USER CLASS
+                        argsToSend[0] = channel;
+                        argsToSend[1] = GetUsername(userID);
+                        argsToSend[2] = file_id;
+                        argsToSend[3] = GetProfilePicture(userID);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
+                        }
+
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
                         string channel = args[0];
                         string message_from = args[1];
@@ -176,7 +194,7 @@ namespace Server {
                         string username = args[0];
                         responseMessage = GetID(username);
 
-                    } else if (communicationType == TypeOfCommunication.FetchChannels) { 
+                    } else if (communicationType == TypeOfCommunication.FetchChannels) {
 
                         List<string[]> userChannels;
 

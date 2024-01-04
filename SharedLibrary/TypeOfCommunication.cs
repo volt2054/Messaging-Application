@@ -22,6 +22,7 @@ namespace SharedLibrary {
         public const string SetProfilePicture = "SETPFP"; // (SETPFP + FILE NAME) // sets pfp of user id to file name
 
         public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
+        public const string NotifyAttachment = "ATTACHMENT:"; // (ATTACHMENT: + CHANNELID + USERNAME + FILEID)
         public const string NotifyChannel = "CHANNEL:"; // (CHANNEL: + CHANNELID + CHANNELNAME)
         public const string NotifyServer = "SERVER:"; // (CHANNEL: + SERVERID + SERVERNAME)
     }
