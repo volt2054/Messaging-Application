@@ -890,9 +890,7 @@ namespace Client {
 
                     try {
                         await DownloadFileAsync(fileId, savePath);
-                        MessageBox.Show($"File downloaded successfully to: {savePath}", "Download Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     } catch (Exception ex) {
-                        MessageBox.Show($"Error downloading file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             };
