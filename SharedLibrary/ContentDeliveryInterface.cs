@@ -95,6 +95,9 @@
 
         public static async Task<string> CacheFileAsync(string fileName) {
 
+
+            string defaultPFP = saveDirectory + "PFP.png";
+
             if (!Directory.Exists(saveDirectory)) {
                 Directory.CreateDirectory(saveDirectory);
             }
@@ -128,12 +131,10 @@
                         await File.WriteAllBytesAsync(savePath, fileContent);
                         return savePath;
                     } else {
-                        Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
-                        return "";
+                        return defaultPFP;
                     }
                 } catch (Exception ex) {
-                    Console.WriteLine($"Error: {ex.Message}");
-                    return "";
+                    return defaultPFP;
                 }
             }
         }

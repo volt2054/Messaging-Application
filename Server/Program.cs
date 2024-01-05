@@ -17,7 +17,7 @@ namespace Server {
             DropDatabase();
             CreateDatabase();
 
-            //Console.WriteLine("Dropping Tables");
+            Console.WriteLine("Dropping Tables");
             DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
@@ -165,7 +165,7 @@ namespace Server {
                             SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
                         }
 
-                    } else if (communicationType == TypeOfCommunication.SendAttachment) {
+                    } else if (communicationType == TypeOfCommunication.SendAttachment) { // SEND ATTACHMENTS
                         string file_id = args[0];
                         string channel = args[1];
                         responseMessage = InsertNewAttachment(file_id, channel, userID);

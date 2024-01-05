@@ -144,7 +144,7 @@ namespace Client {
                 string userId = message[3];
                 if (!userProfileCache.ContainsKey(userId)) {
                     string userPFP = await GetPFP(userId, Client);
-                    userProfileCache.Add(userId, userPFP);
+                    userProfileCache[userId]= userPFP;
                 }
                 string pfpName = userProfileCache[userId];
                 message[3] = pfpName;
@@ -849,19 +849,19 @@ namespace Client {
             }
         }
 
-        private void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
+        private async void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
-            //BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
-            //ImageBrush imageBrush = new ImageBrush();
-            //imageBrush.ImageSource = pfp;
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
 
             Ellipse ellipse = new Ellipse {
                 Width = 25,
                 Height = 25,
-                Fill = Brushes.Red
+                Fill = imageBrush
             };
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
