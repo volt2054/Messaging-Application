@@ -482,17 +482,31 @@ namespace Server.Database {
 
         public static int AssignRoleToUser(string userID, string channelID, string permissionLevel) {
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @RoleID)";
+                string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @PermissionLevel)";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
                 command.Parameters.AddWithValue("@ChannelID", channelID);
-                command.Parameters.AddWithValue("@RoleID", permissionLevel);
+                command.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
 
                 ExecuteNonQuery(connection, command);
             });
 
             return -1;
+        }
+
+        public static int GetUserRole(string userID, string channelID) {
+            List<string> result = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT role_id FROM UserChannelRoles WHERE user_id = @UserID AND channel_id = @ChannelID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+                command.Parameters.AddWithValue("@ChannelID", channelID);
+
+                result = ExecuteQuery<string>(connection, command);
+            });
+            return Convert.ToInt32(result.First());
         }
 
 

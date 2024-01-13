@@ -27,7 +27,9 @@ namespace Server {
             InsertNewUser("test", "test", "test");
             string id = CreateDMChannel("1", "2", out dc);
 
-            AssignRoleToUser("1", id, PermissionLevel.ReadWrite);
+            AssignRoleToUser("1", id, PermissionLevel.ReadOnly);
+            
+            Console.WriteLine(GetUserRole("1", id));
 
             Task task = Task.Run(CommandLine);
 
