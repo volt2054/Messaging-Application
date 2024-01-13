@@ -22,6 +22,13 @@ namespace Server {
             Console.WriteLine("Creating Tables");
             CreateTables();
 
+            string dc;
+            InsertNewUser("test", "test", "test");
+            InsertNewUser("test", "test", "test");
+            string id = CreateDMChannel("1", "2", out dc);
+
+            AssignRoleToUser("1", id, PermissionLevel.ReadWrite);
+
             Task task = Task.Run(CommandLine);
 
             WebSocketServer webSocketServer = new WebSocketServer(HandleClient);

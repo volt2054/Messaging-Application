@@ -438,7 +438,6 @@ namespace Server.Database {
 
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
-            // need to add users to channel
             return channelID.ToString();
         }
 
@@ -479,6 +478,21 @@ namespace Server.Database {
             }
 
             return serverID.ToString();
+        }
+
+        public static int AssignRoleToUser(string userID, string channelID, string permissionLevel) {
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @RoleID)";
+
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+                command.Parameters.AddWithValue("@ChannelID", channelID);
+                command.Parameters.AddWithValue("@RoleID", permissionLevel);
+
+                ExecuteNonQuery(connection, command);
+            });
+
+            return -1;
         }
 
 
