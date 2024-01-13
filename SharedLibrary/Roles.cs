@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace SharedLibrary {
     public class PermissionLevel {
-        public const string NoAccess = "3";
-        public const string ReadOnly = "2";
-        public const string ReadWrite = "1";
+        public const int NoAccess = 3;
+        public const int ReadOnly = 2;
+        public const int ReadWrite = 1;
     }
 }

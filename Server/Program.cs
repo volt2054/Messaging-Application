@@ -17,19 +17,8 @@ namespace Server {
             DropDatabase();
             CreateDatabase();
 
-            Console.WriteLine("Dropping Tables");
             DropTables();
-            Console.WriteLine("Creating Tables");
             CreateTables();
-
-            string dc;
-            InsertNewUser("test", "test", "test");
-            InsertNewUser("test", "test", "test");
-            string id = CreateDMChannel("1", "2", out dc);
-
-            AssignRoleToUser("1", id, PermissionLevel.ReadOnly);
-            
-            Console.WriteLine(GetUserRole("1", id));
 
             Task task = Task.Run(CommandLine);
 
@@ -77,20 +66,7 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    List<User> users = new List<User>();
-                    users.Add(new User("12345", "John Doe"));
-                    users.Add(new User("67890", "Jane Smith"));
-
-                    byte[] data = SerializeList(users);
-                    List<User> deserializedUsers = DeserializeList<User>(data);
-
-                    bool isEqual = users.SequenceEqual(deserializedUsers);
-
-                    if (isEqual) {
-                        Console.WriteLine("The deserialized list is equal to the original list.");
-                    } else {
-                        Console.WriteLine("The deserialized list is not equal to the original list.");
-                    }
+                    AssignRoleToUser(commandParts[1], commandParts[2], Convert.ToInt32(commandParts[3]));
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
@@ -209,7 +185,7 @@ namespace Server {
 
                         if (args.Length != 0) {
                             string serverID = args[0];
-                            userChannels = FetchServerChannels(serverID);
+                            userChannels = FetchServerChannels(serverID, userID);
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }

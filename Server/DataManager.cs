@@ -224,7 +224,7 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServerChannels(string serverID) {
+        public static List<string[]> FetchServerChannels(string serverID, string userID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
@@ -238,6 +238,16 @@ namespace Server.Database {
 
                 result = ExecuteQuery<string[]>(connection, command);
             });
+
+            //filter results by roles
+            foreach (string[] channel in result) {
+                string channelID = channel[0];
+                int role = GetUserRole(userID, channelID);
+
+                if (role > PermissionLevel.ReadOnly) {
+                    result.Remove(channel);
+                }
+            }
 
             return result;
         }
@@ -480,19 +490,36 @@ namespace Server.Database {
             return serverID.ToString();
         }
 
-        public static int AssignRoleToUser(string userID, string channelID, string permissionLevel) {
+        public static void AssignRoleToUser(string userID, string channelID, int permissionLevel) {
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @PermissionLevel)";
+                // Check if the entry already exists
+                string selectQuery = "SELECT COUNT(*) FROM UserChannelRoles WHERE user_id = @UserID AND channel_id = @ChannelID";
+                SqlCommand selectCommand = new SqlCommand(selectQuery, connection);
+                selectCommand.Parameters.AddWithValue("@UserID", userID);
+                selectCommand.Parameters.AddWithValue("@ChannelID", channelID);
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@UserID", userID);
-                command.Parameters.AddWithValue("@ChannelID", channelID);
-                command.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
+                int existingEntryCount = (int)selectCommand.ExecuteScalar();
 
-                ExecuteNonQuery(connection, command);
+                if (existingEntryCount > 0) {
+                    // Entry exists, perform an update
+                    string updateQuery = "UPDATE UserChannelRoles SET role_id = @PermissionLevel WHERE user_id = @UserID AND channel_id = @ChannelID";
+                    SqlCommand updateCommand = new SqlCommand(updateQuery, connection);
+                    updateCommand.Parameters.AddWithValue("@UserID", userID);
+                    updateCommand.Parameters.AddWithValue("@ChannelID", channelID);
+                    updateCommand.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
+
+                    ExecuteNonQuery(connection, updateCommand);
+                } else {
+                    // Entry doesn't exist, perform an insert
+                    string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @PermissionLevel)";
+                    SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
+                    insertCommand.Parameters.AddWithValue("@UserID", userID);
+                    insertCommand.Parameters.AddWithValue("@ChannelID", channelID);
+                    insertCommand.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
+
+                    ExecuteNonQuery(connection, insertCommand);
+                }
             });
-
-            return -1;
         }
 
         public static int GetUserRole(string userID, string channelID) {
@@ -506,9 +533,14 @@ namespace Server.Database {
 
                 result = ExecuteQuery<string>(connection, command);
             });
-            return Convert.ToInt32(result.First());
-        }
 
+            if (result.Count > 0) {
+                return Convert.ToInt32(result.First());
+            } else {
+                return PermissionLevel.ReadWrite;
+            }
+
+        }
 
         public static void SelectAll() {
             List<string> result = new List<string>();

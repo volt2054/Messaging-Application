@@ -17,6 +17,7 @@ namespace Server.Database {
         }
 
         public static void CreateTables() {
+            Console.WriteLine("Creating Tables");
             try {
 
                 Console.WriteLine("Creating table users");
@@ -174,6 +175,7 @@ namespace Server.Database {
         }
 
         public static void DropTables() {
+            Console.WriteLine("Dropping Tables");
             try {
                 ExecuteDatabaseOperations(connection => {
                     string command =    "DROP TABLE [dbo].[UserFriendships];" +
