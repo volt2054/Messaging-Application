@@ -914,9 +914,15 @@ namespace Client {
                 Orientation = Orientation.Horizontal
             };
 
-            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            string pfpFile = await CacheFileAsync(PFP);
             ImageBrush imageBrush = new ImageBrush();
-            imageBrush.ImageSource = pfp;
+            if (pfpFile != "-1") {
+                BitmapImage pfp = new BitmapImage(new Uri(pfpFile));
+                imageBrush.ImageSource = pfp;
+            } else {
+                //BGROKEN
+                imageBrush.ImageSource = new BitmapImage(new Uri("/images/PFP.png", UriKind.Relative));
+            }
 
             Ellipse ellipse = new Ellipse {
                 Width = 25,

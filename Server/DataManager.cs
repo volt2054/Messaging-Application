@@ -9,17 +9,20 @@ namespace Server.Database {
         public static string InsertNewMessage(string message_content, string channel, string user) {
             string result = "";
 
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
-                                     "VALUES (@MessageContent, @Channel, @User)";
+            //if (GetUserRole(user, channel) > PermissionLevel.ReadWrite)
+            //{
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
+                                         "VALUES (@MessageContent, @Channel, @User)";
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", message_content);
-                command.Parameters.AddWithValue("@Channel", channel);
-                command.Parameters.AddWithValue("@User", user);
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@MessageContent", message_content);
+                    command.Parameters.AddWithValue("@Channel", channel);
+                    command.Parameters.AddWithValue("@User", user);
 
-                ExecuteNonQuery(connection, command);
-            });
+                    ExecuteNonQuery(connection, command);
+                });
+            //}
 
             return result;
         }
@@ -27,17 +30,20 @@ namespace Server.Database {
         public static string InsertNewAttachment(string fileId, string channel, string user) {
             string result = "";
 
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
-                                     "VALUES (@fileID, @Channel, @User, 2)";
+            //if (GetUserRole(user, channel) > PermissionLevel.ReadWrite)
+            //{
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
+                                         "VALUES (@fileID, @Channel, @User, 2)";
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@fileID", fileId);
-                command.Parameters.AddWithValue("@Channel", channel);
-                command.Parameters.AddWithValue("@User", user);
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@fileID", fileId);
+                    command.Parameters.AddWithValue("@Channel", channel);
+                    command.Parameters.AddWithValue("@User", user);
 
-                ExecuteNonQuery(connection, command);
-            });
+                    ExecuteNonQuery(connection, command);
+                });
+            //}
 
             return result;
         }
