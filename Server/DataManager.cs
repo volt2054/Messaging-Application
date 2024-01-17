@@ -7,10 +7,10 @@ namespace Server.Database {
     public class DataManager {
 
         public static string InsertNewMessage(string message_content, string channel, string user) {
-            string result = "";
+            string result = "-1";
 
-            //if (GetUserRole(user, channel) > PermissionLevel.ReadWrite)
-            //{
+            if (GetUserRole(user, channel) == PermissionLevel.ReadWrite)
+            {
                 ExecuteDatabaseOperations(connection => {
                     string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
                                          "VALUES (@MessageContent, @Channel, @User)";
@@ -22,16 +22,17 @@ namespace Server.Database {
 
                     ExecuteNonQuery(connection, command);
                 });
-            //}
+                result = "1";
+            }
 
             return result;
         }
 
         public static string InsertNewAttachment(string fileId, string channel, string user) {
-            string result = "";
+            string result = "-1";
 
-            //if (GetUserRole(user, channel) > PermissionLevel.ReadWrite)
-            //{
+            if (GetUserRole(user, channel) == PermissionLevel.ReadWrite)
+            {
                 ExecuteDatabaseOperations(connection => {
                     string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
                                          "VALUES (@fileID, @Channel, @User, 2)";
@@ -43,7 +44,8 @@ namespace Server.Database {
 
                     ExecuteNonQuery(connection, command);
                 });
-            //}
+                result = "1";
+            }
 
             return result;
         }

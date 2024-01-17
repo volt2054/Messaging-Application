@@ -120,7 +120,6 @@ namespace Server {
                         userID = InsertNewUser(username, email, password);
                         SetClientUserId(clientID, userID);
                         responseMessage = Convert.ToString(userID);
-                        SelectAll();
 
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
@@ -138,22 +137,29 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-                        List<User> usersInChannel = FetchUsersInChannel(channel);
-                        string[] argsToSend = new string[4];
+                        if (responseMessage == "1") {
 
-                        // TODO CONVERT TO USER CLASS
-                        argsToSend[0] = channel;
-                        argsToSend[1] = GetUsername(userID);
-                        argsToSend[2] = message_content;
-                        argsToSend[3] = GetProfilePicture(userID);
-                        foreach (User user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
+                            List<User> usersInChannel = FetchUsersInChannel(channel);
+                            string[] argsToSend = new string[4];
+
+                            // TODO CONVERT TO USER CLASS
+                            argsToSend[0] = channel;
+                            argsToSend[1] = GetUsername(userID);
+                            argsToSend[2] = message_content;
+                            argsToSend[3] = GetProfilePicture(userID);
+                            foreach (User user in usersInChannel) {
+                                SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
+                            }
                         }
 
                     } else if (communicationType == TypeOfCommunication.SendAttachment) { // SEND ATTACHMENTS
                         string file_id = args[0];
                         string channel = args[1];
                         responseMessage = InsertNewAttachment(file_id, channel, userID);
+
+                        if (responseMessage == "1") {
+
+                        
 
                         List<User> usersInChannel = FetchUsersInChannel(channel);
                         string[] argsToSend = new string[4];
@@ -165,6 +171,7 @@ namespace Server {
                         argsToSend[3] = GetProfilePicture(userID);
                         foreach (User user in usersInChannel) {
                             SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
+                        }
                         }
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
