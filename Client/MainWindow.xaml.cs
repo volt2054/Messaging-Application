@@ -921,7 +921,7 @@ namespace Client {
                 imageBrush.ImageSource = pfp;
             } else {
                 //BGROKEN
-                imageBrush.ImageSource = new BitmapImage(new Uri("/images/PFP.png", UriKind.Relative));
+                imageBrush.ImageSource = new BitmapImage(new Uri(Icons.Chat, UriKind.Relative));
             }
 
             Ellipse ellipse = new Ellipse {

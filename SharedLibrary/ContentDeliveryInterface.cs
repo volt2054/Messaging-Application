@@ -94,9 +94,6 @@
 
 
         public static async Task<string> CacheFileAsync(string fileName) {
-
-
-
             if (!Directory.Exists(saveDirectory)) {
                 Directory.CreateDirectory(saveDirectory);
             }
@@ -115,9 +112,6 @@
                         string originalFileName = "";
                         if (response.Headers.TryGetValues("X-Original-File-Name", out var originalFileNames)) {
                             originalFileName = originalFileNames.FirstOrDefault();
-                        }
-                        if (originalFileName == "") {
-                            return "-1";
                         }
 
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
