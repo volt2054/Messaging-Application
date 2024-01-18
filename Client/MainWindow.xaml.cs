@@ -89,6 +89,11 @@ namespace Client {
             await Client.SendAndRecieve(TypeOfCommunication.SendMessage, data);
         }
 
+        static async void SendFile(string fileID, string channelID, WebSocketClient Client) {
+            string[] data = { fileID, channelID };
+            await Client.SendAndRecieve(TypeOfCommunication.SendAttachment, data);
+        }
+
         static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
             string[] data = { user };
             string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
@@ -139,7 +144,7 @@ namespace Client {
                 string userId = message[3];
                 if (!userProfileCache.ContainsKey(userId)) {
                     string userPFP = await GetPFP(userId, Client);
-                    userProfileCache.Add(userId, userPFP);
+                    userProfileCache[userId]= userPFP;
                 }
                 string pfpName = userProfileCache[userId];
                 message[3] = pfpName;
@@ -164,30 +169,30 @@ namespace Client {
             return serverList;
         }
 
-        static async Task<List<string>> FetchUsersInServer(WebSocketClient Client, string serverID) {
+        static async Task<List<User>> FetchUsersInServer(WebSocketClient Client, string serverID) {
             string[] data = { serverID };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetUsersInServer, data);
 
             if (response == "-1") {
-                return new List<string>();
+                return new List<User>();
             }
 
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> UsersList = DeserializeList<string>(dataBytes);
+            List<User> UsersList = DeserializeList<User>(dataBytes);
 
             return UsersList;
         }
 
-        static async Task<List<string>> FetchFriends(WebSocketClient Client) {
+        static async Task<List<User>> FetchFriends(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.GetFriends, data);
 
             if (response == "-1") {
-                return new List<string>();
+                return new List<User>();
             }
 
             byte[] dataBytes = Convert.FromBase64String(response);
-            List<string> friendsList = DeserializeList<string>(dataBytes);
+            List<User> friendsList = DeserializeList<User>(dataBytes);
 
             return friendsList;
 
@@ -213,7 +218,7 @@ namespace Client {
 
             base.OnClosing(e);
         }
-        
+
         private void AddServerIcon(StackPanel parentStackPanel, Color backgroundColour, Color foregroundColour, string serverID, string text) {
 
             Grid ServerIcon = new Grid();
@@ -365,7 +370,7 @@ namespace Client {
             };
 
             TextBox addChannelTextBox = new TextBox();
-            
+
 
             Button addChannelButton = new Button {
                 Content = "Add Channel",
@@ -419,8 +424,8 @@ namespace Client {
 
             scrollViewer2.Content = friendsStackPanel;
             scrollViewer2Border.Child = scrollViewer2;
-            
-            foreach (string friend in await FetchFriends(Client)) {
+
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, false, friendsStackPanel);
             }
 
@@ -430,13 +435,13 @@ namespace Client {
             goBack.Content = "Go Back";
             goBack.VerticalAlignment = VerticalAlignment.Top;
 
-            goBack.Click += (s , e) => {
+            goBack.Click += (s, e) => {
                 channels.Clear();
                 InitializeMessagingUI();
             };
 
             Button createServer = new Button();
-            createServer.Margin = new Thickness(0,20, 0,0);
+            createServer.Margin = new Thickness(0, 20, 0, 0);
             createServer.FontSize = 24;
             createServer.Content = "Create Server";
             createServer.VerticalAlignment = VerticalAlignment.Bottom;
@@ -466,13 +471,13 @@ namespace Client {
                 string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
 
 
-                string[] data = { serverName.Text , serverDescription.Text, SerializedChannelsString, SerializedFriendsString};
+                string[] data = { serverName.Text, serverDescription.Text, SerializedChannelsString, SerializedFriendsString };
 
                 await Client.SendAndRecieve(TypeOfCommunication.CreateServer, data);
                 InitializeMessagingUI();
             };
 
-            
+
 
             Grid.SetRow(goBack, 0);
             Grid.SetRow(scrollViewer2Border, 1);
@@ -516,7 +521,7 @@ namespace Client {
 
             string pfpFileName = await GetPFP(CurrentUserID, Client);
 
-            string pfp = await DownloadFileAsync(pfpFileName);
+            string pfp = await CacheFileAsync(pfpFileName);
 
             profilePicture.Source = new BitmapImage(new Uri(pfp));
 
@@ -580,13 +585,13 @@ namespace Client {
 
             appearanceSection.Children.Add(appearanceSectionGrid);
 
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
-            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) } );
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             // List of 5 rows
             for (int i = 0; i < 3; i++) {
@@ -657,7 +662,7 @@ namespace Client {
 
                 string pfpFileName = await GetPFP(CurrentUserID, Client);
 
-                string savePath = await DownloadFileAsync(pfpFileName);
+                string savePath = await CacheFileAsync(pfpFileName);
 
                 profilePicture.Source = new BitmapImage(new Uri(savePath));
             };
@@ -733,7 +738,7 @@ namespace Client {
             if (CurrentServerID != serverID) {
                 return;
             }
-            
+
             string iconPath;
 
             if (channelID == SpecialChannelIDs.Friends || channelID == SpecialChannelIDs.UsersList) {
@@ -785,12 +790,17 @@ namespace Client {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                    if (message[4] != "2") {
+                        await AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                    } else {
+                        AddAttachment(messageStackPanel, message[3], message[0], message[1], false);
+                    }
                     messageScrollViewer.ScrollToBottom();
                 }
             }
         }
-
+        
+        // BROKEN
         private void ListenForMessages() {
             SynchronizationContext uiContext = SynchronizationContext.Current;
 
@@ -809,6 +819,11 @@ namespace Client {
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 uiContext.Post(_ => AddMessage(args[0], args[1], args[2], args[3]), null);
+            } else if (message.StartsWith(TypeOfCommunication.NotifyAttachment)) {
+                message = message.Substring(TypeOfCommunication.NotifyAttachment.Length);
+                string[] args = message.Split(WebSocketMetadata.DELIMITER);
+
+                uiContext.Post(_ => AddAttachment(args[0], args[1], args[2], args[3]), null);
             } else if (message.StartsWith(TypeOfCommunication.NotifyChannel)) {
                 message = message.Substring(TypeOfCommunication.NotifyChannel.Length);
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
@@ -822,17 +837,24 @@ namespace Client {
             }
         }
 
-        public void AddMessage(string channelID, string username, string messageContent, string userPFP) {
+        public async void AddMessage(string channelID, string username, string messageContent, string userPFP) {
             if (CurrentChannelID == channelID) {
-                AddMessage(messageStackPanel, userPFP, username, messageContent, false);
+                await AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
-        private async void AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
+
+        public void AddAttachment(string channelID, string username, string fileId, string userPFP) {
+            if (CurrentChannelID == channelID) {
+                AddAttachment(messageStackPanel, userPFP, username, fileId, false);
+            }
+        }
+
+        private async void AddAttachment(StackPanel parentStackPanel, string PFP, string username, string fileId, bool before) {
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
             };
 
-            BitmapImage pfp = new BitmapImage(new Uri(await DownloadFileAsync(PFP)));
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
             ImageBrush imageBrush = new ImageBrush();
             imageBrush.ImageSource = pfp;
 
@@ -853,11 +875,73 @@ namespace Client {
                 Margin = new Thickness(5, 0, 0, 3)
             };
 
-            TextBlock messageTextBlock = new TextBlock {
+            Button AttachmentButton = new Button {
+                Content = $"Download {fileId}",
+                Margin = new Thickness(5, 0, 0, 10),
+                MaxHeight = 100,
+                BorderThickness = new Thickness(0)
+            };
+
+            AttachmentButton.Click += async (s, e) => {
+                System.Windows.Forms.FolderBrowserDialog folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog();
+
+                if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                    string savePath = folderBrowserDialog.SelectedPath + "/";
+
+                    try {
+                        await DownloadFileAsync(fileId, savePath);
+                    } catch (Exception ex) {
+                    }
+                }
+            };
+
+            usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
+            usernameAndMessageStackPanel.Children.Add(AttachmentButton);
+
+            messageStackPanel.Children.Add(ellipse);
+            messageStackPanel.Children.Add(usernameAndMessageStackPanel);
+
+            if (before) {
+                double newContentHeight = 50; // TODO FETCH NEW CONTENT HEIGHT
+                double currentVerticalOffset = messageScrollViewer.VerticalOffset;
+                parentStackPanel.Children.Insert(0, messageStackPanel);
+                messageScrollViewer.ScrollToVerticalOffset(currentVerticalOffset + newContentHeight);
+            } else { parentStackPanel.Children.Add(messageStackPanel); messageScrollViewer.ScrollToEnd(); }
+        }
+
+        private async Task AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
+            StackPanel messageStackPanel = new StackPanel {
+                Orientation = Orientation.Horizontal
+            };
+
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
+
+            Ellipse ellipse = new Ellipse {
+                Width = 25,
+                Height = 25,
+                Fill = imageBrush
+            };
+
+            StackPanel usernameAndMessageStackPanel = new StackPanel {
+                Orientation = Orientation.Vertical,
+                Width = parentStackPanel.Width - 20
+            };
+
+            TextBlock usernameTextBlock = new TextBlock {
+                Text = username,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(5, 0, 0, 3)
+            };
+
+            TextBox messageTextBlock = new TextBox {
                 Text = message,
                 Margin = new Thickness(5, 0, 0, 10),
                 MaxHeight = 100,
-                TextWrapping = TextWrapping.Wrap
+                TextWrapping = TextWrapping.Wrap,
+                IsReadOnly = true,
+                BorderThickness = new Thickness(0)
             };
 
             usernameAndMessageStackPanel.Children.Add(usernameTextBlock);
@@ -1000,6 +1084,7 @@ namespace Client {
 
         StackPanel serverStackPanel = new StackPanel();
         private async void InitializeMessagingUI() {
+
             serverStackPanel = new StackPanel();
             Grid messagingGrid = new Grid();
 
@@ -1009,10 +1094,10 @@ namespace Client {
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3, GridUnitType.Star) });
             messagingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(10, GridUnitType.Star) });
 
-            // First Column: Circles
-            ScrollViewer circleScrollViewer = new ScrollViewer() { Content = serverStackPanel };
-            messagingGrid.Children.Add(circleScrollViewer);
-            Grid.SetColumn(circleScrollViewer, 0);
+            // First Column: SErvers
+            ScrollViewer serverScrollViewer = new ScrollViewer() { Content = serverStackPanel };
+            messagingGrid.Children.Add(serverScrollViewer);
+            Grid.SetColumn(serverScrollViewer, 0);
 
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.Settings, "SETTINGS"); // USER SETTINGS ETC
 
@@ -1027,23 +1112,58 @@ namespace Client {
                     AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
             }
 
-            // Second Column: Boxes with Icons and Text
+            // Second Column: Chann els
             channelListStackPanel = new StackPanel();
             ScrollViewer boxScrollViewer = new ScrollViewer() { Content = channelListStackPanel };
             messagingGrid.Children.Add(boxScrollViewer);
             Grid.SetColumn(boxScrollViewer, 1);
 
-            // Third Column: Message Container with Text Box
+            // Third Column: messages
             messageStackPanel = new StackPanel();
             messageStackPanel.VerticalAlignment = VerticalAlignment.Bottom;
 
+            // Creating the Grid named "messagesendinggrid"
+            Grid messageSendingGrid = new Grid();
+            messageSendingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) }); // Button
+            messageSendingGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(9, GridUnitType.Star) }); // TextBox
+
+
+            // Button
+            Button attachmentButton = new Button {
+                Content = "+",
+                Height = 30,
+                Width = 30,
+            };
+            Grid.SetColumn(attachmentButton, 0);
+
+            attachmentButton.Click += async (s, e) => {
+                // Open file dialog
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                if (openFileDialog.ShowDialog() == true) {
+                    // Get the selected file name
+                    string selectedFileName = openFileDialog.FileName;
+                    string fileID = await UploadFileAsync(selectedFileName);
+
+                    string fileLink = $"{WebSocketMetadata.CDSERVER_URL + fileID}";
+                    SendFile(fileID, CurrentChannelID, Client);
+                }
+            };
+
+            // TextBox
             TextBox messageBox = new TextBox {
                 Height = 30,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(0, 5, 10, 5)
             };
             messageBox.KeyDown += TextBox_KeyDown;
+            Grid.SetColumn(messageBox, 1);
 
+            // Adding Button and TextBox to the Grid
+            messageSendingGrid.Children.Add(attachmentButton);
+            messageSendingGrid.Children.Add(messageBox);
+
+            // Creating the ScrollViewer for the messageStackPanel
             messageScrollViewer = new ScrollViewer() {
                 Content = messageStackPanel,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -1051,15 +1171,16 @@ namespace Client {
             };
             messageScrollViewer.ScrollChanged += MessageScrollViewer_ScrollChanged;
 
-
+            // Creating the main Grid
             Grid messageGrid = new Grid();
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // TextBox
             messageGrid.Children.Add(messageScrollViewer);
-            messageGrid.Children.Add(messageBox);
+            messageGrid.Children.Add(messageSendingGrid); // Adding the messagesendinggrid to the main Grid
 
             Grid.SetRow(messageScrollViewer, 0);
-            Grid.SetRow(messageBox, 1);
+            Grid.SetRow(messageSendingGrid, 1);
+
 
             messagingGrid.Children.Add(messageGrid);
             Grid.SetColumn(messageGrid, 2);
@@ -1074,7 +1195,11 @@ namespace Client {
                 messageScrollViewer.ScrollToEnd();
                 if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
                 if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                if (message[4] != "2") {
+                    await AddMessage(messageStackPanel, message[3], message[0], message[1], false);
+                } else {
+                    AddAttachment(messageStackPanel, message[3], message[0], message[1], false);
+                }
                 messageScrollViewer.ScrollToBottom();
             }
 
@@ -1085,7 +1210,11 @@ namespace Client {
             if (e.VerticalOffset == 0) {
                 foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "true", Client)) {
                     if (Convert.ToInt32(OldestMessage) > Convert.ToInt32(message[2])) { OldestMessage = message[2]; }
-                    AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                    if (message[4] != "2") {
+                        await AddMessage(messageStackPanel, message[3], message[0], message[1], true);
+                    } else {
+                        AddAttachment(messageStackPanel, message[3], message[0], message[1], true);
+                    }
                 }
             }
         }
@@ -1161,7 +1290,7 @@ namespace Client {
             mainGrid.Children.Add(headerGrid);
             mainGrid.Children.Add(friendsScrollViewer);
 
-            foreach (string friend in await FetchFriends(Client)) {
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, true, FriendsStackPanel);
             }
 
@@ -1215,10 +1344,10 @@ namespace Client {
             mainGrid.Children.Add(UserListLabel);
             mainGrid.Children.Add(FriendsLAbel);
 
-            foreach (string friend in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddFriendElement(friend, false, FriendsStackPanel);
+            foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
+                AddFriendElement(user, false, FriendsStackPanel);
             } // Fetch Users In Server
-            foreach (string friend in await FetchFriends(Client)) {
+            foreach (User friend in await FetchFriends(Client)) {
                 AddFriendElement(friend, false, UsersStackPanel);
             }
 
@@ -1279,16 +1408,18 @@ namespace Client {
             string[] data = { ID };
             await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
 
-            AddFriendElement(text.Text, true, FriendsStackPanel);
+            User user = new User(ID, text.Text);
+
+            AddFriendElement(user, true, FriendsStackPanel);
         }
 
-        private void AddFriendElement(string username, bool removeButtonToggle, StackPanel stackPanel) {
+        private void AddFriendElement(User user, bool removeButtonToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
             friendBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             friendBorder.Padding = new Thickness(5);
-            friendBorder.Tag = username;
+            friendBorder.Tag = user.username;
 
             StackPanel friendStackPanel = new StackPanel();
             friendStackPanel.Orientation = Orientation.Horizontal;
@@ -1307,7 +1438,7 @@ namespace Client {
             ellipse.HorizontalAlignment = HorizontalAlignment.Left;
 
             Label label = new Label();
-            label.Content = username;
+            label.Content = user.username;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
 

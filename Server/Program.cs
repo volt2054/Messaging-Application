@@ -5,9 +5,11 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
+using System.ComponentModel.Design;
+using Azure.Messaging;
 
 namespace Server {
-    
+
     class Server {
         static bool isRunning = true;
 
@@ -15,7 +17,7 @@ namespace Server {
             DropDatabase();
             CreateDatabase();
 
-            //Console.WriteLine("Dropping Tables");
+            Console.WriteLine("Dropping Tables");
             DropTables();
             Console.WriteLine("Creating Tables");
             CreateTables();
@@ -66,8 +68,20 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    string username = commandParts[1];
-                    GetFriends(username);
+                    List<User> users = new List<User>();
+                    users.Add(new User("12345", "John Doe"));
+                    users.Add(new User("67890", "Jane Smith"));
+
+                    byte[] data = SerializeList(users);
+                    List<User> deserializedUsers = DeserializeList<User>(data);
+
+                    bool isEqual = users.SequenceEqual(deserializedUsers);
+
+                    if (isEqual) {
+                        Console.WriteLine("The deserialized list is equal to the original list.");
+                    } else {
+                        Console.WriteLine("The deserialized list is not equal to the original list.");
+                    }
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
@@ -101,7 +115,7 @@ namespace Server {
 
             try {
 
-                
+
 
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
@@ -139,15 +153,33 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-                        List<string> usersInChannel = FetchUsersInChannel(channel);
+                        List<User> usersInChannel = FetchUsersInChannel(channel);
                         string[] argsToSend = new string[4];
 
+                        // TODO CONVERT TO USER CLASS
                         argsToSend[0] = channel;
                         argsToSend[1] = GetUsername(userID);
                         argsToSend[2] = message_content;
                         argsToSend[3] = GetProfilePicture(userID);
-                        foreach (string user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyMessage);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
+                        }
+
+                    } else if (communicationType == TypeOfCommunication.SendAttachment) { // SEND ATTACHMENTS
+                        string file_id = args[0];
+                        string channel = args[1];
+                        responseMessage = InsertNewAttachment(file_id, channel, userID);
+
+                        List<User> usersInChannel = FetchUsersInChannel(channel);
+                        string[] argsToSend = new string[4];
+
+                        // TODO CONVERT TO USER CLASS
+                        argsToSend[0] = channel;
+                        argsToSend[1] = GetUsername(userID);
+                        argsToSend[2] = file_id;
+                        argsToSend[3] = GetProfilePicture(userID);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
                         }
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
@@ -162,7 +194,7 @@ namespace Server {
                         string username = args[0];
                         responseMessage = GetID(username);
 
-                    } else if (communicationType == TypeOfCommunication.FetchChannels) { 
+                    } else if (communicationType == TypeOfCommunication.FetchChannels) {
 
                         List<string[]> userChannels;
 
@@ -192,7 +224,6 @@ namespace Server {
                         string channelID = CreateDMChannel(user1, user2, out channelName);
                         responseMessage = channelID;
 
-                        List<string> usersInChannel = FetchUsersInChannel(channelID);
                         string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = GetUsername(userID);
@@ -229,13 +260,13 @@ namespace Server {
 
                         responseMessage = channelID;
 
-                        List<string> usersInChannel = FetchUsersInChannel(channelID);
+                        List<User> usersInChannel = FetchUsersInChannel(channelID);
                         string[] argsToSend = new string[3];
                         argsToSend[0] = channelID;
                         argsToSend[1] = channelName;
                         argsToSend[2] = serverID;
-                        foreach (string user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user, TypeOfCommunication.NotifyChannel);
+                        foreach (User user in usersInChannel) {
+                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyChannel);
                         }
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
@@ -262,14 +293,14 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetFriends) {
                         string user1 = userID;
 
-                        List<string> friends = GetFriends(userID);
+                        List<User> friends = GetFriends(userID);
                         byte[] friendsData = SerializeList(friends);
                         responseMessage = Convert.ToBase64String(friendsData);
 
                     } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
                         string serverID = args[0];
 
-                        List<string> users = GetUsersInServer(serverID);
+                        List<User> users = GetUsersInServer(serverID);
                         byte[] usersData = SerializeList(users);
                         responseMessage = Convert.ToBase64String(usersData);
 

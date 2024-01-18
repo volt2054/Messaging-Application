@@ -1,6 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
-
-
+﻿using Azure.Messaging;
+using Microsoft.Data.SqlClient;
+using SharedLibrary;
 using static Server.Database.DatabaseManager;
 
 namespace Server.Database {
@@ -21,6 +21,23 @@ namespace Server.Database {
                 ExecuteNonQuery(connection, command);
             });
 
+            return result;
+        }
+
+        public static string InsertNewAttachment(string fileId, string channel, string user) {
+            string result = "";
+
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
+                                     "VALUES (@fileID, @Channel, @User, 2)";
+
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@fileID", fileId);
+                command.Parameters.AddWithValue("@Channel", channel);
+                command.Parameters.AddWithValue("@User", user);
+
+                ExecuteNonQuery(connection, command);
+            });
 
             return result;
         }
@@ -30,7 +47,7 @@ namespace Server.Database {
 
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT TOP " + count + " u.username, message_content, message_id, s.user_id " +
+                    "SELECT TOP " + count + " u.username, message_content, message_id, s.user_id, message_type " +
                     "FROM Messages s, Users u " +
                     "WHERE channel_id = @ChannelID AND " +
                     "u.user_id = s.user_id AND " +
@@ -48,18 +65,23 @@ namespace Server.Database {
             return messages;
         }
 
-        public static List<string> FetchUsersInChannel(string ChannelID) {
-            List<string> users = new List<string>();
+        public static List<User> FetchUsersInChannel(string ChannelID) {
+            List<User> users;
+            List<string> queryResult = new List<string>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                    "SELECT user_id FROM ChannelUsers WHERE channel_id = @ChannelId;";
+                    "SELECT ChannelUsers.user_id, Users.username " +
+                    "FROM ChannelUsers, Users " +
+                    "WHERE channel_id = @ChannelId " +
+                    "AND ChannelUsers.user_id = Users.user_id;";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", ChannelID);
 
-                users = ExecuteQuery<string>(connection, command);
+                queryResult = ExecuteQuery<string>(connection, command);
             });
 
+            users = User.StringListToUserList(queryResult);
             
             if (users.Count > 0 ) { return users; }
 
@@ -81,9 +103,12 @@ namespace Server.Database {
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@ServerID", servers.First());
 
-                    users = ExecuteQuery<string>(connection, command);
+                    queryResult = ExecuteQuery<string>(connection, command);
                 });
             }
+
+            users = User.StringListToUserList(queryResult);
+
             return users;
         }
 
@@ -125,36 +150,42 @@ namespace Server.Database {
             }
         }
 
-        public static List<string> GetFriends(string userID) {
-            List<string> result = new List<string>();
+        public static List<User> GetFriends(string userID) {
+            List<User> friends;
+            List<string[]> queryResult = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT u.username AS friend_username " +
-                "FROM Users u " +
-                "INNER JOIN UserFriendships f ON u.user_id = f.friend_id " +
-                "WHERE f.user_id = @UserID";
+                "SELECT friend_id, Users.username " +
+                "FROM UserFriendships, Users " +
+                "WHERE UserFriendships.user_id = @UserID " +
+                "AND friend_id = Users.user_id";
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
-                result = ExecuteQuery<string>(connection, command);
+                queryResult = ExecuteQuery<string[]>(connection, command);
             });
-            return result;
+            friends = User.StringListToUserList(queryResult);
+
+            return friends;
         }
 
-        public static List<string> GetUsersInServer(string serverID) {
-            List<string> result = new List<string>();
+        public static List<User> GetUsersInServer(string serverID) {
+            List<User> users;
+            List<string[]> result = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT u.username AS username " +
+                "SELECT u.user_id, u.username AS username " +
                 "FROM Users u " +
                 "INNER JOIN UserServers s ON u.user_id = s.user_id " +
                 "WHERE s.server_id = @ServerID";
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ServerID", serverID);
-                result = ExecuteQuery<string>(connection, command);
+                result = ExecuteQuery<string[]>(connection, command);
             });
 
-            return result;
+            users = User.StringListToUserList(result);
+
+            return users;
         }
 
         public static List<string[]> FetchUserDMs(string userID) {
@@ -228,21 +259,6 @@ namespace Server.Database {
 
             return result;
         }
-
-
-
-
-        public static void InsertMessageIntoDMChannel(int channelID, int userID, string messageContent) {
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = $"INSERT INTO Messages (message_content, channel_id, user_id) VALUES (@MessageContent, @ChannelID, @UserID)";
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", messageContent);
-                command.Parameters.AddWithValue("@ChannelID", channelID);
-                command.Parameters.AddWithValue("@UserID", userID);
-                ExecuteNonQuery(connection, command);
-            });
-        }
-
 
         public static string GetID(string username) {
             string result = "";

@@ -8,7 +8,7 @@ namespace Server {
         private readonly HttpListener _httpListener;
         private readonly Func<string, string> _messageHandler;
 
-        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, System.Net.WebSockets.WebSocket>();
+        private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
         public WebSocketServer(Func<string, string> messageHandler) {
@@ -50,8 +50,9 @@ namespace Server {
                     Console.WriteLine($"Received: {message}");
 
                     string requestID = message.Split(":")[0];
+
                     string messageDetails = message.Substring(requestID.Length + 1);
-                    Console.WriteLine(messageDetails );
+
 
                     string responseMessage = _messageHandler(messageDetails);
 
@@ -64,7 +65,14 @@ namespace Server {
                     result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                 }
 
+                Console.WriteLine($"Client {clientID} disconnected");
+
                 await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                
+                _clientWebSockets.Remove(clientID);
+                _clientUserIds.Remove(clientID);
+                
+
             } catch (WebSocketException ex) {
                 Console.WriteLine($"WebSocket Exception: {ex.Message}");
             }
@@ -104,7 +112,6 @@ namespace Server {
                     await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
                     Console.WriteLine($"Notify Sent {message}");
-
                 } else {
                     Console.WriteLine($"No WebSocket found for user with ID: {userIdToSendTo}");
                 }

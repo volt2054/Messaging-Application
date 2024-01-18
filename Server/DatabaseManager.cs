@@ -77,6 +77,7 @@ namespace Server.Database {
                     "   [channel_id]         INT         NOT NULL," +
                     "   [user_id]            INT         NOT NULL," +
                     "   [date_sent]          DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   [message_type]       INT         NOT NULL DEFAULT(1)," +
                     "   PRIMARY KEY CLUSTERED ([message_id] ASC)," +
                     "   FOREIGN KEY (channel_id) REFERENCES Channels(channel_id)," +
                     "   FOREIGN KEY (user_id) REFERENCES Users(user_id)" +

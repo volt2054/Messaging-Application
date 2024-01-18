@@ -39,7 +39,7 @@ namespace Client {
         private void OnMessageReceived(string message) {
             _taskCompletionSource.TrySetResult(true);
             
-            if (message.StartsWith(TypeOfCommunication.NotifyMessage) || message.StartsWith(TypeOfCommunication.NotifyChannel) || message.StartsWith(TypeOfCommunication.NotifyServer)) { // disgusting FIX TODO
+            if (message.StartsWith(TypeOfCommunication.NotifyMessage) || message.StartsWith(TypeOfCommunication.NotifyChannel) || message.StartsWith(TypeOfCommunication.NotifyServer) || message.StartsWith(TypeOfCommunication.NotifyAttachment)) { // disgusting TODO FIX
                 messageQueue.Add(message);
             } else {
                 responseMessages.Enqueue(message);
