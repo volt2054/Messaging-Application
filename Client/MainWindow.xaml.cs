@@ -200,7 +200,8 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            Init();
+            InitializeUserListUI();
+            //Init();
         }
 
         private void Init() {
@@ -426,7 +427,7 @@ namespace Client {
             scrollViewer2Border.Child = scrollViewer2;
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, false, friendsStackPanel);
+                AddUserElement(friend, false, friendsStackPanel, true);
             }
 
             Button goBack = new Button();
@@ -1297,7 +1298,7 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, true, FriendsStackPanel);
+                AddUserElement(friend, true, FriendsStackPanel, true);
             }
 
             // Set the main Grid as the Window content
@@ -1350,12 +1351,14 @@ namespace Client {
             mainGrid.Children.Add(UserListLabel);
             mainGrid.Children.Add(FriendsLAbel);
 
-            foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddFriendElement(user, false, FriendsStackPanel);
-            } // Fetch Users In Server
-            foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, false, UsersStackPanel);
-            }
+            //foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
+            User user = new User("1", "bob");
+            User friend = new User("3", "allen");
+                AddUserElement(user, false, FriendsStackPanel, false);
+            //} // Fetch Users In Server
+            //foreach (User friend in await FetchFriends(Client)) {
+                AddUserElement(friend, false, UsersStackPanel, false);
+            //}
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
@@ -1416,10 +1419,10 @@ namespace Client {
 
             User user = new User(ID, text.Text);
 
-            AddFriendElement(user, true, FriendsStackPanel);
+            AddUserElement(user, true, FriendsStackPanel, true);
         }
 
-        private void AddFriendElement(User user, bool removeButtonToggle, StackPanel stackPanel) {
+        private void AddUserElement(User user, bool removeButtonToggle, StackPanel stackPanel, bool checkBoxToggle) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
@@ -1457,7 +1460,7 @@ namespace Client {
 
 
             // Add elements to the friendGrid
-            friendStackPanel.Children.Add(checkBox);
+            if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
             friendStackPanel.Children.Add(ellipse);
             friendStackPanel.Children.Add(label);
 
