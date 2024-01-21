@@ -427,7 +427,7 @@ namespace Client {
             scrollViewer2Border.Child = scrollViewer2;
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, friendsStackPanel, true);
+                AddUserElement(friend, false, true , false, friendsStackPanel);
             }
 
             Button goBack = new Button();
@@ -1298,7 +1298,7 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, true, FriendsStackPanel, true);
+                AddUserElement(friend, true, true, false, FriendsStackPanel); ;
             }
 
             // Set the main Grid as the Window content
@@ -1354,10 +1354,10 @@ namespace Client {
             //foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
             User user = new User("1", "bob");
             User friend = new User("3", "allen");
-                AddUserElement(user, false, FriendsStackPanel, false);
+                AddUserElement(user, false, false, true, FriendsStackPanel);
             //} // Fetch Users In Server
             //foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, UsersStackPanel, false);
+            AddUserElement(friend, false, false, true, UsersStackPanel);
             //}
 
             // Set the main Grid as the Window content
@@ -1419,10 +1419,10 @@ namespace Client {
 
             User user = new User(ID, text.Text);
 
-            AddUserElement(user, true, FriendsStackPanel, true);
+            AddUserElement(user, true, true, false, FriendsStackPanel);
         }
 
-        private void AddUserElement(User user, bool removeButtonToggle, StackPanel stackPanel, bool checkBoxToggle) {
+        private void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
@@ -1451,6 +1451,23 @@ namespace Client {
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
 
+            ComboBox DropDownMenu_Roles = new ComboBox {
+                IsEnabled = dropDownToggle,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            DropDownMenu_Roles.Items.Add("Can't Read");
+            DropDownMenu_Roles.Items.Add("Read Only");
+            DropDownMenu_Roles.Items.Add("Read and Send");
+
+            DropDownMenu_Roles.SelectionChanged += (s, e) => {
+                if (DropDownMenu_Roles.SelectedItem != null) {
+                    int selectedIndex = DropDownMenu_Roles.SelectedIndex + 1;
+                }
+            };
+
             Button removeButton = new Button();
             removeButton.Content = "X";
             removeButton.VerticalAlignment = VerticalAlignment.Center;
@@ -1463,10 +1480,8 @@ namespace Client {
             if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
             friendStackPanel.Children.Add(ellipse);
             friendStackPanel.Children.Add(label);
-
-            if (removeButtonToggle) {
-                friendStackPanel.Children.Add(removeButton);
-            }
+            if (dropDownToggle) friendStackPanel.Children.Add(DropDownMenu_Roles);
+            if (removeButtonToggle) friendStackPanel.Children.Add(removeButton);
 
             friendBorder.Child = friendStackPanel;
 
