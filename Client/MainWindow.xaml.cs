@@ -1464,7 +1464,9 @@ namespace Client {
 
             DropDownMenu_Roles.SelectionChanged += (s, e) => {
                 if (DropDownMenu_Roles.SelectedItem != null) {
-                    int selectedIndex = DropDownMenu_Roles.SelectedIndex + 1;
+                    string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
+                    string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID};
+                    Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
                 }
             };
 

@@ -311,6 +311,14 @@ namespace Server {
                         string fileName = args[0];
                         SetProfilePicture(fileName, userID);
                         responseMessage = "1";
+                    } else if (communicationType == TypeOfCommunication.ChangeRole) {
+                        string userIdToChangeRole = args[0];
+                        string channelId = args[1];
+                        string RoleLevel = args[2];
+                        string serverId = args[3];
+                        if (DoesUserOwnServer(userID, serverId) == true) {
+                            AssignRoleToUser(userIdToChangeRole, channelId, Convert.ToInt32(RoleLevel));
+                        }
                     }
                 }
 
