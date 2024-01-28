@@ -200,8 +200,7 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            InitializeUserListUI();
-            //Init();
+            Init();
         }
 
         private void Init() {
@@ -764,12 +763,26 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
+            Button Settings = new Button {
+                Content = "⚙",
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+
+            Settings.Click += (s, e) => {
+                CurrentChannelID = channelID;
+                InitializeUserListUI(true);
+            };
+
             if (channelID != SpecialChannelIDs.NotMade) {
                 ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
             }
 
             ChannelElement.Children.Add(icon);
             ChannelElement.Children.Add(textBlock);
+
+            if (Convert.ToInt32(serverID) >= 0) {
+                ChannelElement.Children.Add(Settings);
+            }
 
             parentStackPanel.Children.Add(ChannelElement);
         }
@@ -781,7 +794,7 @@ namespace Client {
             if (CurrentChannelID == SpecialChannelIDs.Friends) {
                 InitializeFriendsUI();
             } else if (CurrentChannelID == SpecialChannelIDs.UsersList) {
-                InitializeUserListUI();
+                InitializeUserListUI(false);
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
@@ -1305,7 +1318,7 @@ namespace Client {
             this.Content = mainGrid;
         }
 
-        private async void InitializeUserListUI() {
+        async private void InitializeUserListUI(bool roleSelect) {
             Grid mainGrid = new Grid();
 
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
@@ -1318,7 +1331,7 @@ namespace Client {
             StackPanel UsersStackPanel = new StackPanel();
             UsersStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
-            Label FriendsLAbel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center};
+            Label FriendsLAbel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center };
             Grid.SetColumn(FriendsLAbel, 0);
             Grid.SetRow(FriendsLAbel, 0);
 
@@ -1351,14 +1364,12 @@ namespace Client {
             mainGrid.Children.Add(UserListLabel);
             mainGrid.Children.Add(FriendsLAbel);
 
-            //foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
-            User user = new User("1", "bob");
-            User friend = new User("3", "allen");
-                AddUserElement(user, false, false, true, FriendsStackPanel);
-            //} // Fetch Users In Server
-            //foreach (User friend in await FetchFriends(Client)) {
-            AddUserElement(friend, false, false, true, UsersStackPanel);
-            //}
+            foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
+                AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
+            } // Fetch Users In Server
+            foreach (User friend in await FetchFriends(Client)) {
+                AddUserElement(friend, false, false, roleSelect, UsersStackPanel);
+            }
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
