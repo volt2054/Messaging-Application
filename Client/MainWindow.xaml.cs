@@ -1319,6 +1319,8 @@ namespace Client {
         }
 
         private async void InitializeUserListUI(bool roleSelect) {
+
+
             Grid mainGrid = new Grid();
 
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
@@ -1331,9 +1333,9 @@ namespace Client {
             StackPanel UsersStackPanel = new StackPanel();
             UsersStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
-            Label FriendsLAbel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center };
-            Grid.SetColumn(FriendsLAbel, 0);
-            Grid.SetRow(FriendsLAbel, 0);
+            Label FriendsLabel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center };
+            Grid.SetColumn(FriendsLabel, 0);
+            Grid.SetRow(FriendsLabel, 0);
 
             ScrollViewer usersScrollViewer = new ScrollViewer();
             usersScrollViewer.Content = UsersStackPanel;
@@ -1355,14 +1357,27 @@ namespace Client {
             Grid.SetColumn(friendsScrollViewer, 1);
             Grid.SetRow(friendsScrollViewer, 1);
 
-
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
+
+            Button GoBack = new Button();
+            GoBack.Content = "Go Back";
+            GoBack.Margin = new Thickness(10, 10, 0, 0);
+            GoBack.Width = 50;
+            GoBack.HorizontalAlignment = HorizontalAlignment.Left;
+
+            GoBack.Click += (s, e) => {
+                InitializeMessagingUI();
+            };
+
+            Grid.SetColumn(GoBack, 0);
+            Grid.SetRow(GoBack, 0);
+            mainGrid.Children.Add(GoBack);
 
             mainGrid.Children.Add(friendsScrollViewer);
             mainGrid.Children.Add(usersScrollViewer);
 
             mainGrid.Children.Add(UserListLabel);
-            mainGrid.Children.Add(FriendsLAbel);
+            mainGrid.Children.Add(FriendsLabel);
 
             foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
                 AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
@@ -1374,6 +1389,10 @@ namespace Client {
             // Set the main Grid as the Window content
             this.Content = mainGrid;
 
+        }
+
+        private void GoBack_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e) {
