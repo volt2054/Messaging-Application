@@ -1318,7 +1318,7 @@ namespace Client {
             this.Content = mainGrid;
         }
 
-        async private void InitializeUserListUI(bool roleSelect) {
+        private async void InitializeUserListUI(bool roleSelect) {
             Grid mainGrid = new Grid();
 
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
