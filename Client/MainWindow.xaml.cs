@@ -763,12 +763,12 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
-            Button Settings = new Button {
+            Button settings = new Button {
                 Content = "⚙",
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
-            Settings.Click += (s, e) => {
+            settings.Click += (s, e) => {
                 CurrentChannelID = channelID;
                 InitializeUserListUI(true);
             };
@@ -780,8 +780,8 @@ namespace Client {
             ChannelElement.Children.Add(icon);
             ChannelElement.Children.Add(textBlock);
 
-            if (Convert.ToInt32(serverID) >= 0) {
-                ChannelElement.Children.Add(Settings);
+            if (Convert.ToInt32(serverID) >= 0 && Convert.ToInt32(channelID) >= 0) {
+                ChannelElement.Children.Add(settings);
             }
 
             parentStackPanel.Children.Add(ChannelElement);
@@ -1368,7 +1368,7 @@ namespace Client {
                 AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
             } // Fetch Users In Server
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, false, roleSelect, UsersStackPanel);
+                AddUserElement(friend, false, false, false, UsersStackPanel);
             }
 
             // Set the main Grid as the Window content
