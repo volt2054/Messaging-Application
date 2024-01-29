@@ -1474,7 +1474,7 @@ namespace Client {
             AddUserElement(user, true, true, false, FriendsStackPanel);
         }
 
-        private void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, StackPanel stackPanel) {
+        private async void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
@@ -1509,19 +1509,24 @@ namespace Client {
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Margin = new Thickness(0, 0, 10, 0)
             };
+            if (dropDownToggle) {
+                DropDownMenu_Roles.Items.Add("Read and Send");
+                DropDownMenu_Roles.Items.Add("Read Only");
+                DropDownMenu_Roles.Items.Add("Can't Read");
 
-            DropDownMenu_Roles.Items.Add("Read and Send");
-            DropDownMenu_Roles.Items.Add("Read Only");
-            DropDownMenu_Roles.Items.Add("Can't Read");
 
+                string[] data = { user.ID, CurrentChannelID };
+                string role = await Client.SendAndRecieve(TypeOfCommunication.CheckRole, data);
+                DropDownMenu_Roles.SelectedIndex = Convert.ToInt32(role) + 1;
+                DropDownMenu_Roles.SelectionChanged += async (s, e) => {
+                    if (DropDownMenu_Roles.SelectedItem != null) {
+                        string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
+                        string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID };
+                        await Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
+                    }
+                };
+            }
 
-            DropDownMenu_Roles.SelectionChanged += (s, e) => {
-                if (DropDownMenu_Roles.SelectedItem != null) {
-                    string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
-                    string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID };
-                    Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
-                }
-            };
 
             Button removeButton = new Button();
             removeButton.Content = "X";

@@ -274,7 +274,7 @@ namespace Server.Database {
                 string channelID = channel[0];
                 int role = GetUserRole(userID, channelID);
 
-                if (role > PermissionLevel.ReadOnly) {
+                if (role == PermissionLevel.NoAccess) {
                     result.Remove(channel);
                 }
             }

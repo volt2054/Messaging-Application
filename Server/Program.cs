@@ -319,6 +319,11 @@ namespace Server {
                         if (DoesUserOwnServer(userID, serverId) == true) {
                             AssignRoleToUser(userIdToChangeRole, channelId, Convert.ToInt32(RoleLevel));
                         }
+                    } else if (communicationType == TypeOfCommunication.CheckRole) {
+                        string userIdToCheckRole = args[0];
+                        string channelId = args[1];
+
+                        responseMessage = GetUserRole(userIdToCheckRole,channelId).ToString();
                     }
                 }
 

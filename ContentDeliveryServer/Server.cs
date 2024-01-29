@@ -151,6 +151,7 @@ class ContentDeliveryServer {
         return null;
     }
 
+    // used for displaying on browsers
     private static string GetContentType(string extension) {
         switch (extension.ToLower()) {
             case ".png":
