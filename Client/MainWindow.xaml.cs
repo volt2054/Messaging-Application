@@ -144,7 +144,7 @@ namespace Client {
                 string userId = message[3];
                 if (!userProfileCache.ContainsKey(userId)) {
                     string userPFP = await GetPFP(userId, Client);
-                    userProfileCache[userId]= userPFP;
+                    userProfileCache[userId] = userPFP;
                 }
                 string pfpName = userProfileCache[userId];
                 message[3] = pfpName;
@@ -426,7 +426,7 @@ namespace Client {
             scrollViewer2Border.Child = scrollViewer2;
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, true , false, friendsStackPanel);
+                AddUserElement(friend, false, true, false, friendsStackPanel);
             }
 
             Button goBack = new Button();
@@ -770,7 +770,7 @@ namespace Client {
 
             settings.Click += (s, e) => {
                 CurrentChannelID = channelID;
-                InitializeUserListUI(true);
+                InitializeUserListUI(true, false);
             };
 
             if (channelID != SpecialChannelIDs.NotMade) {
@@ -794,7 +794,7 @@ namespace Client {
             if (CurrentChannelID == SpecialChannelIDs.Friends) {
                 InitializeFriendsUI();
             } else if (CurrentChannelID == SpecialChannelIDs.UsersList) {
-                InitializeUserListUI(false);
+                InitializeUserListUI(false, true);
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
@@ -813,7 +813,7 @@ namespace Client {
                 }
             }
         }
-        
+
         // BROKEN
         private void ListenForMessages() {
             SynchronizationContext uiContext = SynchronizationContext.Current;
@@ -1129,7 +1129,7 @@ namespace Client {
             AddServerIcon(serverStackPanel, Colors.Black, Colors.White, SpecialServerIDs.CreateServer, "NEW"); // WE WILL USE THIS TO CREATE NEW SERVER
 
             foreach (string[] server in await FetchServers(Client)) {
-                    AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
+                AddServerIcon(serverStackPanel, Colors.Azure, Colors.Red, server[1], server[0]);
             }
 
             // Second Column: Chann els
@@ -1318,8 +1318,7 @@ namespace Client {
             this.Content = mainGrid;
         }
 
-        private async void InitializeUserListUI(bool roleSelect) {
-
+        private async void InitializeUserListUI(bool roleSelect, bool addOrRemoveToServer) {
 
             Grid mainGrid = new Grid();
 
@@ -1328,6 +1327,7 @@ namespace Client {
 
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) });
+            if (addOrRemoveToServer) mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
 
             // Define the user list StackPanel
             StackPanel UsersStackPanel = new StackPanel();
@@ -1378,6 +1378,28 @@ namespace Client {
 
             mainGrid.Children.Add(UserListLabel);
             mainGrid.Children.Add(FriendsLabel);
+
+
+            if (addOrRemoveToServer) {
+                Button addToServer = new Button();
+                addToServer.Content = "Add To Server";
+                addToServer.Margin = new Thickness(10);
+
+                Grid.SetColumn(addToServer, 0);
+                Grid.SetRow(addToServer, 2);
+
+                mainGrid.Children.Add(addToServer);
+
+                Button removeFromServer = new Button();
+                removeFromServer.Content = "Remove From Server";
+                removeFromServer.Margin = new Thickness(40, 10, 40, 10);
+
+                Grid.SetColumn(removeFromServer, 1);
+                Grid.SetRow(removeFromServer, 2);
+
+                mainGrid.Children.Add(removeFromServer);
+
+            }
 
             foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
                 AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
@@ -1488,14 +1510,15 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
 
-            DropDownMenu_Roles.Items.Add("Can't Read");
-            DropDownMenu_Roles.Items.Add("Read Only");
             DropDownMenu_Roles.Items.Add("Read and Send");
+            DropDownMenu_Roles.Items.Add("Read Only");
+            DropDownMenu_Roles.Items.Add("Can't Read");
+
 
             DropDownMenu_Roles.SelectionChanged += (s, e) => {
                 if (DropDownMenu_Roles.SelectedItem != null) {
                     string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
-                    string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID};
+                    string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID };
                     Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
                 }
             };
