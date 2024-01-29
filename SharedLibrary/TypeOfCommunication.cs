@@ -21,6 +21,7 @@ namespace SharedLibrary {
         public const string GetProfilePicture = "GETPFP"; // (GETPFP + ID) gets link to user profile pic
         public const string SetProfilePicture = "SETPFP"; // (SETPFP + FILE NAME) // sets pfp of user id to file name
         public const string ChangeRole = "CHANGEROLE"; // (CHANGEROLE + USERID + ROLE NUMBER + SERVERID) // Change role to value given
+        public const string CheckRole = "CHECKROLE"; // (CHECKROLE + USERID + CHANNELID) // Check Role
 
         public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)
         public const string NotifyAttachment = "ATTACHMENT:"; // (ATTACHMENT: + CHANNELID + USERNAME + FILEID)
