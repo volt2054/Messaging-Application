@@ -426,7 +426,7 @@ namespace Client {
             scrollViewer2Border.Child = scrollViewer2;
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, false, friendsStackPanel);
+                AddUserElement(friend, false, true , false, friendsStackPanel);
             }
 
             Button goBack = new Button();
@@ -763,12 +763,26 @@ namespace Client {
                 Margin = new Thickness(10, 0, 0, 0)
             };
 
+            Button settings = new Button {
+                Content = "⚙",
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+
+            settings.Click += (s, e) => {
+                CurrentChannelID = channelID;
+                InitializeUserListUI(true);
+            };
+
             if (channelID != SpecialChannelIDs.NotMade) {
                 ChannelElement.MouseLeftButtonDown += ChannelElement_MouseLeftButtonDown;
             }
 
             ChannelElement.Children.Add(icon);
             ChannelElement.Children.Add(textBlock);
+
+            if (Convert.ToInt32(serverID) >= 0 && Convert.ToInt32(channelID) >= 0) {
+                ChannelElement.Children.Add(settings);
+            }
 
             parentStackPanel.Children.Add(ChannelElement);
         }
@@ -780,7 +794,7 @@ namespace Client {
             if (CurrentChannelID == SpecialChannelIDs.Friends) {
                 InitializeFriendsUI();
             } else if (CurrentChannelID == SpecialChannelIDs.UsersList) {
-                InitializeUserListUI();
+                InitializeUserListUI(false);
             } else {
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
@@ -1297,14 +1311,16 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, true, FriendsStackPanel);
+                AddUserElement(friend, true, true, false, FriendsStackPanel); ;
             }
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
         }
 
-        private async void InitializeUserListUI() {
+        private async void InitializeUserListUI(bool roleSelect) {
+
+
             Grid mainGrid = new Grid();
 
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
@@ -1317,9 +1333,9 @@ namespace Client {
             StackPanel UsersStackPanel = new StackPanel();
             UsersStackPanel.Margin = new Thickness(10, 40, 10, 10);
 
-            Label FriendsLAbel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center};
-            Grid.SetColumn(FriendsLAbel, 0);
-            Grid.SetRow(FriendsLAbel, 0);
+            Label FriendsLabel = new Label() { Content = "Friends", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center };
+            Grid.SetColumn(FriendsLabel, 0);
+            Grid.SetRow(FriendsLabel, 0);
 
             ScrollViewer usersScrollViewer = new ScrollViewer();
             usersScrollViewer.Content = UsersStackPanel;
@@ -1341,25 +1357,42 @@ namespace Client {
             Grid.SetColumn(friendsScrollViewer, 1);
             Grid.SetRow(friendsScrollViewer, 1);
 
-
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
+
+            Button GoBack = new Button();
+            GoBack.Content = "Go Back";
+            GoBack.Margin = new Thickness(10, 10, 0, 0);
+            GoBack.Width = 50;
+            GoBack.HorizontalAlignment = HorizontalAlignment.Left;
+
+            GoBack.Click += (s, e) => {
+                InitializeMessagingUI();
+            };
+
+            Grid.SetColumn(GoBack, 0);
+            Grid.SetRow(GoBack, 0);
+            mainGrid.Children.Add(GoBack);
 
             mainGrid.Children.Add(friendsScrollViewer);
             mainGrid.Children.Add(usersScrollViewer);
 
             mainGrid.Children.Add(UserListLabel);
-            mainGrid.Children.Add(FriendsLAbel);
+            mainGrid.Children.Add(FriendsLabel);
 
             foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddFriendElement(user, false, FriendsStackPanel);
+                AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
             } // Fetch Users In Server
             foreach (User friend in await FetchFriends(Client)) {
-                AddFriendElement(friend, false, UsersStackPanel);
+                AddUserElement(friend, false, false, false, UsersStackPanel);
             }
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
 
+        }
+
+        private void GoBack_Click(object sender, RoutedEventArgs e) {
+            throw new NotImplementedException();
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e) {
@@ -1416,10 +1449,10 @@ namespace Client {
 
             User user = new User(ID, text.Text);
 
-            AddFriendElement(user, true, FriendsStackPanel);
+            AddUserElement(user, true, true, false, FriendsStackPanel);
         }
 
-        private void AddFriendElement(User user, bool removeButtonToggle, StackPanel stackPanel) {
+        private void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
@@ -1448,6 +1481,25 @@ namespace Client {
             label.VerticalAlignment = VerticalAlignment.Center;
             label.HorizontalAlignment = HorizontalAlignment.Left;
 
+            ComboBox DropDownMenu_Roles = new ComboBox {
+                IsEnabled = dropDownToggle,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            DropDownMenu_Roles.Items.Add("Can't Read");
+            DropDownMenu_Roles.Items.Add("Read Only");
+            DropDownMenu_Roles.Items.Add("Read and Send");
+
+            DropDownMenu_Roles.SelectionChanged += (s, e) => {
+                if (DropDownMenu_Roles.SelectedItem != null) {
+                    string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
+                    string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID};
+                    Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
+                }
+            };
+
             Button removeButton = new Button();
             removeButton.Content = "X";
             removeButton.VerticalAlignment = VerticalAlignment.Center;
@@ -1457,13 +1509,11 @@ namespace Client {
 
 
             // Add elements to the friendGrid
-            friendStackPanel.Children.Add(checkBox);
+            if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
             friendStackPanel.Children.Add(ellipse);
             friendStackPanel.Children.Add(label);
-
-            if (removeButtonToggle) {
-                friendStackPanel.Children.Add(removeButton);
-            }
+            if (dropDownToggle) friendStackPanel.Children.Add(DropDownMenu_Roles);
+            if (removeButtonToggle) friendStackPanel.Children.Add(removeButton);
 
             friendBorder.Child = friendStackPanel;
 

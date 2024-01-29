@@ -28,6 +28,28 @@ namespace Server.Database {
             return result;
         }
 
+        public static bool DoesUserOwnServer(string userId, string serverId) {
+            List<string> result = new List<string>();
+
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT server_owner " +
+                "FROM Servers " +
+                "WHERE server_id = @serverId";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+
+                command.Parameters.AddWithValue("@serverId", serverId);
+
+                result = ExecuteQuery<string>(connection, command);
+            });
+
+            if (result.First() == userId) {
+                return true;
+            }
+
+            return false;
+        }
+
         public static string InsertNewAttachment(string fileId, string channel, string user) {
             string result = "-1";
 
