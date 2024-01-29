@@ -1510,10 +1510,9 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
             if (dropDownToggle) {
-                DropDownMenu_Roles.Items.Add("Read and Send");
-                DropDownMenu_Roles.Items.Add("Read Only");
                 DropDownMenu_Roles.Items.Add("Can't Read");
-
+                DropDownMenu_Roles.Items.Add("Read Only");
+                DropDownMenu_Roles.Items.Add("Read and Send");
 
                 string[] data = { user.ID, CurrentChannelID };
                 string role = await Client.SendAndRecieve(TypeOfCommunication.CheckRole, data);
