@@ -94,7 +94,7 @@ namespace Server {
             if (_clientUserIds.TryGetValue(clientId, out string userId)) {
                 return userId;
             }
-            return null;
+            return "-1";
         }
 
         public static async void SendMessageToUser(string[] args, string userIdToSendTo, string messageType) {

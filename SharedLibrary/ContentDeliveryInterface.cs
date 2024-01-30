@@ -27,11 +27,11 @@
                         return randomizedFileName;
                     } else {
                         Console.WriteLine($"Error: {response.StatusCode} - {response.ReasonPhrase}");
-                        return null;
+                        return "-1";
                     }
                 } catch (Exception ex) {
                     Console.WriteLine($"Error: {ex.Message}");
-                    return null;
+                    return "-1";
                 }
             }
         }
