@@ -254,9 +254,9 @@ namespace Client {
         }
 
         private async void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
-            Grid ServerGrid = sender as Grid;
-            Ellipse ServerIcon = ServerGrid.Children[0] as Ellipse;
-            string Tag = ServerIcon.Tag as string;
+            Grid ServerGrid = (Grid)sender;
+            Ellipse ServerIcon = (Ellipse)ServerGrid.Children[0];
+            string Tag = (string)ServerIcon.Tag;
 
             channelListStackPanel.Children.Clear();
 
@@ -453,8 +453,8 @@ namespace Client {
                 List<string> friends = new List<string>();
 
                 foreach (Border friendsBorder in friendsStackPanel.Children) {
-                    StackPanel stackpanel = friendsBorder.Child as StackPanel;
-                    CheckBox checkbox = stackpanel.Children[0] as CheckBox;
+                    StackPanel stackpanel = (StackPanel)friendsBorder.Child;
+                    CheckBox checkbox = (CheckBox)stackpanel.Children[0];
                     if (checkbox.IsChecked == true) {
                         friends.Add((string)friendsBorder.Tag);
                     }
@@ -702,10 +702,10 @@ namespace Client {
 
 
         private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
-            Button button = sender as Button;
-            StackPanel stackpanel = button.Parent as StackPanel;
+            Button button = (Button)sender;
+            StackPanel stackpanel = (StackPanel)button.Parent;
 
-            Image ProfilePicture = stackpanel.Children[0] as Image;
+            Image ProfilePicture = (Image)stackpanel.Children[0];
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image Files(*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*";
@@ -788,8 +788,8 @@ namespace Client {
         }
 
         private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
-            StackPanel ChannelElement = sender as StackPanel;
-            CurrentChannelID = ChannelElement.Tag as string;
+            StackPanel ChannelElement = (StackPanel)sender;
+            CurrentChannelID = (string)ChannelElement.Tag;
 
             if (CurrentChannelID == SpecialChannelIDs.Friends) {
                 InitializeFriendsUI();
@@ -1241,7 +1241,7 @@ namespace Client {
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e) {
             if (e.Key == Key.Enter) {
-                TextBox textBox = sender as TextBox;
+                TextBox textBox = (TextBox)sender;
                 if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text)) {
                     SendMessage(textBox.Text, CurrentChannelID, Client);
                     textBox.Clear();
@@ -1426,10 +1426,10 @@ namespace Client {
             List<string> UserIDs = new List<string>();
             UserIDs.Add(CurrentUserID);
             foreach (Border item in FriendsStackPanel.Children) {
-                StackPanel stackpanel = item.Child as StackPanel;
-                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
+                StackPanel stackpanel = (StackPanel)item.Child;
+                CheckBox checkbox = (CheckBox)stackpanel.Children[0];
                 if (checkbox.IsChecked == true) {
-                    Label label = stackpanel.Children[2] as Label;
+                    Label label = (Label)stackpanel.Children[2];
 
                     string UserID = await GetID(label.Content.ToString(), Client);
                     UserIDs.Add(UserID);
@@ -1440,15 +1440,15 @@ namespace Client {
 
             string[] data = { B64Data };
 
-            Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
+            await Client.SendAndRecieve(TypeOfCommunication.CreateGroupChannel, data);
         }
 
         private async void DmButton_Click(object sender, RoutedEventArgs e) {
             foreach (Border item in FriendsStackPanel.Children) {
-                StackPanel stackpanel = item.Child as StackPanel;
-                CheckBox checkbox = stackpanel.Children[0] as CheckBox;
+                StackPanel stackpanel = (StackPanel)item.Child;
+                CheckBox checkbox = (CheckBox)stackpanel.Children[0];
                 if (checkbox.IsChecked == true) {
-                    Label label = stackpanel.Children[2] as Label;
+                    Label label = (Label)stackpanel.Children[2];
 
                     string ID = await GetID(label.Content.ToString(), Client);
 
@@ -1460,9 +1460,9 @@ namespace Client {
         }
 
         private async void AddButton_Click(object sender, RoutedEventArgs e) {
-            Button button = sender as Button;
-            StackPanel panel = button.Parent as StackPanel;
-            TextBox text = panel.Children[1] as TextBox;
+            Button button = (Button)sender;
+            StackPanel panel = (StackPanel)button.Parent;
+            TextBox text = (TextBox)panel.Children[1];
 
 
             string ID = await GetID(text.Text, Client);
@@ -1549,10 +1549,10 @@ namespace Client {
         }
 
         private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
-            Button button = sender as Button;
-            StackPanel stackPanel = button.Parent as StackPanel;
-            Label label = stackPanel.Children[2] as Label;
-            Border border = stackPanel.Parent as Border;
+            Button button = (Button)sender;
+            StackPanel stackPanel = (StackPanel)button.Parent;
+            Label label = (Label)stackPanel.Children[2];
+            Border border = (Border)stackPanel.Parent;
             string username = label.Content.ToString();
             string id = await GetID(username, Client);
             string[] data = { id };

@@ -138,7 +138,7 @@ class ContentDeliveryServer {
         if (filenameMappings.ContainsKey(randomizedFileName)) {
             return filenameMappings[randomizedFileName];
         }
-        return null;
+        return "-1";
     }
 
     private static string GetFileNameFromContentDisposition(string contentDisposition) {
@@ -148,7 +148,7 @@ class ContentDeliveryServer {
                 return element.Trim().Substring("filename=".Length).Trim('"');
             }
         }
-        return null;
+        return "-1";
     }
 
     // used for displaying on browsers
