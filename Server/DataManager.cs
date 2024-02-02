@@ -7,37 +7,67 @@ namespace Server.Database {
     public class DataManager {
 
         public static string InsertNewMessage(string message_content, string channel, string user) {
-            string result = "";
+            string result = "-1";
 
-            ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
-                                     "VALUES (@MessageContent, @Channel, @User)";
+            if (GetUserRole(user, channel) == PermissionLevel.ReadWrite)
+            {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id) " +
+                                         "VALUES (@MessageContent, @Channel, @User)";
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@MessageContent", message_content);
-                command.Parameters.AddWithValue("@Channel", channel);
-                command.Parameters.AddWithValue("@User", user);
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@MessageContent", message_content);
+                    command.Parameters.AddWithValue("@Channel", channel);
+                    command.Parameters.AddWithValue("@User", user);
 
-                ExecuteNonQuery(connection, command);
-            });
+                    ExecuteNonQuery(connection, command);
+                });
+                result = "1";
+            }
 
             return result;
         }
 
-        public static string InsertNewAttachment(string fileId, string channel, string user) {
-            string result = "";
+        public static bool DoesUserOwnServer(string userId, string serverId) {
+            List<string> result = new List<string>();
 
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
-                                     "VALUES (@fileID, @Channel, @User, 2)";
+                string selectQuery = "SELECT server_owner " +
+                "FROM Servers " +
+                "WHERE server_id = @serverId";
 
-                SqlCommand command = new SqlCommand(insertQuery, connection);
-                command.Parameters.AddWithValue("@fileID", fileId);
-                command.Parameters.AddWithValue("@Channel", channel);
-                command.Parameters.AddWithValue("@User", user);
+                SqlCommand command = new SqlCommand(selectQuery, connection);
 
-                ExecuteNonQuery(connection, command);
+                command.Parameters.AddWithValue("@serverId", serverId);
+
+                result = ExecuteQuery<string>(connection, command);
             });
+
+            if (result.First() == userId) {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static string InsertNewAttachment(string fileId, string channel, string user) {
+            string result = "-1";
+
+            if (GetUserRole(user, channel) == PermissionLevel.ReadWrite)
+            {
+                ExecuteDatabaseOperations(connection => {
+                    string insertQuery = "INSERT INTO Messages (message_content, channel_id, user_id, message_type) " +
+                                         "VALUES (@fileID, @Channel, @User, 2)";
+
+                    SqlCommand command = new SqlCommand(insertQuery, connection);
+                    command.Parameters.AddWithValue("@fileID", fileId);
+                    command.Parameters.AddWithValue("@Channel", channel);
+                    command.Parameters.AddWithValue("@User", user);
+
+                    ExecuteNonQuery(connection, command);
+                });
+                result = "1";
+            }
 
             return result;
         }
@@ -224,7 +254,7 @@ namespace Server.Database {
             return result;
         }
 
-        public static List<string[]> FetchServerChannels(string serverID) {
+        public static List<string[]> FetchServerChannels(string serverID, string userID) {
             List<string[]> result = new List<string[]>();
 
             ExecuteDatabaseOperations(connection => {
@@ -238,6 +268,16 @@ namespace Server.Database {
 
                 result = ExecuteQuery<string[]>(connection, command);
             });
+
+            //filter results by roles
+            foreach (string[] channel in result) {
+                string channelID = channel[0];
+                int role = GetUserRole(userID, channelID);
+
+                if (role == PermissionLevel.NoAccess) {
+                    result.Remove(channel);
+                }
+            }
 
             return result;
         }
@@ -438,7 +478,6 @@ namespace Server.Database {
 
                 channelID = Convert.ToInt32(command.ExecuteScalar());
             });
-            // need to add users to channel
             return channelID.ToString();
         }
 
@@ -481,6 +520,57 @@ namespace Server.Database {
             return serverID.ToString();
         }
 
+        public static void AssignRoleToUser(string userID, string channelID, int permissionLevel) {
+            ExecuteDatabaseOperations(connection => {
+                // Check if the entry already exists
+                string selectQuery = "SELECT COUNT(*) FROM UserChannelRoles WHERE user_id = @UserID AND channel_id = @ChannelID";
+                SqlCommand selectCommand = new SqlCommand(selectQuery, connection);
+                selectCommand.Parameters.AddWithValue("@UserID", userID);
+                selectCommand.Parameters.AddWithValue("@ChannelID", channelID);
+
+                int existingEntryCount = (int)selectCommand.ExecuteScalar();
+
+                if (existingEntryCount > 0) {
+                    // Entry exists, perform an update
+                    string updateQuery = "UPDATE UserChannelRoles SET role_id = @PermissionLevel WHERE user_id = @UserID AND channel_id = @ChannelID";
+                    SqlCommand updateCommand = new SqlCommand(updateQuery, connection);
+                    updateCommand.Parameters.AddWithValue("@UserID", userID);
+                    updateCommand.Parameters.AddWithValue("@ChannelID", channelID);
+                    updateCommand.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
+
+                    ExecuteNonQuery(connection, updateCommand);
+                } else {
+                    // Entry doesn't exist, perform an insert
+                    string insertQuery = "INSERT INTO UserChannelRoles (user_id, channel_id, role_id) VALUES (@UserID, @ChannelID, @PermissionLevel)";
+                    SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
+                    insertCommand.Parameters.AddWithValue("@UserID", userID);
+                    insertCommand.Parameters.AddWithValue("@ChannelID", channelID);
+                    insertCommand.Parameters.AddWithValue("@PermissionLevel", permissionLevel);
+
+                    ExecuteNonQuery(connection, insertCommand);
+                }
+            });
+        }
+
+        public static int GetUserRole(string userID, string channelID) {
+            List<string> result = new List<string>();
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT role_id FROM UserChannelRoles WHERE user_id = @UserID AND channel_id = @ChannelID";
+
+                SqlCommand command = new SqlCommand(selectQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userID);
+                command.Parameters.AddWithValue("@ChannelID", channelID);
+
+                result = ExecuteQuery<string>(connection, command);
+            });
+
+            if (result.Count > 0) {
+                return Convert.ToInt32(result.First());
+            } else {
+                return PermissionLevel.ReadWrite;
+            }
+
+        }
 
         public static void SelectAll() {
             List<string> result = new List<string>();

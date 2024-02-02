@@ -17,9 +17,7 @@ namespace Server {
             DropDatabase();
             CreateDatabase();
 
-            Console.WriteLine("Dropping Tables");
             DropTables();
-            Console.WriteLine("Creating Tables");
             CreateTables();
 
             Task task = Task.Run(CommandLine);
@@ -68,20 +66,7 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    List<User> users = new List<User>();
-                    users.Add(new User("12345", "John Doe"));
-                    users.Add(new User("67890", "Jane Smith"));
-
-                    byte[] data = SerializeList(users);
-                    List<User> deserializedUsers = DeserializeList<User>(data);
-
-                    bool isEqual = users.SequenceEqual(deserializedUsers);
-
-                    if (isEqual) {
-                        Console.WriteLine("The deserialized list is equal to the original list.");
-                    } else {
-                        Console.WriteLine("The deserialized list is not equal to the original list.");
-                    }
+                    AssignRoleToUser(commandParts[1], commandParts[2], Convert.ToInt32(commandParts[3]));
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
@@ -135,7 +120,6 @@ namespace Server {
                         userID = InsertNewUser(username, email, password);
                         SetClientUserId(clientID, userID);
                         responseMessage = Convert.ToString(userID);
-                        SelectAll();
 
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
@@ -153,22 +137,29 @@ namespace Server {
                         string channel = args[1];
                         responseMessage = InsertNewMessage(message_content, channel, userID);
 
-                        List<User> usersInChannel = FetchUsersInChannel(channel);
-                        string[] argsToSend = new string[4];
+                        if (responseMessage == "1") {
 
-                        // TODO CONVERT TO USER CLASS
-                        argsToSend[0] = channel;
-                        argsToSend[1] = GetUsername(userID);
-                        argsToSend[2] = message_content;
-                        argsToSend[3] = GetProfilePicture(userID);
-                        foreach (User user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
+                            List<User> usersInChannel = FetchUsersInChannel(channel);
+                            string[] argsToSend = new string[4];
+
+                            // TODO CONVERT TO USER CLASS
+                            argsToSend[0] = channel;
+                            argsToSend[1] = GetUsername(userID);
+                            argsToSend[2] = message_content;
+                            argsToSend[3] = GetProfilePicture(userID);
+                            foreach (User user in usersInChannel) {
+                                SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyMessage);
+                            }
                         }
 
                     } else if (communicationType == TypeOfCommunication.SendAttachment) { // SEND ATTACHMENTS
                         string file_id = args[0];
                         string channel = args[1];
                         responseMessage = InsertNewAttachment(file_id, channel, userID);
+
+                        if (responseMessage == "1") {
+
+                        
 
                         List<User> usersInChannel = FetchUsersInChannel(channel);
                         string[] argsToSend = new string[4];
@@ -180,6 +171,7 @@ namespace Server {
                         argsToSend[3] = GetProfilePicture(userID);
                         foreach (User user in usersInChannel) {
                             SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
+                        }
                         }
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
@@ -200,7 +192,7 @@ namespace Server {
 
                         if (args.Length != 0) {
                             string serverID = args[0];
-                            userChannels = FetchServerChannels(serverID);
+                            userChannels = FetchServerChannels(serverID, userID);
                         } else {
                             userChannels = FetchUserDMs(userID);
                         }
@@ -319,6 +311,19 @@ namespace Server {
                         string fileName = args[0];
                         SetProfilePicture(fileName, userID);
                         responseMessage = "1";
+                    } else if (communicationType == TypeOfCommunication.ChangeRole) {
+                        string userIdToChangeRole = args[0];
+                        string channelId = args[1];
+                        string RoleLevel = args[2];
+                        string serverId = args[3];
+                        if (DoesUserOwnServer(userID, serverId) == true) {
+                            AssignRoleToUser(userIdToChangeRole, channelId, Convert.ToInt32(RoleLevel));
+                        }
+                    } else if (communicationType == TypeOfCommunication.CheckRole) {
+                        string userIdToCheckRole = args[0];
+                        string channelId = args[1];
+
+                        responseMessage = GetUserRole(userIdToCheckRole,channelId).ToString();
                     }
                 }
 

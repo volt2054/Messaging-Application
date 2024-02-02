@@ -12,6 +12,7 @@
   <ItemGroup>
     <None Remove="images\chat.png" />
     <None Remove="images\friends.png" />
+    <None Remove="images\pfp.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,7 @@
   <ItemGroup>
     <Resource Include="images\chat.png" />
     <Resource Include="images\friends.png" />
+    <Resource Include="images\PFP.png" />
   </ItemGroup>
 
 </Project>

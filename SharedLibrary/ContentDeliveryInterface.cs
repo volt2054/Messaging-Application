@@ -94,10 +94,6 @@
 
 
         public static async Task<string> CacheFileAsync(string fileName) {
-
-
-            string defaultPFP = saveDirectory + "PFP.png";
-
             if (!Directory.Exists(saveDirectory)) {
                 Directory.CreateDirectory(saveDirectory);
             }
@@ -117,9 +113,6 @@
                         if (response.Headers.TryGetValues("X-Original-File-Name", out var originalFileNames)) {
                             originalFileName = originalFileNames.FirstOrDefault();
                         }
-                        if (originalFileName == "") {
-                            originalFileName = "PFP.png";
-                        }
 
                         byte[] fileContent = await response.Content.ReadAsByteArrayAsync();
 
@@ -131,10 +124,10 @@
                         await File.WriteAllBytesAsync(savePath, fileContent);
                         return savePath;
                     } else {
-                        return defaultPFP;
+                        return "-1";
                     }
                 } catch (Exception ex) {
-                    return defaultPFP;
+                    return "-1";
                 }
             }
         }
