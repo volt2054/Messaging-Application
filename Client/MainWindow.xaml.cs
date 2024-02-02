@@ -309,6 +309,7 @@ namespace Client {
 
         List<string> channels = new List<string>();
         private async void InitializeCreateServerUI() {
+            channels = new List<string>();
             Grid mainGrid = new Grid {
                 Margin = new Thickness(30)
             };
