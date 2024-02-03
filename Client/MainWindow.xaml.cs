@@ -195,7 +195,20 @@ namespace Client {
             List<User> friendsList = DeserializeList<User>(dataBytes);
 
             return friendsList;
+        }
 
+        static async Task<List<User>> FetchFriendRequests(WebSocketClient Client) {
+            string[] data = { };
+            string response = await Client.SendAndRecieve(TypeOfCommunication.GetRequests, data);
+
+            if (response == "-1") {
+                return new List<User>();
+            }
+
+            byte[] dataBytes = Convert.FromBase64String(response);
+            List<User> friendsList = DeserializeList<User>(dataBytes);
+
+            return friendsList;
         }
 
         public MainWindow() {
@@ -1333,8 +1346,12 @@ namespace Client {
             this.Content = mainGrid;
         }
 
-        private void InitializeFriendRequestsUI() {
+        private async void InitializeFriendRequestsUI() {
             Grid FriendRequestsGrid = new Grid();
+
+            FriendRequestsGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            FriendRequestsGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(7, GridUnitType.Star) });
+
             StackPanel RequestsStackPanel = new StackPanel() {
                 Margin = new Thickness(20),
             };
@@ -1342,12 +1359,28 @@ namespace Client {
             ScrollViewer RequestsScrollViewer = new ScrollViewer();
             RequestsScrollViewer.Content = RequestsStackPanel;
 
+            Grid.SetRow(RequestsScrollViewer, 1);
 
-            for (int i = 0; i< 100; ++i) {
-                User user = new User("1", i.ToString());
+            List<User> FriendRequests = await FetchFriendRequests(Client);
+            foreach (User user in FriendRequests) { 
                 AddUserElement(user, true, false, false, true, RequestsStackPanel);
             }
 
+            Button goBackButton = new Button() {
+                Content = "Go Back",
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(10),
+                Padding = new Thickness(5)
+            };
+
+            Grid.SetRow(goBackButton, 0);
+
+            goBackButton.Click += (s, e) => {
+                InitializeFriendsUI();
+            };
+
+
+            FriendRequestsGrid.Children.Add(goBackButton);
             FriendRequestsGrid.Children.Add(RequestsScrollViewer);
             Content = FriendRequestsGrid;
         }
