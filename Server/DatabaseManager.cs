@@ -120,9 +120,10 @@ namespace Server.Database {
                 ExecuteDatabaseOperations(connection => {
                     string command =
                     "CREATE TABLE [dbo].[UserFriendships] (" +
-                    "   [user_id]           INT         NOT NULL," +
+                    "   [user_id]          INT         NOT NULL," +
                     "   [friend_id]        INT         NOT NULL," +
-                    "   [date_created]      DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   [date_created]     DATETIME    NOT NULL DEFAULT(getdate())," +
+                    "   [status]           VARCHAR(50) NOT NULL DEFAULT 'Pending'," +
                     "   FOREIGN KEY (user_id) REFERENCES Users(user_id)," +
                     "   FOREIGN KEY (friend_id) REFERENCES Users(user_id)," +
                     ");";

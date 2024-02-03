@@ -145,7 +145,6 @@ namespace Server.Database {
         public static string AddFriend(string userID, string friendID) {
             string result = "-1";
             try {
-
             ExecuteDatabaseOperations(connection => {
                 string insertQuery =
                     "INSERT INTO UserFriendships (user_id, friend_id) VALUES (@UserID, @FriendID);";

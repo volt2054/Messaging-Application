@@ -1311,7 +1311,7 @@ namespace Client {
             mainGrid.Children.Add(friendsScrollViewer);
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, true, true, false, FriendsStackPanel); ;
+                AddUserElement(friend, true, true, false, FriendsStackPanel);
             }
 
             // Set the main Grid as the Window content
