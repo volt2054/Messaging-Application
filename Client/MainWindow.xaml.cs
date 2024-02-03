@@ -1526,6 +1526,8 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
 
+            
+
             Ellipse ellipse = new Ellipse();
             ellipse.Width = 25;
             ellipse.Height = 25;
@@ -1566,6 +1568,7 @@ namespace Client {
             removeButton.VerticalAlignment = VerticalAlignment.Center;
             removeButton.HorizontalAlignment = HorizontalAlignment.Right;
             removeButton.Width = 20;
+            removeButton.Margin = new Thickness(5);
             removeButton.Click += RemoveFriend_Click;
 
             Button acceptButton = new Button();
@@ -1573,14 +1576,41 @@ namespace Client {
             acceptButton.VerticalAlignment = VerticalAlignment.Center;
             acceptButton.HorizontalAlignment = HorizontalAlignment.Right;
             acceptButton.Width = 20;
+            acceptButton.Margin = new Thickness(5);
             acceptButton.Click += RemoveFriend_Click;
 
+
+            // really hacky method of alligning an item to the right of a stackpanel using a spacer
+            int SpacerWidth = 0;
+
+            if (checkBoxToggle) {
+                checkBox.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                SpacerWidth += Convert.ToInt32(checkBox.DesiredSize.Width);
+            }
+
+            ellipse.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            SpacerWidth += Convert.ToInt32(ellipse.DesiredSize.Width); // Width of the Ellipse
+
+            label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            SpacerWidth += Convert.ToInt32(label.DesiredSize.Width) ;
+
+            if (dropDownToggle) {
+                DropDownMenu_Roles.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                SpacerWidth += Convert.ToInt32(DropDownMenu_Roles.DesiredSize.Width);
+            }
+
+            SpacerWidth = Convert.ToInt32(Width - ((int)friendBorder.Margin.Right * 2)) - SpacerWidth - 150;
+
+            FrameworkElement spacer = new FrameworkElement() {
+                Width = SpacerWidth
+            };
 
             // Add elements to the friendGrid
             if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
             friendStackPanel.Children.Add(ellipse);
             friendStackPanel.Children.Add(label);
             if (dropDownToggle) friendStackPanel.Children.Add(DropDownMenu_Roles);
+            friendStackPanel.Children.Add(spacer);
             if (removeButtonToggle) friendStackPanel.Children.Add(removeButton);
             if (acceptButtonToggle) friendStackPanel.Children.Add(acceptButton);
 
