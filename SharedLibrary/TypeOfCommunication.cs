@@ -18,6 +18,7 @@ namespace SharedLibrary {
         public const string GetFriends = "GETFRIENDS"; // (GETFRIEND + USERID)
         public const string GetRequests = "GETREQUESTS"; // (GETREQUESTS + USERID)
         public const string AcceptRequest = "ACCEPTREQUEST"; // (ACCEPTREQUEST + USERTOACCEPT + USERID)
+        public const string REJECTREQUEST = "REJECTREQUEST"; // (REJECTREQUEST + USERTOREJECT + USERID)
         public const string GetUsersInServer = "GETUSERSINSERVER"; // (GETUSERSINSERVER + SERVERID)
         public const string GetUsername = "GETUSERNAME"; // (GETUSERNAME + ID) gets username given user id
         public const string GetProfilePicture = "GETPFP"; // (GETPFP + ID) gets link to user profile pic
