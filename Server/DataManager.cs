@@ -158,7 +158,25 @@ namespace Server.Database {
             } catch {
                 return result;
             }
+        }
+        public static string AcceptFriendRequest(string userID, string friendID) {
+            try {
+                ExecuteDatabaseOperations(connection => {
+                    string updateQuery =
+                        "UPDATE UserFriendships " +
+                        "SET status = 'Accepted' " +
+                        "WHERE user_id = @UserID AND friend_id = @FriendID;";
 
+                    SqlCommand command = new SqlCommand(updateQuery, connection);
+                    command.Parameters.AddWithValue("@UserID", userID);
+                    command.Parameters.AddWithValue("@FriendID", friendID);
+                    ExecuteNonQuery(connection, command);
+                });
+
+                return "0"; // Successful acceptance
+            } catch {
+                return "-1"; // Failed to accept
+            }
         }
 
         public static string RemoveFriend(string userID, string friendID) {
@@ -179,17 +197,19 @@ namespace Server.Database {
             }
         }
 
-        public static List<User> GetFriends(string userID) {
+        public static List<User> GetFriends(string userID, string status) {
             List<User> friends;
             List<string[]> queryResult = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
-                "SELECT friend_id, Users.username " +
-                "FROM UserFriendships, Users " +
+                "SELECT UserFriendships.friend_id, Users.username " +
+                "FROM UserFriendships " +
+                "JOIN Users ON UserFriendships.friend_id = Users.user_id " +
                 "WHERE UserFriendships.user_id = @UserID " +
-                "AND friend_id = Users.user_id";
+                "AND UserFriendships.status = @Status";
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
+                command.Parameters.AddWithValue("@Status", status);
                 queryResult = ExecuteQuery<string[]>(connection, command);
             });
             friends = User.StringListToUserList(queryResult);
