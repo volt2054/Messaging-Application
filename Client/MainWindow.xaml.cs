@@ -200,7 +200,8 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            Init();
+            InitializeFriendsUI();
+            //Init();
         }
 
         private void Init() {
@@ -426,7 +427,7 @@ namespace Client {
             scrollViewer2Border.Child = scrollViewer2;
 
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, true, false, friendsStackPanel);
+                AddUserElement(friend, false, true, false, false, friendsStackPanel);
             }
 
             Button goBack = new Button();
@@ -1257,6 +1258,7 @@ namespace Client {
 
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) });
             mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(5, GridUnitType.Star) });
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) });
 
             // Define the header Grid
             Grid headerGrid = new Grid();
@@ -1306,16 +1308,48 @@ namespace Client {
 
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
 
+            Button FriendRequests = new Button() {
+                Content = "Friend Requests",
+                Margin = new Thickness(10),
+                Padding = new Thickness(10),
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            Grid.SetRow(FriendRequests, 2);
+
+            FriendRequests.Click += (s, e) => {
+                InitializeFriendRequestsUI();
+            };
+
             // Add the header Grid and friend list StackPanel to the main Grid
             mainGrid.Children.Add(headerGrid);
             mainGrid.Children.Add(friendsScrollViewer);
+            mainGrid.Children.Add(FriendRequests);
 
-            foreach (User friend in await FetchFriends(Client)) {
+            /*foreach (User friend in await FetchFriends(Client)) {
                 AddUserElement(friend, true, true, false, FriendsStackPanel);
-            }
+            }*/
 
             // Set the main Grid as the Window content
             this.Content = mainGrid;
+        }
+
+        private void InitializeFriendRequestsUI() {
+            Grid FriendRequestsGrid = new Grid();
+            StackPanel RequestsStackPanel = new StackPanel() {
+                Margin = new Thickness(20),
+            };
+
+            ScrollViewer RequestsScrollViewer = new ScrollViewer();
+            RequestsScrollViewer.Content = RequestsStackPanel;
+
+
+            for (int i = 0; i< 100; ++i) {
+                User user = new User("1", i.ToString());
+                AddUserElement(user, true, false, false, true, RequestsStackPanel);
+            }
+
+            FriendRequestsGrid.Children.Add(RequestsScrollViewer);
+            Content = FriendRequestsGrid;
         }
 
         private async void InitializeUserListUI(bool roleSelect, bool addOrRemoveToServer) {
@@ -1402,10 +1436,10 @@ namespace Client {
             }
 
             foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
+                AddUserElement(user, false, false, roleSelect, false, FriendsStackPanel);
             } // Fetch Users In Server
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, false, false, UsersStackPanel);
+                AddUserElement(friend, false, false, false, false, UsersStackPanel);
             }
 
             // Set the main Grid as the Window content
@@ -1471,10 +1505,10 @@ namespace Client {
 
             User user = new User(ID, text.Text);
 
-            AddUserElement(user, true, true, false, FriendsStackPanel);
+            AddUserElement(user, true, true, false, false, FriendsStackPanel);
         }
 
-        private async void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, StackPanel stackPanel) {
+        private async void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, bool acceptButtonToggle, StackPanel stackPanel) {
             // Create a friend element
             Border friendBorder = new Border();
             friendBorder.BorderBrush = Brushes.LightGray;
@@ -1534,6 +1568,13 @@ namespace Client {
             removeButton.Width = 20;
             removeButton.Click += RemoveFriend_Click;
 
+            Button acceptButton = new Button();
+            acceptButton.Content = "✓";
+            acceptButton.VerticalAlignment = VerticalAlignment.Center;
+            acceptButton.HorizontalAlignment = HorizontalAlignment.Right;
+            acceptButton.Width = 20;
+            acceptButton.Click += RemoveFriend_Click;
+
 
             // Add elements to the friendGrid
             if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
@@ -1541,6 +1582,7 @@ namespace Client {
             friendStackPanel.Children.Add(label);
             if (dropDownToggle) friendStackPanel.Children.Add(DropDownMenu_Roles);
             if (removeButtonToggle) friendStackPanel.Children.Add(removeButton);
+            if (acceptButtonToggle) friendStackPanel.Children.Add(acceptButton);
 
             friendBorder.Child = friendStackPanel;
 
