@@ -213,8 +213,7 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            InitializeFriendsUI();
-            //Init();
+            Init();
         }
 
         private void Init() {
