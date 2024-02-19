@@ -97,7 +97,7 @@ namespace Server.Database {
 
         public static List<User> FetchUsersInChannel(string ChannelID) {
             List<User> users;
-            List<string> queryResult = new List<string>();
+            List<string[]> queryResult = new List<string[]>();
             ExecuteDatabaseOperations(connection => {
                 string selectQuery =
                     "SELECT ChannelUsers.user_id, Users.username " +
@@ -108,7 +108,7 @@ namespace Server.Database {
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", ChannelID);
 
-                queryResult = ExecuteQuery<string>(connection, command);
+                queryResult = ExecuteQuery<string[]>(connection, command);
             });
 
             users = User.StringListToUserList(queryResult);
@@ -128,12 +128,12 @@ namespace Server.Database {
             if (servers.Count > 0) {
                 ExecuteDatabaseOperations(connection => {
                     string selectQuery =
-                        "SELECT user_id FROM UserServers WHERE server_id = @ServerID;";
+                        "SELECT user_id, username FROM UserServers WHERE server_id = @ServerID;";
 
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@ServerID", servers.First());
 
-                    queryResult = ExecuteQuery<string>(connection, command);
+                    queryResult = ExecuteQuery<string[]>(connection, command);
                 });
             }
 

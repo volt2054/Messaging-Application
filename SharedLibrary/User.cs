@@ -12,19 +12,6 @@ namespace SharedLibrary {
             _id = id;
             _username = username;
         }
-
-        public User(string id) {
-            _id = id;
-        }
-
-        static public List<User> StringListToUserList(List<string> list) {
-            List<User> users = new List<User>();
-            foreach (string UserID in list) {
-                users.Add(new User(UserID));
-            }
-            return users;
-        }
-
         static public List<User> StringListToUserList(List<string[]> list) {
             List<User> users = new List<User>();
             foreach (string[] User in list) {
