@@ -28,6 +28,37 @@ namespace Server.Database {
             return result;
         }
 
+        public static void ChangeUsername(string username, string user_id) {
+            ExecuteDatabaseOperations(connection => {
+                string updateQuery = 
+                "UPDATE Users " +
+                "SET Username = @Username " +
+                "WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@Username", username);
+                command.Parameters.AddWithValue("@UserID", user_id);
+
+                ExecuteNonQuery(connection, command);
+            });
+        }
+
+        public static void ChangePassword(string password, string user_id) {
+            ExecuteDatabaseOperations(connection => {
+                string updateQuery =
+                "UPDATE Users " +
+                "SET Password = @Password " +
+                "WHERE user_id = @UserID";
+
+                SqlCommand command = new SqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@Username", password);
+                command.Parameters.AddWithValue("@UserID", user_id);
+
+                ExecuteNonQuery(connection, command);
+            });
+        }
+
+
         public static bool DoesUserOwnServer(string userId, string serverId) {
             List<string> result = new List<string>();
 
@@ -368,15 +399,14 @@ namespace Server.Database {
             });
         }
 
-        public static string InsertNewUser(string username, string email, string password) {
+        public static string InsertNewUser(string username, string password) {
             string userID = "-1";
 
             ExecuteDatabaseOperations(connection => {
-                string insertQuery = "INSERT INTO Users (username, email, password) VALUES (@Username, @Email, @Password); SELECT SCOPE_IDENTITY();";
+                string insertQuery = "INSERT INTO Users (username, password) VALUES (@Username, @Password); SELECT SCOPE_IDENTITY();";
 
                 SqlCommand insertCommand = new SqlCommand(insertQuery, connection);
                 insertCommand.Parameters.AddWithValue("@Username", username);
-                insertCommand.Parameters.AddWithValue("@Email", email);
                 insertCommand.Parameters.AddWithValue("@Password", password);
 
                 userID = Convert.ToInt32(insertCommand.ExecuteScalar()).ToString();
@@ -386,13 +416,12 @@ namespace Server.Database {
         }
 
 
-        public static bool CheckUser(string username, string email, string password) {
+        public static bool CheckUser(string username, string password) {  
             bool isValidUser = false;
 
             ExecuteDatabaseOperations(connection => {
-                string searchQuery = "SELECT password FROM USERS WHERE email = @Email OR username = @Username";
+                string searchQuery = "SELECT password FROM USERS WHERE username = @Username";
                 SqlCommand command = new SqlCommand(searchQuery, connection);
-                command.Parameters.AddWithValue("@Email", email);
                 command.Parameters.AddWithValue("@Username", username);
 
                 List<string> result = ExecuteQuery<string>(connection, command);

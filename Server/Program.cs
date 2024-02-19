@@ -38,10 +38,9 @@ namespace Server {
 
                 if (command == "NEWUSER" && commandParts.Length == 4) {
                     string username = commandParts[1];
-                    string email = commandParts[2];
                     string password = commandParts[3];
 
-                    string userID = InsertNewUser(username, email, password);
+                    string userID = InsertNewUser(username, password);
                     Console.WriteLine($"User {userID} inserted successfully.");
                 } else if (command == "GETID" && commandParts.Length == 2) {
                     string username = commandParts[1];
@@ -115,17 +114,15 @@ namespace Server {
 
                     if (communicationType == TypeOfCommunication.RegisterUser) {  // CREATE USER
                         string username = args[0];
-                        string email = args[1];
-                        string password = args[2];
-                        userID = InsertNewUser(username, email, password);
+                        string password = args[1];
+                        userID = InsertNewUser(username, password);
                         SetClientUserId(clientID, userID);
                         responseMessage = Convert.ToString(userID);
 
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
-                        string email = args[1];
                         string password = args[2];
-                        if (CheckUser(username, email, password)) {
+                        if (CheckUser(username, password)) {
                             userID = GetID(username);
                             SetClientUserId(clientID, userID);
                             responseMessage = userID;

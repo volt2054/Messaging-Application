@@ -55,19 +55,14 @@ namespace Client {
         string NewestMessage = int.MinValue.ToString();
         string OldestMessage = int.MaxValue.ToString();
 
-
-        TextBox txt_Username = new TextBox();
-        TextBox txt_Email = new TextBox();
-        TextBox txt_Password = new TextBox();
-
-        static async Task<string> CreateUser(string username, string email, string password, WebSocketClient Client) {
-            string[] data = { username, email, password };
+        static async Task<string> CreateUser(string username, string password, WebSocketClient Client) {
+            string[] data = { username, password };
             string response = await Client.SendAndRecieve(TypeOfCommunication.RegisterUser, data);
             return response;
         }
 
-        static async Task<string> VerifyUser(string username, string email, string password, WebSocketClient Client) {
-            string[] data = { username, email, password };
+        static async Task<string> VerifyUser(string username, string password, WebSocketClient Client) {
+            string[] data = { username, password };
             string response = await Client.SendAndRecieve(TypeOfCommunication.ValidateUser, data);
             return response;
         }
@@ -539,34 +534,43 @@ namespace Client {
             Grid accountInfoGrid = new Grid();
             accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            accountInfoGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             accountInfoGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            for (int i = 0; i < 3; i++) {
+            TextBlock usernameTextBlock = new TextBlock { Text = "Username" };
+            TextBox usernameTextBox = new TextBox { Margin = new Thickness(10, 0, 10, 10), MinWidth = 200 };
+            Button changeUsernameButton = new Button { Content = "Change", Margin = new Thickness(10,0,0,10) };
 
-                TextBlock textBlock = new TextBlock { Text = i == 0 ? "Username:" : (i == 1 ? "Email:" : "Password:") };
+            changeUsernameButton.Click += (s, e) => { };
 
-                TextBox textBox = new TextBox { Name = i == 0 ? "UsernameTextBox" : (i == 1 ? "EmailTextBox" : "PasswordTextBox"), Margin = new Thickness(10, 0, 10, 0), MinWidth = 200 };
+            Grid.SetRow(usernameTextBlock, 0);
+            Grid.SetColumn(usernameTextBlock, 0);
+            Grid.SetRow(usernameTextBox, 0);
+            Grid.SetColumn(usernameTextBox, 1);
+            Grid.SetRow(changeUsernameButton, 0);
+            Grid.SetColumn(changeUsernameButton, 2);
 
-                Button changeButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
+            accountInfoGrid.Children.Add(usernameTextBlock);
+            accountInfoGrid.Children.Add(usernameTextBox);
+            accountInfoGrid.Children.Add(changeUsernameButton);
 
-                if (i == 0) changeButton.Click += changeUsernameButton_Click;
-                else if (i == 1) changeButton.Click += changeEmailButton_Click;
-                else changeButton.Click += changePasswordButton_Click;
+            TextBlock passwordTextBlock = new TextBlock { Text = "Password" };
+            TextBox passwordTextBox = new TextBox { Margin = new Thickness(10, 0, 10, 0), MinWidth = 200 };
+            Button changePasswordButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
 
-                Grid.SetRow(textBlock, i);
-                Grid.SetColumn(textBlock, 0);
-                Grid.SetRow(textBox, i);
-                Grid.SetColumn(textBox, 1);
-                Grid.SetRow(changeButton, i);
-                Grid.SetColumn(changeButton, 2);
+            changePasswordButton.Click += (s, e) => { };
 
-                accountInfoGrid.Children.Add(textBlock);
-                accountInfoGrid.Children.Add(textBox);
-                accountInfoGrid.Children.Add(changeButton);
-            }
+            Grid.SetRow(passwordTextBlock, 1);
+            Grid.SetColumn(passwordTextBlock, 0);
+            Grid.SetRow(passwordTextBox, 1);
+            Grid.SetColumn(passwordTextBox, 1);
+            Grid.SetRow(changePasswordButton, 1);
+            Grid.SetColumn(changePasswordButton, 2);
+
+            accountInfoGrid.Children.Add(passwordTextBlock);
+            accountInfoGrid.Children.Add(passwordTextBox);
+            accountInfoGrid.Children.Add(changePasswordButton);
 
             accountInfoPanel.Children.Add(accountInfoGrid);
 
@@ -719,18 +723,6 @@ namespace Client {
                 // Save the file path and update the UI
                 ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
             }
-        }
-
-        private void changePasswordButton_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
-        }
-
-        private void changeEmailButton_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
-        }
-
-        private void changeUsernameButton_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
@@ -989,8 +981,6 @@ namespace Client {
             rowDefinitionTitleLogin.Height = new GridLength(5, GridUnitType.Star);
             RowDefinition rowDefinitionUsernameLogin = new RowDefinition();
             rowDefinitionUsernameLogin.Height = new GridLength(1, GridUnitType.Star);
-            RowDefinition rowDefinitionEmailLogin = new RowDefinition();
-            rowDefinitionEmailLogin.Height = new GridLength(1, GridUnitType.Star);
             RowDefinition rowDefinitionPasswordLogin = new RowDefinition();
             rowDefinitionPasswordLogin.Height = new GridLength(1, GridUnitType.Star);
             RowDefinition rowDefinitionLoginButton = new RowDefinition();
@@ -998,7 +988,6 @@ namespace Client {
 
             gridLogin.RowDefinitions.Add(rowDefinitionTitleLogin);
             gridLogin.RowDefinitions.Add(rowDefinitionUsernameLogin);
-            gridLogin.RowDefinitions.Add(rowDefinitionEmailLogin);
             gridLogin.RowDefinitions.Add(rowDefinitionPasswordLogin);
             gridLogin.RowDefinitions.Add(rowDefinitionLoginButton);
 
@@ -1011,6 +1000,7 @@ namespace Client {
 
             Grid.SetRow(lab_Title, 0);
 
+            TextBox txt_Username = new TextBox();
             txt_Username.Text = "Username";
             txt_Username.HorizontalAlignment = HorizontalAlignment.Center;
             txt_Username.VerticalAlignment = VerticalAlignment.Center;
@@ -1019,22 +1009,14 @@ namespace Client {
             txt_Username.FontSize = 20;
             Grid.SetRow(txt_Username, 1);
 
-
-            txt_Email.Text = "Email";
-            txt_Email.HorizontalAlignment = HorizontalAlignment.Center;
-            txt_Email.VerticalAlignment = VerticalAlignment.Center;
-            txt_Email.Width = 150;
-            txt_Email.Height = 30;
-            txt_Email.FontSize = 20;
-            Grid.SetRow(txt_Email, 2);
-
+            TextBox txt_Password = new TextBox();
             txt_Password.Text = "Password";
             txt_Password.HorizontalAlignment = HorizontalAlignment.Center;
             txt_Password.VerticalAlignment = VerticalAlignment.Center;
             txt_Password.Width = 150;
             txt_Password.Height = 30;
             txt_Password.FontSize = 20;
-            Grid.SetRow(txt_Password, 3);
+            Grid.SetRow(txt_Password, 2);
 
             Button btn_Register = new Button();
             btn_Register.Content = "Register";
@@ -1054,12 +1036,24 @@ namespace Client {
 
             gridLogin.Children.Add(lab_Title);
             gridLogin.Children.Add(txt_Username);
-            gridLogin.Children.Add(txt_Email);
             gridLogin.Children.Add(txt_Password);
 
 
-            btn_Register.Click += Btn_Register_Click;
-            btn_Login.Click += Btn_Login_Click;
+            btn_Register.Click += async (s,e) => {
+                CurrentUserID = await CreateUser(txt_Username.Text, txt_Password.Text, Client);
+                if (CurrentUserID != null) {
+                    InitializeMessagingUI();
+                }
+            };
+            btn_Login.Click += async (s,e) => {
+                CurrentUserID = await VerifyUser(txt_Username.Text, txt_Password.Text, Client);
+
+                if (CurrentUserID != "Bad Password") {
+                    InitializeMessagingUI();
+                } else {
+                    MessageBox.Show("Bad Password");
+                }
+            };
 
             Grid gridButtonOptions = new Grid();
             ColumnDefinition columnDefinitionLoginButton = new ColumnDefinition();
@@ -1074,7 +1068,7 @@ namespace Client {
             ColumnDefinition columnDefinitionLogin = new ColumnDefinition();
             gridLogin.ColumnDefinitions.Add(columnDefinitionLogin);
 
-            Grid.SetRow(gridButtonOptions, 4);
+            Grid.SetRow(gridButtonOptions, 3);
 
             gridButtonOptions.Children.Add(btn_Login);
             gridButtonOptions.Children.Add(btn_Register);
@@ -1082,24 +1076,6 @@ namespace Client {
             gridLogin.Children.Add(gridButtonOptions);
 
             Content = gridLogin;
-        }
-
-        private async void Btn_Login_Click(object sender, RoutedEventArgs e) {
-            CurrentUserID = await VerifyUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, Client);
-
-            if (CurrentUserID != "Bad Password") {
-                InitializeMessagingUI();
-            } else {
-                MessageBox.Show("Bad Password");
-            }
-
-        }
-
-        private async void Btn_Register_Click(object sender, RoutedEventArgs e) {
-            CurrentUserID = await CreateUser(txt_Username.Text, txt_Email.Text, txt_Password.Text, Client);
-            if (CurrentUserID != null) {
-                InitializeMessagingUI();
-            }
         }
 
         StackPanel serverStackPanel = new StackPanel();
