@@ -89,12 +89,6 @@ namespace Client {
             await Client.SendAndRecieve(TypeOfCommunication.SendAttachment, data);
         }
 
-        static async Task<string> CreateDMChannel(string user, WebSocketClient Client) {
-            string[] data = { user };
-            string response = await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
-            return response;
-        }
-
         static async Task<List<string[]>> FetchDMs(WebSocketClient Client) {
             string[] data = { };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
@@ -109,7 +103,6 @@ namespace Client {
 
             return userChannels;
         }
-
         static async Task<List<string[]>> FetchChannels(string serverID, WebSocketClient Client) {
             string[] data = { serverID };
             string response = await Client.SendAndRecieve(TypeOfCommunication.FetchChannels, data);
