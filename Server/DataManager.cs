@@ -28,7 +28,7 @@ namespace Server.Database {
             return result;
         }
 
-        public static void ChangeUsername(string username, string user_id) {
+        public static void ChangeUsername(string user_id, string username) {
             ExecuteDatabaseOperations(connection => {
                 string updateQuery = 
                 "UPDATE Users " +
@@ -43,7 +43,7 @@ namespace Server.Database {
             });
         }
 
-        public static void ChangePassword(string password, string user_id) {
+        public static void ChangePassword(string user_id, string password) {
             ExecuteDatabaseOperations(connection => {
                 string updateQuery =
                 "UPDATE Users " +
@@ -51,7 +51,7 @@ namespace Server.Database {
                 "WHERE user_id = @UserID";
 
                 SqlCommand command = new SqlCommand(updateQuery, connection);
-                command.Parameters.AddWithValue("@Username", password);
+                command.Parameters.AddWithValue("@Password", password);
                 command.Parameters.AddWithValue("@UserID", user_id);
 
                 ExecuteNonQuery(connection, command);

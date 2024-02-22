@@ -514,7 +514,20 @@ namespace Client {
             profilePicture.Source = new BitmapImage(new Uri(pfp));
 
             Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
-            changeProfilePicButton.Click += changeProfilePicButton_Click;
+            changeProfilePicButton.Click += async (s , e) => {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "Image Files(*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == true) {
+                    string imagePath = openFileDialog.FileName;
+
+                    string pfpUrl = await UploadFileAsync(imagePath);
+                    string[] data = { pfpUrl };
+                    await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
+
+                    // Save the file path and update the UI
+                    profilePicture.Source = new BitmapImage(new Uri(imagePath));
+                }
+            };
 
             profilePicturePanel.Children.Add(profilePicture);
             profilePicturePanel.Children.Add(changeProfilePicButton);
@@ -535,7 +548,10 @@ namespace Client {
             TextBox usernameTextBox = new TextBox { Margin = new Thickness(10, 0, 10, 10), MinWidth = 200 };
             Button changeUsernameButton = new Button { Content = "Change", Margin = new Thickness(10,0,0,10) };
 
-            changeUsernameButton.Click += (s, e) => { };
+            changeUsernameButton.Click += async (s, e) => {
+                string[] data = { usernameTextBox.Text };
+                await Client.SendAndRecieve(TypeOfCommunication.ChangeUsername, data);
+            };
 
             Grid.SetRow(usernameTextBlock, 0);
             Grid.SetColumn(usernameTextBlock, 0);
@@ -552,7 +568,10 @@ namespace Client {
             TextBox passwordTextBox = new TextBox { Margin = new Thickness(10, 0, 10, 0), MinWidth = 200 };
             Button changePasswordButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
 
-            changePasswordButton.Click += (s, e) => { };
+            changePasswordButton.Click += async (s, e) => {
+                string[] data = { passwordTextBlock.Text };
+                await Client.SendAndRecieve(TypeOfCommunication.ChangePassword, data);
+            };
 
             Grid.SetRow(passwordTextBlock, 1);
             Grid.SetColumn(passwordTextBlock, 0);
@@ -699,23 +718,7 @@ namespace Client {
 
 
         private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
-            Button button = (Button)sender;
-            StackPanel stackpanel = (StackPanel)button.Parent;
-
-            Image ProfilePicture = (Image)stackpanel.Children[0];
-
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image Files(*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true) {
-                string imagePath = openFileDialog.FileName;
-
-                string pfpUrl = await UploadFileAsync(imagePath);
-                string[] data = { pfpUrl };
-                await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
-
-                // Save the file path and update the UI
-                ProfilePicture.Source = new BitmapImage(new Uri(imagePath));
-            }
+            
         }
 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {

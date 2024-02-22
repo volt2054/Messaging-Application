@@ -321,6 +321,13 @@ namespace Server {
                         string channelId = args[1];
 
                         responseMessage = GetUserRole(userIdToCheckRole,channelId).ToString();
+                    } else if (communicationType == TypeOfCommunication.ChangeUsername) {
+                        string usernameToChangeTo = args[0];
+                        ChangeUsername(userID, usernameToChangeTo);
+                    } else if (communicationType == TypeOfCommunication.ChangePassword) {
+                        string passwordToChangeTo = args[0];
+                        ChangePassword(userID, passwordToChangeTo);
+
                     }
                 }
 
