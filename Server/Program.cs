@@ -121,7 +121,7 @@ namespace Server {
 
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
-                        string password = args[2];
+                        string password = args[1];
                         if (CheckUser(username, password)) {
                             userID = GetID(username);
                             SetClientUserId(clientID, userID);
