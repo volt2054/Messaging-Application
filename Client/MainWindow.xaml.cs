@@ -691,6 +691,7 @@ namespace Client {
 
             Button logOutButton = new Button { Content = "Log Out", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
             logOutButton.Click += (s, e) => {
+                Client.CloseWebSocket();
                 Init();
             };
 
