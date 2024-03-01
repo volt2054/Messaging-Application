@@ -1465,11 +1465,19 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
 
-            Ellipse ellipse = new Ellipse();
-            ellipse.Width = 25;
-            ellipse.Height = 25;
-            ellipse.Fill = Brushes.Red;
-            ellipse.HorizontalAlignment = HorizontalAlignment.Left;
+            string PFP = await GetPFP(user.ID, Client);
+
+            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+            ImageBrush imageBrush = new ImageBrush();
+            imageBrush.ImageSource = pfp;
+
+            Ellipse ellipse = new Ellipse {
+                Width = 25,
+                Height = 25,
+                Fill = imageBrush,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            
 
             Label label = new Label();
             label.Content = user.username;
