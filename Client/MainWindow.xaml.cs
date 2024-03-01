@@ -1312,7 +1312,7 @@ namespace Client {
 
             ScrollViewer usersScrollViewer = new ScrollViewer();
             usersScrollViewer.Content = UsersStackPanel;
-            Grid.SetColumn(usersScrollViewer, 0);
+            Grid.SetColumn(usersScrollViewer, 1);
             Grid.SetRow(usersScrollViewer, 1);
 
             usersScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
@@ -1327,7 +1327,7 @@ namespace Client {
 
             ScrollViewer friendsScrollViewer = new ScrollViewer();
             friendsScrollViewer.Content = FriendsStackPanel;
-            Grid.SetColumn(friendsScrollViewer, 1);
+            Grid.SetColumn(friendsScrollViewer, 0);
             Grid.SetRow(friendsScrollViewer, 1);
 
             friendsScrollViewer.VerticalAlignment = VerticalAlignment.Stretch;
@@ -1363,9 +1363,39 @@ namespace Client {
 
                 mainGrid.Children.Add(addToServer);
 
+                addToServer.Click += async (s, e) => {
+                    foreach(var obj in FriendsStackPanel.Children) {
+                        Border border = (Border)obj;
+                        StackPanel stackpanel = (StackPanel)border.Child;
+                        CheckBox checkbox = (CheckBox)stackpanel.Children[0];
+
+                        if (checkbox.IsChecked == true){
+                            string username = (string)border.Tag;
+                            string id = await GetID(username, Client);
+                            string[] data = { CurrentServerID, id };
+                            await Client.SendAndRecieve(TypeOfCommunication.AddToServer, data);
+                        }
+                    }
+                };
+
                 Button removeFromServer = new Button();
                 removeFromServer.Content = "Remove From Server";
                 removeFromServer.Margin = new Thickness(40, 10, 40, 10);
+
+                removeFromServer.Click += async (s, e) => {
+                    foreach (var obj in UsersStackPanel.Children) {
+                        Border border = (Border)obj;
+                        StackPanel stackpanel = (StackPanel)border.Child;
+                        CheckBox checkbox = (CheckBox)stackpanel.Children[0];
+
+                        if (checkbox.IsChecked == true) {
+                            string username = (string)border.Tag;
+                            string id = await GetID(username, Client);
+                            string[] data = { CurrentServerID, id };
+                            await Client.SendAndRecieve(TypeOfCommunication.RemoveFromServer, data);
+                        }
+                    }
+                };
 
                 Grid.SetColumn(removeFromServer, 1);
                 Grid.SetRow(removeFromServer, 2);
@@ -1375,10 +1405,10 @@ namespace Client {
             }
 
             foreach (User user in await FetchUsersInServer(Client, CurrentServerID)) {
-                AddUserElement(user, false, false, roleSelect, FriendsStackPanel);
+                AddUserElement(user, false, addOrRemoveToServer, roleSelect, UsersStackPanel);
             } // Fetch Users In Server
             foreach (User friend in await FetchFriends(Client)) {
-                AddUserElement(friend, false, false, false, UsersStackPanel);
+                AddUserElement(friend, false, addOrRemoveToServer, false, FriendsStackPanel);
             }
 
             // Set the main Grid as the Window content
@@ -1513,7 +1543,7 @@ namespace Client {
             removeButton.VerticalAlignment = VerticalAlignment.Center;
             removeButton.HorizontalAlignment = HorizontalAlignment.Right;
             removeButton.Width = 20;
-            removeButton.Click += RemoveFriend_Click;
+            removeButton.Click += RemoveFriend_Click; //FIXME
 
 
             // Add elements to the friendGrid
@@ -1525,7 +1555,7 @@ namespace Client {
 
             friendBorder.Child = friendStackPanel;
 
-            // Add the friendBorder to the FriendsStackPanel
+            // Add the friendBorder to the StackPanel
             stackPanel.Children.Add(friendBorder);
         }
 

@@ -24,6 +24,8 @@ namespace SharedLibrary {
         public const string CheckRole = "CHECKROLE"; // (CHECKROLE + USERID + CHANNELID) // Check Role
         public const string ChangeUsername = "CHANGEUSERNAME"; // CHANGEUSERNAME + NEWUSERNAME // Changes Username
         public const string ChangePassword = "CHANGEPASSWORD"; // CHANGEPASSWORD + NEWPASSWORD // Changes Password
+        public const string AddToServer = "ADDTOSERVER"; // ADDTOSERVER + SERVERID + USERID
+        public const string RemoveFromServer = "REMOVEFROMSERVER"; // REMOVEFROMSERVER + SERVERID + USERID
 
 
         public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)

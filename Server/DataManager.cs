@@ -510,7 +510,7 @@ namespace Server.Database {
             return channelID.ToString();
         }
 
-        public static string CreateServer(string server_name, string server_description, string UserID, List<string> channels, List<string> friends) {
+        public static string CreateServer(string server_name, string server_description, string UserID, List<string> channels, List<string> users) {
             int serverID = 0;
             ExecuteDatabaseOperations(connection => {
                 string insertQuery = "INSERT INTO Servers (server_name, server_owner) VALUES (@ServerName, @ServerOwner); SELECT SCOPE_IDENTITY();";
@@ -521,18 +521,10 @@ namespace Server.Database {
                 serverID = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            friends.Add(UserID);
-            foreach (string friend in friends) {
-                ExecuteDatabaseOperations(connection => {
-                    string insertQuery = "INSERT INTO UserServers (server_id, user_id) VALUES (@ServerID, @UserID)";
-
-                    SqlCommand command = new SqlCommand(insertQuery, connection);
-                    command.Parameters.AddWithValue("@ServerID", serverID);
-                    command.Parameters.AddWithValue("@UserID", friend);
-                    ExecuteNonQuery(connection, command);
-                });
+            users.Add(UserID);
+            foreach (string friend in users) {
+                AddUserToServer(UserID, friend);
             }
-            
 
             foreach(string channel in channels) {
                 ExecuteDatabaseOperations(connection => {
@@ -547,6 +539,28 @@ namespace Server.Database {
             }
 
             return serverID.ToString();
+        }
+
+        public static void AddUserToServer(string userId, string serverId) {
+            ExecuteDatabaseOperations(connection => {
+                string insertQuery = "INSERT INTO UserServers (server_id, user_id) VALUES (@ServerID, @UserID)";
+
+                SqlCommand command = new SqlCommand(insertQuery, connection);
+                command.Parameters.AddWithValue("@ServerID", serverId);
+                command.Parameters.AddWithValue("@UserID", userId);
+                ExecuteNonQuery(connection, command);
+            });
+        }
+
+        public static void RemoveUserFromServer(string userId, string serverId) {
+            ExecuteDatabaseOperations(connection => {
+                string deleteQuery = "DELETE FROM UserServers WHERE " +
+                "user_id = @UserID AND server_id = @ServerID";
+
+                SqlCommand command = new SqlCommand(deleteQuery, connection);
+                command.Parameters.AddWithValue("@UserID", userId);
+                command.Parameters.AddWithValue("@ServerID", serverId);
+            });
         }
 
         public static void AssignRoleToUser(string userID, string channelID, int permissionLevel) {

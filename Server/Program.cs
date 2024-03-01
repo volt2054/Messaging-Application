@@ -327,7 +327,14 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.ChangePassword) {
                         string passwordToChangeTo = args[0];
                         ChangePassword(userID, passwordToChangeTo);
-
+                    } else if (communicationType == TypeOfCommunication.AddToServer) {
+                        string serverId = args[0];
+                        string userId = args[1];
+                        AddUserToServer(userId, serverId);
+                    } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
+                        string serverId = args[0];
+                        string userId = args[1];
+                        RemoveUserFromServer(userId, serverId);
                     }
                 }
 
