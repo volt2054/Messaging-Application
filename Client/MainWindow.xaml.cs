@@ -1279,18 +1279,24 @@ namespace Client {
             headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(5, GridUnitType.Star) });
             headerGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
+            TextBox FriendText = new TextBox();
+
             // Create and add buttons to the header Grid
             Button addButton = new Button() { Content = "Add Friend" };
             Button dmButton = new Button() { Content = "New DM", Margin = new Thickness(5) };
             Button groupChatButton = new Button() { Content = "New Group Chat", Margin = new Thickness(5) };
             Button exitButton = new Button() { Content = "X", Margin = new Thickness(5) };
 
-            addButton.Click += AddButton_Click;
+            addButton.Click += async (s, e) => {
+                string ID = await GetID(FriendText.Text, Client);
+                string[] data = { ID };
+                await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+            };
             dmButton.Click += DmButton_Click;
             groupChatButton.Click += GroupChatButton_Click;
             exitButton.Click += ExitButton_Click;
 
-            TextBox FriendText = new TextBox();
+            
 
             StackPanel AddFriend = new StackPanel() { Margin = new Thickness(5) };
             AddFriend.Children.Add(addButton);
@@ -1523,21 +1529,6 @@ namespace Client {
                     await Client.SendAndRecieve(TypeOfCommunication.CreateDMChannel, data);
                 }
             }
-        }
-
-        private async void AddButton_Click(object sender, RoutedEventArgs e) {
-            Button button = (Button)sender;
-            StackPanel panel = (StackPanel)button.Parent;
-            TextBox text = (TextBox)panel.Children[1];
-
-
-            string ID = await GetID(text.Text, Client);
-            string[] data = { ID };
-            await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
-
-            User user = new User(ID, text.Text);
-
-            AddUserElement(user, true, true, false, false, FriendsStackPanel);
         }
 
         private async void AddUserElement(User user, bool removeButtonToggle, bool checkBoxToggle, bool dropDownToggle, bool acceptButtonToggle, StackPanel stackPanel) {
