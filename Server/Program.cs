@@ -156,19 +156,19 @@ namespace Server {
 
                         if (responseMessage == "1") {
 
-                        
 
-                        List<User> usersInChannel = FetchUsersInChannel(channel);
-                        string[] argsToSend = new string[4];
 
-                        // TODO CONVERT TO USER CLASS
-                        argsToSend[0] = channel;
-                        argsToSend[1] = GetUsername(userID);
-                        argsToSend[2] = file_id;
-                        argsToSend[3] = GetProfilePicture(userID);
-                        foreach (User user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
-                        }
+                            List<User> usersInChannel = FetchUsersInChannel(channel);
+                            string[] argsToSend = new string[4];
+
+                            // TODO CONVERT TO USER CLASS
+                            argsToSend[0] = channel;
+                            argsToSend[1] = GetUsername(userID);
+                            argsToSend[2] = file_id;
+                            argsToSend[3] = GetProfilePicture(userID);
+                            foreach (User user in usersInChannel) {
+                                SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyAttachment);
+                            }
                         }
 
                     } else if (communicationType == TypeOfCommunication.FetchMessages) {     // FETCH MESSAGES
@@ -279,12 +279,28 @@ namespace Server {
                         string user1 = userID;
                         string user2 = args[0];
                         responseMessage = RemoveFriend(user1, user2);
+                    } else if (communicationType == TypeOfCommunication.RemoveFriend) {
+                        string user2 = userID;
+                        string user1 = args[0];
+                        responseMessage = RemoveFriend(user1, user2);
                     } else if (communicationType == TypeOfCommunication.GetFriends) {
                         string user1 = userID;
 
-                        List<User> friends = GetFriends(userID);
+                        List<User> friends = GetFriends(userID, FriendStatus.Accepted);
                         byte[] friendsData = SerializeList(friends);
                         responseMessage = Convert.ToBase64String(friendsData);
+
+                    } else if (communicationType == TypeOfCommunication.GetRequests) {
+
+                        string user1 = userID;
+                        List<User> friends = GetFriends(userID, FriendStatus.Pending);
+                        byte[] friendsData = SerializeList(friends);
+                        responseMessage = Convert.ToBase64String(friendsData);
+                    } else if (communicationType == TypeOfCommunication.AcceptRequest) {
+                        string RecieverOfFriendRequest = userID;
+                        string SenderOfFriendRequest = args[0];
+
+                        responseMessage = AcceptFriendRequest(SenderOfFriendRequest, RecieverOfFriendRequest);
 
                     } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
                         string serverID = args[0];
