@@ -560,6 +560,7 @@ namespace Server.Database {
                 SqlCommand command = new SqlCommand(deleteQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userId);
                 command.Parameters.AddWithValue("@ServerID", serverId);
+                ExecuteNonQuery(connection, command);
             });
         }
 

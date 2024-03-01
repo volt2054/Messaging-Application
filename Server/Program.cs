@@ -338,7 +338,7 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
                         string serverId = args[0];
                         string userId = args[1];
-                        RemoveUserFromServer(userId, serverId);
+                        RemoveUserFromServer(userId, serverId); 
                     }
                 }
 
