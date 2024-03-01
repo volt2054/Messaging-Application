@@ -331,6 +331,10 @@ namespace Server {
                         string serverId = args[0];
                         string userId = args[1];
                         AddUserToServer(userId, serverId);
+                        
+                        //string[] argsToSend = {serverId, serverName};
+                        //SendMessageToUser(argsToSend, userId, TypeOfCommunication.NotifyServer);
+
                     } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
                         string serverId = args[0];
                         string userId = args[1];
