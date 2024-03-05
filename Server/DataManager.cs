@@ -215,7 +215,9 @@ namespace Server.Database {
             try {
                 ExecuteDatabaseOperations(connection => {
                 string insertQuery =
-                    "DELETE FROM UserFriendships WHERE(user_id = @UserID AND friend_id = @FriendID)";
+                    "DELETE FROM UserFriendships " +
+                    "WHERE (user_id = @UserID AND friend_id = @FriendID)" +
+                    "OR (friend_id = @UserID AND user_id = @FriendID)";
 
                 SqlCommand command = new SqlCommand(insertQuery, connection);
                 command.Parameters.AddWithValue("@UserID", userID);
@@ -255,6 +257,7 @@ namespace Server.Database {
                     "FROM UserFriendships " +
                     "JOIN Users ON UserFriendships.friend_id = Users.user_id " +
                     "WHERE UserFriendships.user_id = @UserID " +
+                    "OR UserFriendships.friend_id = @UserID " +
                     "AND UserFriendships.status = @Status";
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@UserID", userID);
