@@ -1262,8 +1262,13 @@ namespace Client {
 
             addButton.Click += async (s, e) => {
                 string ID = await GetID(FriendText.Text, Client);
-                string[] data = { ID };
-                await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+                if (ID == "-1") {
+                    MessageBox.Show("Error adding user as friend. Check username is spelled right.");
+                } else {
+                    string[] data = { ID };
+                    await Client.SendAndRecieve(TypeOfCommunication.AddFriend, data);
+                }
+
             };
             dmButton.Click += DmButton_Click;
             groupChatButton.Click += GroupChatButton_Click;

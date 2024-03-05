@@ -377,17 +377,21 @@ namespace Server.Database {
         public static string GetID(string username) {
             string result = "";
 
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
+            try {
+                ExecuteDatabaseOperations(connection => {
+                    string selectQuery = "SELECT user_id FROM Users WHERE username = @Username";
 
-                SqlCommand command = new SqlCommand(selectQuery, connection);
-                command.Parameters.AddWithValue("@Username", username);
+                    SqlCommand command = new SqlCommand(selectQuery, connection);
+                    command.Parameters.AddWithValue("@Username", username);
 
-                List<string> queryResult = ExecuteQuery<string>(connection, command);
-                result = queryResult.First();
-            });
-
+                    List<string> queryResult = ExecuteQuery<string>(connection, command);
+                    result = queryResult.First();
+                });
+            } catch {
+                result = "-1";
+            }
             return result;
+
         }
 
         public static string GetUsername(string userID) {
