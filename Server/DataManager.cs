@@ -268,8 +268,27 @@ namespace Server.Database {
 
                 return friends;
             }
+        }
 
-           
+        public static List<User> GetFriendsOfFriends(string userID) {
+            // get the list of direct friends
+            var directFriends = GetFriends(userID, FriendStatus.Accepted);
+
+            // create a set to store friends of friends
+            var friendsOfFriends = new HashSet<User>();
+
+            // for each direct friend, get their friends
+            foreach (var friend in directFriends) {
+                var friendsFriends = GetFriends(friend.ID, FriendStatus.Accepted)
+                    .Where(f => f.ID != userID); // get rid of user from friends
+
+                friendsOfFriends.UnionWith(friendsFriends); // add to hash set
+            }
+
+            
+            friendsOfFriends.ExceptWith(directFriends); // remove direct friends from the list
+
+            return friendsOfFriends.ToList(); // convert to list
         }
 
         public static List<User> GetUsersInServer(string serverID) {
