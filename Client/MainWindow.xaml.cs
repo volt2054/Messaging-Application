@@ -1600,7 +1600,10 @@ namespace Client {
             removeButton.VerticalAlignment = VerticalAlignment.Center;
             removeButton.HorizontalAlignment = HorizontalAlignment.Right;
             removeButton.Width = 20;
-            removeButton.Click += RemoveFriend_Click; //FIXME
+            removeButton.Click += async (s, e) => {
+                string[] data = { user.ID };
+                await Client.SendAndRecieve(TypeOfCommunication.RejectRequest, data);
+            };
 
             Button acceptButton = new Button();
             acceptButton.Content = "✓";
@@ -1608,7 +1611,10 @@ namespace Client {
             acceptButton.HorizontalAlignment = HorizontalAlignment.Right;
             acceptButton.Width = 20;
             acceptButton.Margin = new Thickness(5);
-            acceptButton.Click += RemoveFriend_Click;
+            acceptButton.Click += async (s, e) => {
+                string[] data = { user.ID };
+                await Client.SendAndRecieve(TypeOfCommunication.AcceptRequest, data);
+            };
 
 
             // really hacky method of alligning an item to the right of a stackpanel using a spacer
@@ -1649,20 +1655,6 @@ namespace Client {
 
             // Add the friendBorder to the StackPanel
             stackPanel.Children.Add(friendBorder);
-        }
-
-        private async void RemoveFriend_Click(object sender, RoutedEventArgs e) {
-            Button button = (Button)sender;
-            StackPanel stackPanel = (StackPanel)button.Parent;
-            Label label = (Label)stackPanel.Children[2];
-            Border border = (Border)stackPanel.Parent;
-            string username = label.Content.ToString();
-            string id = await GetID(username, Client);
-            string[] data = { id };
-
-            await Client.SendAndRecieve(TypeOfCommunication.RemoveFriend, data);
-
-            FriendsStackPanel.Children.Remove(border);
         }
     }
 }

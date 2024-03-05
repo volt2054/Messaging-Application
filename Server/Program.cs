@@ -301,7 +301,12 @@ namespace Server {
                         string SenderOfFriendRequest = args[0];
 
                         responseMessage = AcceptFriendRequest(SenderOfFriendRequest, RecieverOfFriendRequest);
+                    } else if (communicationType == TypeOfCommunication.RejectRequest) {
+                        string RecieverOfFriendRequest = userID;
+                        string SenderOfFriendRequest = args[0];
 
+                        responseMessage = RemoveFriend(RecieverOfFriendRequest, SenderOfFriendRequest);
+                    
                     } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
                         string serverID = args[0];
 
