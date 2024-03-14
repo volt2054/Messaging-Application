@@ -280,12 +280,20 @@ namespace Server.Database {
 
         public static List<(User, int)> GetFriendsOfFriends(string userID, int depth) {
             var result = new List<(User, int)>();
-            GetFriendsOfFriendsRecursive(userID, depth, result, new HashSet<string>());
+
+            HashSet<string> visited = new HashSet<string>();
+            visited.Add(userID);
+            GetFriendsOfFriendsRecursive(userID, depth, result, visited, 0);
+
+            foreach(var friend in result) {
+                Console.WriteLine(friend.Item1.username);
+                Console.WriteLine(friend.Item2.ToString());
+            }
 
             return result;
         }
 
-        private static void GetFriendsOfFriendsRecursive(string userID, int depth, List<(User, int)> result, HashSet<string> visited) {
+        private static void GetFriendsOfFriendsRecursive(string userID, int depth, List<(User, int)> result, HashSet<string> visited, int currentDepth) {
             // base case: if depth is less than 0, return immediately
             if (depth < 0)
                 return;
@@ -301,17 +309,15 @@ namespace Server.Database {
                     visited.Add(friend.ID);
 
                     // Add the friend and their depth to the result list
-                    result.Add((friend, depth));
+                    result.Add((friend, currentDepth));
 
                     // If depth is greater than 0, recursively call the function with the friend's ID
                     // and decremented depth, passing the result list and visited set
                     if (depth > 0)
-                        GetFriendsOfFriendsRecursive(friend.ID, depth - 1, result, visited);
+                        GetFriendsOfFriendsRecursive(friend.ID, depth - 1, result, visited, currentDepth+1);
                 }
             }
         }
-
-
 
         public static List<User> GetUsersInServer(string serverID) {
             List<User> users;
