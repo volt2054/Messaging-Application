@@ -278,26 +278,40 @@ namespace Server.Database {
             }
         }
 
-        public static List<User> GetFriendsOfFriends(string userID) {
-            // get the list of direct friends
+        public static List<(User, int)> GetFriendsOfFriends(string userID, int depth) {
+            var result = new List<(User, int)>();
+            GetFriendsOfFriendsRecursive(userID, depth, result, new HashSet<string>());
+
+            return result;
+        }
+
+        private static void GetFriendsOfFriendsRecursive(string userID, int depth, List<(User, int)> result, HashSet<string> visited) {
+            // base case: if depth is less than 0, return immediately
+            if (depth < 0)
+                return;
+
+            // Get direct friends
             var directFriends = GetFriends(userID, FriendStatus.Accepted);
 
-            // create a set to store friends of friends
-            var friendsOfFriends = new HashSet<User>();
-
-            // for each direct friend, get their friends
+            // Iterate through each direct friend
             foreach (var friend in directFriends) {
-                var friendsFriends = GetFriends(friend.ID, FriendStatus.Accepted)
-                    .Where(f => f.ID != userID); // get rid of user from friends
+                // Check if the friend has been visited before
+                if (!visited.Contains(friend.ID)) {
+                    // Add the friend to the visited set
+                    visited.Add(friend.ID);
 
-                friendsOfFriends.UnionWith(friendsFriends); // add to hash set
+                    // Add the friend and their depth to the result list
+                    result.Add((friend, depth));
+
+                    // If depth is greater than 0, recursively call the function with the friend's ID
+                    // and decremented depth, passing the result list and visited set
+                    if (depth > 0)
+                        GetFriendsOfFriendsRecursive(friend.ID, depth - 1, result, visited);
+                }
             }
-
-            
-            friendsOfFriends.ExceptWith(directFriends); // remove direct friends from the list
-
-            return friendsOfFriends.ToList(); // convert to list
         }
+
+
 
         public static List<User> GetUsersInServer(string serverID) {
             List<User> users;
