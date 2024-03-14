@@ -241,12 +241,32 @@ namespace Server.Database {
                     "FROM UserFriendships " +
                     "JOIN Users ON UserFriendships.user_id = Users.user_id " +
                     "WHERE UserFriendships.friend_id = @UserID " +
-                    "AND UserFriendships.status = @Status";
+                    "AND UserFriendships.status = @Status" +
+                    "AND UserFreindships.user_id != @UserID";
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@Status", status);
                     queryResult = ExecuteQuery<string[]>(connection, command);
                 });
+
+                ExecuteDatabaseOperations(connection => {
+                    string selectQuery =
+                    "SELECT UserFriendships.friend_id, Users.username " +
+                    "FROM UserFriendships " +
+                    "JOIN Users ON UserFriendships.user_id = Users.user_id " +
+                    "WHERE UserFriendships.user_id = @UserID " +
+                    "AND UserFriendships.status = @Status" +
+                    "AND UserFreindships.friend_id != @UserID";
+
+                    SqlCommand command = new SqlCommand(selectQuery, connection);
+                    command.Parameters.AddWithValue("@UserID", userID);
+                    command.Parameters.AddWithValue("@Status", status);
+
+                    foreach (string[] result in ExecuteQuery<string[]>(connection, command)) {
+                        queryResult.Add(result);
+                    }
+                });
+
                 friends = User.StringListToUserList(queryResult);
 
                 return friends;
