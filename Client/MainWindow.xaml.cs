@@ -25,11 +25,14 @@ namespace Client {
     /// </summary>
     /// 
 
+    // Server ids that will be treated seperately. used to place fixed ui elements.
     public class SpecialServerIDs {
         public static readonly string DirectMessages = "-1";
         public static readonly string CreateServer = "-2";
         public static readonly string Settings = "-3";
     }
+
+    // channel ids that will be treated seperately. used to place fixed ui elements
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
         public static readonly string CreateChannel = "-2";
@@ -37,6 +40,7 @@ namespace Client {
         public static readonly string UsersList = "-4";
     }
 
+    // Relative Paths For Icons
     public class Icons {
         public static readonly string Chat = "/images/chat.png";
         public static readonly string Friends = "/images/friends.png";
@@ -46,12 +50,13 @@ namespace Client {
 
     public partial class MainWindow : Window {
 
-        // TODO - Loading options from file??
         WebSocketClient Client;
 
         string CurrentUserID;
         string CurrentChannelID;
         string CurrentServerID = "-1";
+
+        // Used to make sure messages are added in correct order
         string NewestMessage = int.MinValue.ToString();
         string OldestMessage = int.MaxValue.ToString();
 
@@ -283,6 +288,7 @@ namespace Client {
                     Content = "New Channel"
                 };
 
+                // Creating a new channel
                 button.Click += (s, e) => {
                     TextBox newChannelTextBox = new TextBox();
                     channelListStackPanel.Children.Add(newChannelTextBox);
@@ -452,12 +458,14 @@ namespace Client {
                 string SerializedChannelsString = Convert.ToBase64String(SerializedChannels);
 
                 List<string> friends = new List<string>();
+                // list of friends to add to server
 
                 foreach (Border friendsBorder in friendsStackPanel.Children) {
                     StackPanel stackpanel = (StackPanel)friendsBorder.Child;
                     CheckBox checkbox = (CheckBox)stackpanel.Children[0];
                     if (checkbox.IsChecked == true) {
                         friends.Add((string)friendsBorder.Tag);
+                        // if user checked add to list of friends to add to server
                     }
                 }
 
@@ -465,12 +473,12 @@ namespace Client {
                 foreach (string friendUsername in friends) {
                     string[] dataForGetID = { friendUsername };
                     string friendID = await Client.SendAndRecieve(TypeOfCommunication.GetID, dataForGetID);
+                    // convert usernames to ids
                     friendIDs.Add(friendID);
                 }
 
                 byte[] SerializedFriends = SerializeList<string>(friendIDs);
                 string SerializedFriendsString = Convert.ToBase64String(SerializedFriends);
-
 
                 string[] data = { serverName.Text, serverDescription.Text, SerializedChannelsString, SerializedFriendsString };
 
@@ -703,8 +711,8 @@ namespace Client {
             };
 
             Button logOutButton = new Button { Content = "Log Out", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
-            logOutButton.Click += (s, e) => {
-                Client.CloseWebSocket();
+            logOutButton.Click += async (s, e) => {
+                await Client.CloseWebSocket();
                 Init();
             };
 
@@ -720,6 +728,7 @@ namespace Client {
             this.Content = mainGrid;
         }
 
+        // Used for laying out appearance menu in settings
         private string GetColorLabel(int index) {
             switch (index) {
                 case 0: return "Background Color:";
@@ -729,12 +738,7 @@ namespace Client {
             }
         }
 
-
-
-        private async void changeProfilePicButton_Click(object sender, RoutedEventArgs e) {
-            
-        }
-
+        // Adds a channel element 
         private void AddChannel(StackPanel parentStackPanel, string channelName, string channelID, string serverID) {
 
             if (CurrentServerID != serverID) {
@@ -789,6 +793,7 @@ namespace Client {
             parentStackPanel.Children.Add(ChannelElement);
         }
 
+        // If channel clicked on
         private async void ChannelElement_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
             StackPanel ChannelElement = (StackPanel)sender;
             CurrentChannelID = (string)ChannelElement.Tag;
@@ -798,10 +803,13 @@ namespace Client {
             } else if (CurrentChannelID == SpecialChannelIDs.UsersList) {
                 InitializeUserListUI(false, true);
             } else {
+                // if normal channel
                 messageStackPanel.Children.Clear();
                 OldestMessage = int.MinValue.ToString();
                 NewestMessage = int.MaxValue.ToString();
 
+                // fetch messages in correct order
+                // new messages shown at bottom with older messages shown at the top
                 foreach (string[] message in await FetchMessages(CurrentChannelID, OldestMessage, "false", Client)) {
                     messageScrollViewer.ScrollToEnd();
                     if (Convert.ToInt32(NewestMessage) < Convert.ToInt32(message[2])) { NewestMessage = message[2]; }
@@ -816,9 +824,8 @@ namespace Client {
             }
         }
 
-        // BROKEN
         private void ListenForMessages() {
-            SynchronizationContext uiContext = SynchronizationContext.Current;
+            SynchronizationContext uiContext = SynchronizationContext.Current; // Can't add elements to ui while async. so we get the synchronizationcontext from before we start the async loop and pass it through to where we handle the server messages and where we need to add elements to ui
 
             Task.Run(() => {
                 while (true) {
@@ -828,6 +835,7 @@ namespace Client {
                 }
             });
         }
+
 
         private void HandleServerMessage(string message, SynchronizationContext uiContext) {
             if (message.StartsWith(TypeOfCommunication.NotifyMessage)) {
@@ -853,12 +861,14 @@ namespace Client {
             }
         }
 
+        // wrapper function which checks channel id first
         public async void AddMessage(string channelID, string username, string messageContent, string userPFP) {
             if (CurrentChannelID == channelID) {
                 await AddMessage(messageStackPanel, userPFP, username, messageContent, false);
             }
         }
 
+        // wrapper function which checks channel id first
         public void AddAttachment(string channelID, string username, string fileId, string userPFP) {
             if (CurrentChannelID == channelID) {
                 AddAttachment(messageStackPanel, userPFP, username, fileId, false);
@@ -1493,9 +1503,6 @@ namespace Client {
 
         }
 
-        private void GoBack_Click(object sender, RoutedEventArgs e) {
-            throw new NotImplementedException();
-        }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e) {
             CurrentServerID = SpecialServerIDs.DirectMessages;
