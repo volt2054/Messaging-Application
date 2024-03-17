@@ -710,15 +710,6 @@ namespace Server.Database {
 
         }
 
-        public static void SelectAll() {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Users";
-                result = ExecuteQuery<string>(connection, selectQuery);
-            });
-
-        }
 
     }
 }
