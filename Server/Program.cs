@@ -65,7 +65,7 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    AssignRoleToUser(commandParts[1], commandParts[2], Convert.ToInt32(commandParts[3]));
+                    GetFriendsOfFriends("1", 5);
                 } else {
                     Console.WriteLine("Invalid command.");
                 }

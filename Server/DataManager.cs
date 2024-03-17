@@ -247,48 +247,76 @@ namespace Server.Database {
                     command.Parameters.AddWithValue("@Status", status);
                     queryResult = ExecuteQuery<string[]>(connection, command);
                 });
+
                 friends = User.StringListToUserList(queryResult);
 
                 return friends;
             } else {
-                ExecuteDatabaseOperations(connection => {
+                ExecuteDatabaseOperations(connection =>
+                {
+                    // As friends can now either be on user_id or friend_id we have to use a union to join 2 seperate querys individually selecting each possible case
                     string selectQuery =
-                    "SELECT UserFriendships.friend_id, Users.username " +
-                    "FROM UserFriendships " +
-                    "JOIN Users ON UserFriendships.friend_id = Users.user_id " +
-                    "WHERE UserFriendships.user_id = @UserID " +
-                    "OR UserFriendships.friend_id = @UserID " +
-                    "AND UserFriendships.status = @Status";
+                        "SELECT u.user_id, u.username " +
+                        "FROM UserFriendships uf " +
+                        "JOIN Users u ON uf.friend_id = u.user_id " +
+                        "WHERE uf.user_id = @UserID AND uf.status = @Status " +
+                        "UNION " +
+                        "SELECT u.user_id, u.username " +
+                        "FROM UserFriendships uf " +
+                        "JOIN Users u ON uf.user_id = u.user_id " +
+                        "WHERE uf.friend_id = @UserID AND uf.status = @Status";
+
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@Status", status);
+
                     queryResult = ExecuteQuery<string[]>(connection, command);
                 });
-                friends = User.StringListToUserList(queryResult);
 
+                friends = User.StringListToUserList(queryResult);
                 return friends;
             }
         }
 
-        public static List<User> GetFriendsOfFriends(string userID) {
-            // get the list of direct friends
-            var directFriends = GetFriends(userID, FriendStatus.Accepted);
+        public static List<(User, int)> GetFriendsOfFriends(string userID, int depth) {
+            var result = new List<(User, int)>();
 
-            // create a set to store friends of friends
-            var friendsOfFriends = new HashSet<User>();
+            HashSet<string> visited = new HashSet<string>();
+            visited.Add(userID);
+            GetFriendsOfFriendsRecursive(userID, depth, result, visited, 0);
 
-            // for each direct friend, get their friends
-            foreach (var friend in directFriends) {
-                var friendsFriends = GetFriends(friend.ID, FriendStatus.Accepted)
-                    .Where(f => f.ID != userID); // get rid of user from friends
-
-                friendsOfFriends.UnionWith(friendsFriends); // add to hash set
+            foreach(var friend in result) {
+                Console.WriteLine(friend.Item1.username);
+                Console.WriteLine(friend.Item2.ToString());
             }
 
-            
-            friendsOfFriends.ExceptWith(directFriends); // remove direct friends from the list
+            return result;
+        }
 
-            return friendsOfFriends.ToList(); // convert to list
+        private static void GetFriendsOfFriendsRecursive(string userID, int depth, List<(User, int)> result, HashSet<string> visited, int currentDepth) {
+            // base case: if depth is less than 0, return immediately
+            if (depth < 0)
+                return;
+
+            // Get direct friends
+            var directFriends = GetFriends(userID, FriendStatus.Accepted);
+
+            // Iterate through each direct friend
+            foreach (var friend in directFriends) {
+                // Check if the friend has been visited before
+                if (!visited.Contains(friend.ID)) {
+                    // Add the friend to the visited set
+                    visited.Add(friend.ID);
+
+                    // Add the friend and their depth to the result list
+                    result.Add((friend, currentDepth));
+
+                    // If depth is greater than 0, recursively call the function with the friend's ID
+                    // and decremented depth, passing the result list and visited set
+                    if (depth > 0)
+                        GetFriendsOfFriendsRecursive(friend.ID, depth - 1, result, visited, currentDepth+1);
+                }
+            }
         }
 
         public static List<User> GetUsersInServer(string serverID) {
