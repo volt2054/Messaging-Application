@@ -37,8 +37,7 @@
         }
 
         public static string GetOriginalFileName(string uuid) {
-            FileNameMapping.TryGetValue(uuid, out var originalFileName);
-            return originalFileName;
+            return FileNameMapping[uuid];
         }
 
 
