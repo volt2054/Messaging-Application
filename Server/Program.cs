@@ -139,7 +139,6 @@ namespace Server {
                             List<User> usersInChannel = FetchUsersInChannel(channel);
                             string[] argsToSend = new string[4];
 
-                            // TODO CONVERT TO USER CLASS
                             argsToSend[0] = channel;
                             argsToSend[1] = GetUsername(userID);
                             argsToSend[2] = message_content;
