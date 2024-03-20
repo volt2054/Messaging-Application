@@ -103,6 +103,7 @@ namespace Server.Database {
             return result;
         }
 
+        // makes sure messages are fetched in correct order
         public static List<string[]> FetchMessages(string channelID, string messageID, bool fetchBefore, int count) {
             List<string[]> messages = new List<string[]>();
 
@@ -113,7 +114,9 @@ namespace Server.Database {
                     "WHERE channel_id = @ChannelID AND " +
                     "u.user_id = s.user_id AND " +
                     (fetchBefore ? "message_id < @MessageID " : "message_id > @MessageID ") +
+                    // if we are fetching before a specific id then less than if not greater than
                     "ORDER BY message_id " + (fetchBefore ? "DESC" : "ASC");
+                    // if we are fetching before sort by descending
 
                 SqlCommand command = new SqlCommand(selectQuery, connection);
                 command.Parameters.AddWithValue("@ChannelID", channelID);
@@ -723,15 +726,6 @@ namespace Server.Database {
 
         }
 
-        public static void SelectAll() {
-            List<string> result = new List<string>();
-
-            ExecuteDatabaseOperations(connection => {
-                string selectQuery = "SELECT * FROM Users";
-                result = ExecuteQuery<string>(connection, selectQuery);
-            });
-
-        }
 
     }
 }

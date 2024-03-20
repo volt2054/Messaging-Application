@@ -196,7 +196,7 @@ namespace Server.Database {
             }
         }
 
-
+        // wrappper function which makes sure all database operations are handled appropriately
         public static void ExecuteDatabaseOperations(Action<SqlConnection> databaseOperation) {
             string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename={AppDomain.CurrentDomain.BaseDirectory}\{databaseName}_database.mdf;Integrated Security=True;Database={databaseName}";
 
@@ -231,30 +231,6 @@ namespace Server.Database {
                 }
             }
         }
-        public static List<T> ExecuteQuery<T>(SqlConnection connection, string sql) {
-            List<T> resultList = new List<T>();
-            using (SqlCommand command = new SqlCommand(sql, connection)) {
-                try {
-                    SqlDataReader reader = command.ExecuteReader();
-                    while (reader.Read()) {
-                        if (typeof(T) == typeof(string[])) {
-                            string[] rowValues = new string[reader.FieldCount];
-                            for (int i = 0; i < reader.FieldCount; i++) {
-                                rowValues[i] = reader[i].ToString();
-                            }
-                            resultList.Add((T)(object)rowValues);
-                        } else if (typeof(T) == typeof(string)) {
-                            resultList.Add((T)(object)reader[0].ToString());
-                        }
-                    }
-                    reader.Close();
-                } catch (Exception e) {
-                    Console.WriteLine("Error: " + e.Message);
-                }
-            }
-            return resultList;
-        }
-
         public static List<T> ExecuteQuery<T>(SqlConnection connection, SqlCommand command) {
             List<T> resultList = new List<T>();
             using (command) {
