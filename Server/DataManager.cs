@@ -162,22 +162,59 @@ namespace Server.Database {
             if (servers.Count > 0) {
                 ExecuteDatabaseOperations(connection => {
                     string selectQuery =
-                        "SELECT user_id, username FROM UserServers WHERE server_id = @ServerID;";
+                        "SELECT user_id FROM UserServers WHERE server_id = @ServerID;";
 
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@ServerID", servers.First());
 
                     queryResult = ExecuteQuery<string[]>(connection, command);
                 });
+
+                
+            }
+            List<string[]> queryResultWithUsernames = new List<string[]>();
+            for (int i = 0; i < queryResult.Count; ++i) {
+                string[] newResult = new string[2];
+
+                string[] result = queryResult.ElementAt(i);
+                string id = result[0];
+                string username = GetUsername(id);
+                newResult[0] = id;
+                newResult[1] = username;
+                queryResultWithUsernames.Add(newResult);
             }
 
-            users = User.StringListToUserList(queryResult);
+            users = User.StringListToUserList(queryResultWithUsernames);
 
             return users;
         }
 
         public static string AddFriend(string userID, string friendID) {
             string result = "-1";
+
+            List<User> pendingFriends =  GetFriends(userID, FriendStatus.Pending);
+            List<User> acceptedFriends =  GetFriends(userID, FriendStatus.Accepted);
+
+            foreach (User friend in pendingFriends) {
+                if(friend.ID == friendID) {
+                    return "0";
+                }
+            }
+
+            foreach (User friend in acceptedFriends) {
+                if (friend.ID == friendID) {
+                    return "0";
+                }
+            }
+
+            List<User> friendsPendingFriends = GetFriends(friendID, FriendStatus.Pending);
+
+            foreach (User friend in friendsPendingFriends) {
+                if (friend.ID == userID) {
+                    AcceptFriendRequest(userID, friendID); return "1";
+                }
+            }
+
             try {
             ExecuteDatabaseOperations(connection => {
                 string insertQuery =
@@ -618,9 +655,8 @@ namespace Server.Database {
                 serverID = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            users.Add(UserID);
             foreach (string friend in users) {
-                AddUserToServer(UserID, friend);
+                AddUserToServer(friend, serverID.ToString());
             }
 
             foreach(string channel in channels) {

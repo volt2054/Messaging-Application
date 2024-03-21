@@ -391,7 +391,6 @@ namespace Client {
             ChannelsStackPanel.Children.Add(addChannelTextBox);
             ChannelsStackPanel.Children.Add(addChannelButton);
 
-
             channelGrid.Children.Add(scrollViewerBorder);
             Grid.SetColumn(scrollViewerBorder, 0);
             channelGrid.Children.Add(ChannelsStackPanel);
