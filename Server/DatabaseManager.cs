@@ -9,7 +9,6 @@ namespace Server.Database {
         public static void TestDatabaseConnection() {
             try {
                 ExecuteDatabaseOperations(connection => {
-                    connection.Open();
                     Console.WriteLine("Successful connection");
                 });
             } catch (Exception ex) {
