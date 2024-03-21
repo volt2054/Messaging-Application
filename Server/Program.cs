@@ -231,7 +231,7 @@ namespace Server {
                         byte[] SerializedFriends = Convert.FromBase64String(SerializedFriendsString);
 
                         List<string> Friends = DeserializeList<string>(SerializedFriends);
-
+                        Friends.Add(userID);
                         string id = CreateServer(serverName, serverDescription, userID, Channels, Friends);
                         string[] argsToSend = new string[2];
                         argsToSend[0] = id;

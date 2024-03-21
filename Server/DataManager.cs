@@ -631,9 +631,8 @@ namespace Server.Database {
                 serverID = Convert.ToInt32(command.ExecuteScalar());
             });
 
-            users.Add(UserID);
             foreach (string friend in users) {
-                AddUserToServer(UserID, friend);
+                AddUserToServer(friend, serverID.ToString());
             }
 
             foreach(string channel in channels) {
