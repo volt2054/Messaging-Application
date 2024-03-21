@@ -191,6 +191,30 @@ namespace Server.Database {
 
         public static string AddFriend(string userID, string friendID) {
             string result = "-1";
+
+            List<User> pendingFriends =  GetFriends(userID, FriendStatus.Pending);
+            List<User> acceptedFriends =  GetFriends(userID, FriendStatus.Accepted);
+
+            foreach (User friend in pendingFriends) {
+                if(friend.ID == friendID) {
+                    return "0";
+                }
+            }
+
+            foreach (User friend in acceptedFriends) {
+                if (friend.ID == friendID) {
+                    return "0";
+                }
+            }
+
+            List<User> friendsPendingFriends = GetFriends(friendID, FriendStatus.Pending);
+
+            foreach (User friend in friendsPendingFriends) {
+                if (friend.ID == userID) {
+                    AcceptFriendRequest(userID, friendID); return "1";
+                }
+            }
+
             try {
             ExecuteDatabaseOperations(connection => {
                 string insertQuery =
