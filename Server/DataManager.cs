@@ -172,10 +172,7 @@ namespace Server.Database {
 
                     queryResult = ExecuteQuery<string[]>(connection, command);
                 });
-
-                
             }
-            
 
             users = User.StringListToUserList(queryResult);
 
