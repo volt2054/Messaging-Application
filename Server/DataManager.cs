@@ -315,11 +315,6 @@ namespace Server.Database {
             visited.Add(userID);
             GetFriendsOfFriendsRecursive(userID, depth, result, visited, 0);
 
-            foreach(var friend in result) {
-                Console.WriteLine(friend.Item1.username);
-                Console.WriteLine(friend.Item2.ToString());
-            }
-
             return result;
         }
 
