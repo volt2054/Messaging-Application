@@ -162,7 +162,10 @@ namespace Server.Database {
             if (servers.Count > 0) {
                 ExecuteDatabaseOperations(connection => {
                     string selectQuery =
-                        "SELECT user_id FROM UserServers WHERE server_id = @ServerID;";
+                        "SELECT u.user_id, u.username " +
+                        "FROM UserServers us " +
+                        "JOIN Users u ON us.user_id = u.user_id " +
+                        "WHERE us.server_id = @ServerID;";
 
                     SqlCommand command = new SqlCommand(selectQuery, connection);
                     command.Parameters.AddWithValue("@ServerID", servers.First());
@@ -172,19 +175,9 @@ namespace Server.Database {
 
                 
             }
-            List<string[]> queryResultWithUsernames = new List<string[]>();
-            for (int i = 0; i < queryResult.Count; ++i) {
-                string[] newResult = new string[2];
+            
 
-                string[] result = queryResult.ElementAt(i);
-                string id = result[0];
-                string username = GetUsername(id);
-                newResult[0] = id;
-                newResult[1] = username;
-                queryResultWithUsernames.Add(newResult);
-            }
-
-            users = User.StringListToUserList(queryResultWithUsernames);
+            users = User.StringListToUserList(queryResult);
 
             return users;
         }
