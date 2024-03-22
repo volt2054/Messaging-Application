@@ -158,7 +158,7 @@ namespace Server.Database {
 
                 servers = ExecuteQuery<string>(connection, command);
             });
-
+          
             if (servers.Count > 0) {
                 ExecuteDatabaseOperations(connection => {
                     string selectQuery =

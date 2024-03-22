@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.5" />
+    <PackageReference Include="Mono.Nat" Version="3.0.4" />
   </ItemGroup>
 
   <ItemGroup>

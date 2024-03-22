@@ -2,6 +2,9 @@
 using System.Net;
 using System.Text;
 using SharedLibrary;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using Mono.Nat;
 
 namespace Server {
     public class WebSocketServer {
@@ -11,11 +14,28 @@ namespace Server {
         private static readonly Dictionary<string, WebSocket> _clientWebSockets = new Dictionary<string, WebSocket>();
         private static readonly Dictionary<string, string> _clientUserIds = new Dictionary<string, string>();
 
+
         public WebSocketServer(Func<string, string> messageHandler) {
             _httpListener = new HttpListener();
             _httpListener.Prefixes.Add($"http://{WebSocketMetadata.IP_ADDRESS}:{WebSocketMetadata.PORT}/");
             _messageHandler = messageHandler;
+
+            SetupPortForwarding().Wait(); // Using Wait() to make this method synchronous for simplicity
         }
+
+        private async Task SetupPortForwarding() {
+                // Discover NAT device
+                NatUtility.StartDiscovery();
+                NatUtility.DeviceFound += (s, e) => {
+                    INatDevice device = e.Device;
+
+                    device.CreatePortMap(new Mapping(Protocol.Tcp, Convert.ToInt32(WebSocketMetadata.PORT), Convert.ToInt32(WebSocketMetadata.PORT)));
+                    Console.WriteLine($"Port forwarding successfully set up with port {WebSocketMetadata.PORT}.");
+                    Console.WriteLine($"Listening on {device.GetExternalIP().ToString()}");
+
+                };
+        }
+
 
         public async Task StartAsync() {
             _httpListener.Start();
