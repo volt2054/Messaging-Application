@@ -15,8 +15,7 @@ using System.Threading;
 
 using static SharedLibrary.ContentDeliveryInterface;
 using Microsoft.Win32;
-
-
+using System.Linq.Expressions;
 
 namespace Client {
 
@@ -1563,11 +1562,17 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
 
-            string PFP = await GetPFP(user.ID, Client);
+            ImageBrush imageBrush;
+            try {
+                string PFP = await GetPFP(user.ID, Client);
 
-            BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
-            ImageBrush imageBrush = new ImageBrush();
-            imageBrush.ImageSource = pfp;
+                BitmapImage pfp = new BitmapImage(new Uri(await CacheFileAsync(PFP)));
+                imageBrush = new ImageBrush();
+                imageBrush.ImageSource = pfp;
+
+            } catch {
+                imageBrush = new ImageBrush();
+            }
 
             Ellipse ellipse = new Ellipse {
                 Width = 25,
@@ -1589,13 +1594,17 @@ namespace Client {
                 Margin = new Thickness(0, 0, 10, 0)
             };
             if (dropDownToggle) {
-                DropDownMenu_Roles.Items.Add("Can't Read");
-                DropDownMenu_Roles.Items.Add("Read Only");
                 DropDownMenu_Roles.Items.Add("Read and Send");
+                DropDownMenu_Roles.Items.Add("Read Only");
+                DropDownMenu_Roles.Items.Add("Can't Read");
+
+
+                friendStackPanel.Children.Add(DropDownMenu_Roles);
+
 
                 string[] data = { user.ID, CurrentChannelID };
                 string role = await Client.SendAndRecieve(TypeOfCommunication.CheckRole, data);
-                DropDownMenu_Roles.SelectedIndex = Convert.ToInt32(role) + 1;
+                DropDownMenu_Roles.SelectedIndex = Convert.ToInt32(role) - 1;
                 DropDownMenu_Roles.SelectionChanged += async (s, e) => {
                     if (DropDownMenu_Roles.SelectedItem != null) {
                         string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
@@ -1603,6 +1612,7 @@ namespace Client {
                         await Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
                     }
                 };
+
             }
 
 
@@ -1657,7 +1667,6 @@ namespace Client {
             if (checkBoxToggle) friendStackPanel.Children.Add(checkBox);
             friendStackPanel.Children.Add(ellipse);
             friendStackPanel.Children.Add(label);
-            if (dropDownToggle) friendStackPanel.Children.Add(DropDownMenu_Roles);
             friendStackPanel.Children.Add(spacer);
             if (removeButtonToggle) friendStackPanel.Children.Add(removeButton);
             if (acceptButtonToggle) friendStackPanel.Children.Add(acceptButton);
