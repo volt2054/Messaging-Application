@@ -1162,10 +1162,10 @@ namespace Client {
             btn_Login.Click += async (s, e) => {
                 CurrentUserID = await VerifyUser(txt_Username.Text, txt_Password.Text, Client);
 
-                if (CurrentUserID != "Bad Password") {
+                if (CurrentUserID != "-1") {
                     InitializeMessagingUI();
                 } else {
-                    MessageBox.Show("Bad Password");
+                    MessageBox.Show("Incorrect Password");
                 }
             };
 

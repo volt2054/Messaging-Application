@@ -131,7 +131,7 @@ namespace Server {
                             userID = GetID(username);
                             SetClientUserId(clientID, userID);
                             responseMessage = userID;
-                        } else { responseMessage = "Bad Password"; }
+                        } else { responseMessage = "-1"; }
                     }
                 } else {
                     if (communicationType == TypeOfCommunication.SendMessage) {           // SEND MESSAGES
