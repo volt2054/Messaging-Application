@@ -1510,8 +1510,7 @@ namespace Client {
 
                 string json = JsonConvert.SerializeObject(searchParams);
 
-                string[] data = new string[1];
-                data[0] = json;
+                string[] data = new string[] { json };
 
                 string result = await Client.SendAndRecieve(TypeOfCommunication.SearchMessages, data);
                 List<MessageSearchResult> searchResults = JsonConvert.DeserializeObject<List<MessageSearchResult>>(result);
