@@ -17,6 +17,7 @@ namespace SharedLibrary {
             public bool IsEndDateNull { get; set; }
             public string? SearchText { get; set; }
             public bool IsSearchTextNull { get; set; }
+            public string ChannelID { get; set; }
         }
 
         public class MessageSearchResult {

@@ -5,6 +5,7 @@ using System.Text;
 using static Server.Database.DatabaseManager;
 using static SharedLibrary.Search.SearchParameters;
 using static SharedLibrary.Search.MessageSearchResult;
+using static SharedLibrary.Search;
 
 namespace Server.Database {
     public class DataManager {
@@ -737,46 +738,46 @@ namespace Server.Database {
 
         }
 
-        
 
-        public List<Search.MessageSearchResult> SearchMessages(int? userId, int? messageType, DateTime? startDate, DateTime? endDate) {
-            List<Search.MessageSearchResult> searchResults = new List<Search.MessageSearchResult>();
+
+        public List<MessageSearchResult> SearchMessages(SearchParameters searchParameters) {
+            List<MessageSearchResult> searchResults = new List<MessageSearchResult>();
 
             ExecuteDatabaseOperations(connection => {
 
                 StringBuilder commandBuilder = new StringBuilder();
                 commandBuilder.Append("SELECT * FROM Messages WHERE 1=1");
 
-                if (userId != null) {
+                if (!searchParameters.IsUsernameNull) {
                     commandBuilder.Append(" AND user_id = @UserId");
                 }
-                if (messageType != null) {
+                if (!searchParameters.IsMessageTypeNull) {
                     commandBuilder.Append(" AND message_type = @MessageType");
                 }
-                if (startDate != null) {
+                if (!searchParameters.IsStartDateNull) {
                     commandBuilder.Append(" AND date_sent >= @StartDate");
                 }
-                if (endDate != null) {
+                if (!searchParameters.IsEndDateNull) {
                     commandBuilder.Append(" AND date_sent <= @EndDate");
                 }
 
                 using (SqlCommand command = new SqlCommand(commandBuilder.ToString(), connection)) {
-                    if (userId != null) {
-                        command.Parameters.AddWithValue("@UserId", userId);
+                    if (!searchParameters.IsUsernameNull) {
+                        command.Parameters.AddWithValue("@UserId", searchParameters.Username);
                     }
-                    if (messageType != null) {
-                        command.Parameters.AddWithValue("@MessageType", messageType);
+                    if (!searchParameters.IsMessageTypeNull) {
+                        command.Parameters.AddWithValue("@MessageType", searchParameters.MessageType);
                     }
-                    if (startDate != null) {
-                        command.Parameters.AddWithValue("@StartDate", startDate);
+                    if (!searchParameters.IsStartDateNull) {
+                        command.Parameters.AddWithValue("@StartDate", searchParameters.StartDate);
                     }
-                    if (endDate != null) {
-                        command.Parameters.AddWithValue("@EndDate", endDate);
+                    if (!searchParameters.IsEndDateNull) {
+                        command.Parameters.AddWithValue("@EndDate", searchParameters.EndDate);
                     }
 
                     using (SqlDataReader reader = command.ExecuteReader()) {
                         while (reader.Read()) {
-                            Search.MessageSearchResult result = new Search.MessageSearchResult {
+                            MessageSearchResult result = new MessageSearchResult {
                                 MessageId = Convert.ToInt32(reader["message_id"]),
                                 MessageContent = Convert.ToString(reader["message_content"]),
                                 ChannelId = Convert.ToInt32(reader["channel_id"]),
@@ -790,8 +791,8 @@ namespace Server.Database {
                 }
             });
             return searchResults;
-
         }
+
 
 
     }

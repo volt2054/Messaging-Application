@@ -29,6 +29,7 @@ namespace SharedLibrary {
         public const string ChangePassword = "CHANGEPASSWORD"; // CHANGEPASSWORD + NEWPASSWORD // Changes Password
         public const string AddToServer = "ADDTOSERVER"; // ADDTOSERVER + SERVERID + USERID
         public const string RemoveFromServer = "REMOVEFROMSERVER"; // REMOVEFROMSERVER + SERVERID + USERID
+        public const string SearchMessages = "SEARCH"; // SEARCH + SearchParamatersObject
 
 
         public const string NotifyMessage = "MESSAGE:"; // (MESSAGE: + CHANNELID + USERNAME + MESSAGECONTENT)

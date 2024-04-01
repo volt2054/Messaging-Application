@@ -5,8 +5,8 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
-using System.ComponentModel.Design;
-using Azure.Messaging;
+using static SharedLibrary.Search;
+using Newtonsoft.Json;
 
 namespace Server {
 
@@ -359,6 +359,11 @@ namespace Server {
                         string serverId = args[0];
                         string userId = args[1];
                         RemoveUserFromServer(userId, serverId); 
+                    } else if (communicationType == TypeOfCommunication.SearchMessages) {
+                        SearchParameters searchParams = JsonConvert.DeserializeObject<SearchParameters>(args[0]);
+                        
+                        
+
                     }
                 }
 

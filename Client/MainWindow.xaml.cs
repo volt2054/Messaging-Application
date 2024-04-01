@@ -1411,7 +1411,8 @@ namespace Client {
                     EndDate = endDate,
                     IsEndDateNull = isEndDateNull,
                     SearchText = searchText,
-                    IsSearchTextNull = isSearchTextNull
+                    IsSearchTextNull = isSearchTextNull,
+                    ChannelID = CurrentChannelID
                 };
 
                 string json = JsonConvert.SerializeObject(searchParams);
