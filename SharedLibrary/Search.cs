@@ -9,7 +9,7 @@ namespace SharedLibrary {
         public class SearchParameters {
             public string? Username { get; set; }
             public bool IsUsernameNull { get; set; }
-            public string? MessageType { get; set; }
+            public int? MessageType { get; set; }
             public bool IsMessageTypeNull { get; set; }
             public DateTime? StartDate { get; set; }
             public bool IsStartDateNull { get; set; }
@@ -24,7 +24,7 @@ namespace SharedLibrary {
             public int MessageId { get; set; }
             public string MessageContent { get; set; }
             public int ChannelId { get; set; }
-            public int UserId { get; set; }
+            public string Username { get; set; }
             public DateTime DateSent { get; set; }
             public int MessageType { get; set; }
         }

@@ -737,10 +737,7 @@ namespace Server.Database {
             }
 
         }
-
-
-
-        public List<MessageSearchResult> SearchMessages(SearchParameters searchParameters) {
+        public static List<MessageSearchResult> SearchMessages(SearchParameters searchParameters) {
             List<MessageSearchResult> searchResults = new List<MessageSearchResult>();
 
             ExecuteDatabaseOperations(connection => {
@@ -760,10 +757,16 @@ namespace Server.Database {
                 if (!searchParameters.IsEndDateNull) {
                     commandBuilder.Append(" AND date_sent <= @EndDate");
                 }
+                if (!searchParameters.IsSearchTextNull) {
+                    commandBuilder.Append(" AND message_content LIKE @Search");
+                }
+
+                commandBuilder.Append(" AND channel_id = @ChannelId");
 
                 using (SqlCommand command = new SqlCommand(commandBuilder.ToString(), connection)) {
                     if (!searchParameters.IsUsernameNull) {
-                        command.Parameters.AddWithValue("@UserId", searchParameters.Username);
+                        string userID = GetID(searchParameters.Username);
+                        command.Parameters.AddWithValue("@UserId", userID);
                     }
                     if (!searchParameters.IsMessageTypeNull) {
                         command.Parameters.AddWithValue("@MessageType", searchParameters.MessageType);
@@ -774,6 +777,12 @@ namespace Server.Database {
                     if (!searchParameters.IsEndDateNull) {
                         command.Parameters.AddWithValue("@EndDate", searchParameters.EndDate);
                     }
+                    if (!searchParameters.IsSearchTextNull) {
+                        command.Parameters.AddWithValue("@Search", "%" + searchParameters.SearchText + "%");
+
+                    }
+
+                    command.Parameters.AddWithValue("@ChannelId", searchParameters.ChannelID);
 
                     using (SqlDataReader reader = command.ExecuteReader()) {
                         while (reader.Read()) {
@@ -781,7 +790,7 @@ namespace Server.Database {
                                 MessageId = Convert.ToInt32(reader["message_id"]),
                                 MessageContent = Convert.ToString(reader["message_content"]),
                                 ChannelId = Convert.ToInt32(reader["channel_id"]),
-                                UserId = Convert.ToInt32(reader["user_id"]),
+                                Username = GetUsername(reader["user_id"].ToString()),
                                 DateSent = Convert.ToDateTime(reader["date_sent"]),
                                 MessageType = Convert.ToInt32(reader["message_type"])
                             };

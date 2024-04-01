@@ -7,6 +7,7 @@ using static Server.Database.DataManager;
 using static Server.WebSocketServer;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Server {
 
@@ -115,10 +116,14 @@ namespace Server {
                     if (communicationType == TypeOfCommunication.RegisterUser) {  // CREATE USER
                         string username = args[0];
                         string password = args[1];
-                        userID = InsertNewUser(username, password);
-                        SetClientUserId(clientID, userID);
-                        responseMessage = Convert.ToString(userID);
 
+                        if (!GetID(username).IsNullOrEmpty()) {
+                            responseMessage = "-1";
+                        } else {
+                            userID = InsertNewUser(username, password);
+                            SetClientUserId(clientID, userID);
+                            responseMessage = Convert.ToString(userID);
+                        }
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
                         string password = args[1];
@@ -362,7 +367,11 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.SearchMessages) {
                         SearchParameters searchParams = JsonConvert.DeserializeObject<SearchParameters>(args[0]);
                         
-                        
+                        List<MessageSearchResult> SearchResult = SearchMessages(searchParams);
+
+                        string json = JsonConvert.SerializeObject(SearchResult);
+
+                        responseMessage = json;
 
                     }
                 }

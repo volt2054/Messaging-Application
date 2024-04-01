@@ -19,6 +19,10 @@ using Microsoft.Win32;
 using System.Text.RegularExpressions;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
+using System.Windows.Documents;
+using System.Windows.Controls.Primitives;
+using System.Linq;
+using System.Globalization;
 
 
 namespace Client {
@@ -209,8 +213,7 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            InitializeMessageSearchUI();
-            //Init();
+            Init();
         }
 
         private void Init() {
@@ -243,16 +246,32 @@ namespace Client {
 
             Label label = new Label {
                 Content = text,
-                Width = 50,
-                Height = 50,
                 Foreground = new SolidColorBrush(foregroundColour),
-                FontSize = 50 / text.Length,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                HorizontalContentAlignment = HorizontalAlignment.Center,
-
+                HorizontalContentAlignment = HorizontalAlignment.Center
             };
+
+            if (text.Length > 10) {
+                // Split text into initials
+                string[] initials = text.Split(' ') // get each letter
+                                         .Select(s => s.Substring(0, 1)) // get the first character
+                                         .ToArray(); // convert to array
+                // Join the initials
+                text = string.Join("", initials);
+            }
+
+            label.Content = text;
+
+            // measure the size of the ellipse
+            ServerBackground.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            // determine the maximum font size that fits the ellipse
+            double fontSize = Math.Min(ServerBackground.Width / text.Length, ServerBackground.Height);
+
+            // Set the font size
+            label.FontSize = fontSize;
 
             ServerIcon.Children.Add(ServerBackground);
             ServerIcon.Children.Add(label);
@@ -262,6 +281,7 @@ namespace Client {
 
             parentStackPanel.Children.Add(ServerIcon);
         }
+
 
         private async void ServerIcon_Click(object sender, MouseButtonEventArgs e) {
             Grid ServerGrid = (Grid)sender;
@@ -633,6 +653,8 @@ namespace Client {
             appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             appearanceSectionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
+            StackPanel navigationPanel = new StackPanel();
+
             // List of 5 rows
             for (int i = 0; i < 3; i++) {
 
@@ -644,6 +666,7 @@ namespace Client {
                 // TextBox for color entry
                 TextBox colorTextBox = new TextBox();
                 colorTextBox.Name = $"ColorTextBox_{i}";
+                colorTextBox.Tag = i.ToString();
                 colorTextBox.Width = 100;
                 colorTextBox.Margin = new Thickness(0, 0, 0, 10);
 
@@ -660,12 +683,49 @@ namespace Client {
 
                 colorPreviewBorder.Child = colorPreview;
 
+
+
                 colorTextBox.TextChanged += (s, e) => {
                     try {
                         Brush colorBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorTextBox.Text));
                         colorPreview.Fill = colorBrush;
-                    } catch {
 
+                        string tag = (string)((TextBox)s).Tag;
+
+                        if (tag == "0") {
+                            // background
+                            Background = colorBrush;
+
+                            Color windowColor = ((SolidColorBrush)Background).Color;
+                            byte newR = windowColor.R < 127 ? (byte)(windowColor.R + 30) : (byte)(windowColor.R - 30);
+                            byte newG = windowColor.G < 127 ? (byte)(windowColor.G + 30) : (byte)(windowColor.G - 30);
+                            byte newB = windowColor.B < 127 ? (byte)(windowColor.B + 30) : (byte)(windowColor.B - 30);
+
+                            SolidColorBrush adjustedBrush = new SolidColorBrush(Color.FromRgb(newR, newG, newB));
+
+                            navigationPanel.Background = adjustedBrush;
+
+                            var defaultTextBoxStyle = new Style(typeof(TextBox));
+                            defaultTextBoxStyle.Setters.Add(new Setter(Button.BackgroundProperty, adjustedBrush));
+                            Application.Current.Resources[typeof(TextBox)] = defaultTextBoxStyle;
+                        } else if (tag == "1") {
+                            // text
+                            var defaultTextBlockStyle = new Style(typeof(TextBlock));
+                            defaultTextBlockStyle.Setters.Add(new Setter(TextBlock.ForegroundProperty, colorBrush));
+
+                            // Apply the style globally
+                            Application.Current.Resources[typeof(TextBlock)] = defaultTextBlockStyle;
+                        } else if (tag == "2") {
+                            //accent
+                            var defaultButtonStyle = new Style(typeof(Button));
+                            defaultButtonStyle.Setters.Add(new Setter(Button.BackgroundProperty, colorBrush));
+                            Application.Current.Resources[typeof(Button)] = defaultButtonStyle;
+
+                            
+                        }
+
+                    } catch  {
+                        // discard error. invalid color code
                     }
                 };
 
@@ -684,10 +744,15 @@ namespace Client {
 
             contentGrid.Children.Add(appearanceSection);
 
+            Color windowColor = ((SolidColorBrush)Background).Color;
+            byte newR = windowColor.R < 127 ? (byte)(windowColor.R + 30) : (byte)(windowColor.R - 30);
+            byte newG = windowColor.G < 127 ? (byte)(windowColor.G + 30) : (byte)(windowColor.G - 30);
+            byte newB = windowColor.B < 127 ? (byte)(windowColor.B + 30) : (byte)(windowColor.B - 30);
+
+            SolidColorBrush newBrush = new SolidColorBrush(Color.FromRgb(newR, newG, newB));
             // Navigation bar on the left
-            StackPanel navigationPanel = new StackPanel();
             navigationPanel.Width = 150;
-            navigationPanel.Background = new SolidColorBrush(Color.FromRgb(238, 238, 238));
+            navigationPanel.Background = newBrush;
             navigationPanel.HorizontalAlignment = HorizontalAlignment.Left;
 
             Button goBackButton = new Button { Content = "Go Back", Margin = new Thickness(0, 10, 0, 10), Padding = new Thickness(10) };
@@ -1003,6 +1068,11 @@ namespace Client {
         ScrollViewer messageScrollViewer;
 
         private void InitializeLoginUI() {
+
+
+            
+
+
             Grid gridLogin = new Grid();
 
             RowDefinition rowDefinitionTitleLogin = new RowDefinition();
@@ -1080,8 +1150,10 @@ namespace Client {
 
                 if (Regex.IsMatch(password, pattern)) {
                     CurrentUserID = await CreateUser(txt_Username.Text, txt_Password.Text, Client);
-                    if (CurrentUserID != null) {
+                    if (CurrentUserID != "-1") {
                         InitializeMessagingUI();
+                    } else {
+                        MessageBox.Show("Username Taken");
                     }
                 } else {
                     MessageBox.Show("Password must contain at least 8 characters with a capital letter and a number");
@@ -1204,7 +1276,7 @@ namespace Client {
             messageScrollViewer = new ScrollViewer() {
                 Content = messageStackPanel,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             };
             messageScrollViewer.ScrollChanged += MessageScrollViewer_ScrollChanged;
 
@@ -1279,7 +1351,7 @@ namespace Client {
             }
         }
 
-        private async Task InitializeMessageSearchUI() {
+        private async void InitializeMessageSearchUI() {
 
             Grid MainGrid = new Grid();
             MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(2, GridUnitType.Star) });
@@ -1379,18 +1451,35 @@ namespace Client {
                 Content = "Search",
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
+                MinHeight = 40,
+                MinWidth = 75,
                 Margin = new Thickness(0, 0, 10, 10)
             };
             Grid.SetColumn(searchButton, 1);
             Grid.SetRow(searchButton, 5);
+
+            Button goBackButton = new Button {
+                Content = "Go Back",
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                MinHeight=40,
+                MinWidth=75,
+                Margin = new Thickness(10, 0, 0, 10),
+            };
+            goBackButton.Click += (s, e) => { InitializeMessagingUI();};
+            Grid.SetColumn(goBackButton, 0);
+            Grid.SetRow(goBackButton, 5);
+
+
+            StackPanel messageStackPanel = new StackPanel();
 
             searchButton.Click += async (s, e) => {
                 // All nullable as user may not want to search with a specific filter
                 string? username = usernameTextBox.Text;
                 bool isUsernameNull = string.IsNullOrEmpty(username);
 
-                string? messageType = messageTypeComboBox.SelectedItem?.ToString();
-                bool isMessageTypeNull = messageType == null;
+                int? messageType = messageTypeComboBox.SelectedIndex;
+                bool isMessageTypeNull = false;
 
                 DateTime? startDate = startDatePicker.SelectedDate;
                 bool isStartDateNull = !startDate.HasValue;
@@ -1400,6 +1489,10 @@ namespace Client {
 
                 string? searchText = textTextBox.Text;
                 bool isSearchTextNull = string.IsNullOrEmpty(searchText);
+
+                if (messageTypeComboBox.SelectedIndex == 0) {
+                    isMessageTypeNull = true;
+                }
 
                 SearchParameters searchParams = new SearchParameters {
                     Username = username,
@@ -1417,6 +1510,18 @@ namespace Client {
 
                 string json = JsonConvert.SerializeObject(searchParams);
 
+                string[] data = new string[1];
+                data[0] = json;
+
+                string result = await Client.SendAndRecieve(TypeOfCommunication.SearchMessages, data);
+                List<MessageSearchResult> searchResults = JsonConvert.DeserializeObject<List<MessageSearchResult>>(result);
+
+                messageStackPanel.Children.Clear(); // clear children in case searching again
+
+                foreach (MessageSearchResult messageSearchResult in searchResults) {
+                    await AddMessage(messageStackPanel, await GetPFP(await GetID(messageSearchResult.Username, Client), Client), messageSearchResult.Username, messageSearchResult.MessageContent, false);
+                }
+
             };
             
 
@@ -1432,12 +1537,12 @@ namespace Client {
             SearchGrid.Children.Add(textLabel);
             SearchGrid.Children.Add(textTextBox);
             SearchGrid.Children.Add(searchButton);
+            SearchGrid.Children.Add(goBackButton);
 
             MainGrid.Children.Add(SearchGrid);
             Grid.SetColumn(MainGrid, 0);
             Grid.SetRow(MainGrid, 0);
 
-            StackPanel messageStackPanel = new StackPanel();
 
             ScrollViewer messageScrollViewer = new ScrollViewer();
             messageScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
