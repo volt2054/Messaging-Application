@@ -7,6 +7,5 @@
 
         public const string CDPORT = "7257";
         public const string CDSERVER_URL = $"http://{IP_ADDRESS}:{CDPORT}/";
-
     }
 }

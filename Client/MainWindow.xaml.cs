@@ -12,10 +12,14 @@ using System.Windows.Shapes;
 using SharedLibrary;
 using static SharedLibrary.Serialization;
 using System.Threading;
-
+using static SharedLibrary.Search.SearchParameters;
+using static SharedLibrary.Search.MessageSearchResult;
 using static SharedLibrary.ContentDeliveryInterface;
 using Microsoft.Win32;
-using System.Linq.Expressions;
+using System.Text.RegularExpressions;
+using static SharedLibrary.Search;
+using Newtonsoft.Json;
+
 
 namespace Client {
 
@@ -205,7 +209,8 @@ namespace Client {
 
         public MainWindow() {
             InitializeComponent();
-            Init();
+            InitializeMessageSearchUI();
+            //Init();
         }
 
         private void Init() {
@@ -533,7 +538,7 @@ namespace Client {
             profilePicture.Source = new BitmapImage(new Uri(pfp));
 
             Button changeProfilePicButton = new Button { Content = "Change Profile Pic", Margin = new Thickness(10, 0, 0, 0), Width = 100 };
-            changeProfilePicButton.Click += async (s , e) => {
+            changeProfilePicButton.Click += async (s, e) => {
                 OpenFileDialog openFileDialog = new OpenFileDialog();
                 openFileDialog.Filter = "Image Files(*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*";
                 if (openFileDialog.ShowDialog() == true) {
@@ -565,7 +570,7 @@ namespace Client {
 
             TextBlock usernameTextBlock = new TextBlock { Text = "Username" };
             TextBox usernameTextBox = new TextBox { Margin = new Thickness(10, 0, 10, 10), MinWidth = 200 };
-            Button changeUsernameButton = new Button { Content = "Change", Margin = new Thickness(10,0,0,10) };
+            Button changeUsernameButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 10) };
 
             changeUsernameButton.Click += async (s, e) => {
                 string[] data = { usernameTextBox.Text };
@@ -934,8 +939,16 @@ namespace Client {
         }
 
         private async Task AddMessage(StackPanel parentStackPanel, string PFP, string username, string message, bool before) {
+
+            ScrollViewer messageScrollViewer = (ScrollViewer)parentStackPanel.Parent;
+
             StackPanel messageStackPanel = new StackPanel {
                 Orientation = Orientation.Horizontal
+            };
+
+            Ellipse ellipse = new Ellipse {
+                Width = 25,
+                Height = 25,
             };
 
             string pfpFile = await CacheFileAsync(PFP);
@@ -943,16 +956,13 @@ namespace Client {
             if (pfpFile != "-1") {
                 BitmapImage pfp = new BitmapImage(new Uri(pfpFile));
                 imageBrush.ImageSource = pfp;
+
+                ellipse.Fill = imageBrush;
             } else {
-                //BGROKEN
-                imageBrush.ImageSource = new BitmapImage(new Uri(Icons.Chat, UriKind.Relative));
+                ellipse.Fill = Brushes.Red;
             }
 
-            Ellipse ellipse = new Ellipse {
-                Width = 25,
-                Height = 25,
-                Fill = imageBrush
-            };
+            
 
             StackPanel usernameAndMessageStackPanel = new StackPanel {
                 Orientation = Orientation.Vertical,
@@ -1057,13 +1067,27 @@ namespace Client {
             gridLogin.Children.Add(txt_Password);
 
 
-            btn_Register.Click += async (s,e) => {
-                CurrentUserID = await CreateUser(txt_Username.Text, txt_Password.Text, Client);
-                if (CurrentUserID != null) {
-                    InitializeMessagingUI();
+            btn_Register.Click += async (s, e) => {
+
+                string password = txt_Password.Text;
+                string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$";
+                // "^": Start of the string
+                // "(?=.*[a-z])": Positive lookahead assertion that checks if there is at least one lowercase letter ([a-z]) in the string
+                // "(?=.*[A-Z])": Positive lookahead assertion that checks if there is at least one uppercase letter ([A-Z]) in the string
+                // "(?=.*\d)": Positive lookahead assertion that checks if there is at least one digit (\d) in the string.
+                // "[a-zA-Z\d]{8,}": Matches any character that is a lowercase letter ([a-z]), uppercase letter ([A-Z]), or digit (\d) repeated at least 8 times ({8,})
+                // "$": End of the string.
+
+                if (Regex.IsMatch(password, pattern)) {
+                    CurrentUserID = await CreateUser(txt_Username.Text, txt_Password.Text, Client);
+                    if (CurrentUserID != null) {
+                        InitializeMessagingUI();
+                    }
+                } else {
+                    MessageBox.Show("Password must contain at least 8 characters with a capital letter and a number");
                 }
             };
-            btn_Login.Click += async (s,e) => {
+            btn_Login.Click += async (s, e) => {
                 CurrentUserID = await VerifyUser(txt_Username.Text, txt_Password.Text, Client);
 
                 if (CurrentUserID != "Bad Password") {
@@ -1165,9 +1189,8 @@ namespace Client {
 
             // TextBox
             TextBox messageBox = new TextBox {
-                Height = 30,
                 TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Bottom,
+                VerticalAlignment = VerticalAlignment.Stretch,
                 Margin = new Thickness(0, 5, 10, 5)
             };
             messageBox.KeyDown += TextBox_KeyDown;
@@ -1185,15 +1208,28 @@ namespace Client {
             };
             messageScrollViewer.ScrollChanged += MessageScrollViewer_ScrollChanged;
 
+            Button searchButton = new Button {
+                Content = "Search through messages",
+                Margin = new Thickness(10, 10, 10, 10)
+            };
+            searchButton.Click += (s, e) => {
+                InitializeMessageSearchUI();
+            };
+
             // Creating the main Grid
             Grid messageGrid = new Grid();
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Search Bar
             messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(9, GridUnitType.Star) }); // Messages
-            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // TextBox
+            messageGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Textbox
+            messageGrid.Children.Add(searchButton);
             messageGrid.Children.Add(messageScrollViewer);
-            messageGrid.Children.Add(messageSendingGrid); // Adding the messagesendinggrid to the main Grid
+            messageGrid.Children.Add(messageSendingGrid);
 
-            Grid.SetRow(messageScrollViewer, 0);
-            Grid.SetRow(messageSendingGrid, 1);
+
+
+            Grid.SetRow(searchButton, 0);
+            Grid.SetRow(messageScrollViewer, 1);
+            Grid.SetRow(messageSendingGrid, 2);
 
 
             messagingGrid.Children.Add(messageGrid);
@@ -1243,6 +1279,178 @@ namespace Client {
             }
         }
 
+        private async Task InitializeMessageSearchUI() {
+
+            Grid MainGrid = new Grid();
+            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(2, GridUnitType.Star) });
+            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3, GridUnitType.Star) });
+
+            MainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+
+            Grid SearchGrid = new Grid();
+
+            // Column definitions
+            SearchGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            SearchGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(2, GridUnitType.Star) });
+
+            // Row definitions
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // username
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // message type
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(3, GridUnitType.Star) }); // date start
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(3, GridUnitType.Star) }); // date end
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // search for text
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) }); // search button
+
+            // Search fields
+            TextBlock usernameLabel = new TextBlock {
+                Text = "Username:",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+            TextBox usernameTextBox = new TextBox {
+                Margin = new Thickness(5)
+            };
+            Grid.SetColumn(usernameLabel, 0);
+            Grid.SetRow(usernameLabel, 0);
+            Grid.SetColumn(usernameTextBox, 1);
+            Grid.SetRow(usernameTextBox, 0);
+
+            TextBlock messageTypeLabel = new TextBlock {
+                Text = "Type:",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+            ComboBox messageTypeComboBox = new ComboBox {
+                Margin = new Thickness(5)
+            };
+            // Add options to the ComboBox
+            messageTypeComboBox.Items.Add("All");
+            messageTypeComboBox.Items.Add("Regular");
+            messageTypeComboBox.Items.Add("Attachments");
+            // Set the default selected item
+            messageTypeComboBox.SelectedIndex = 0; // Select "All"
+            Grid.SetColumn(messageTypeLabel, 0);
+            Grid.SetRow(messageTypeLabel, 1);
+            Grid.SetColumn(messageTypeComboBox, 1);
+            Grid.SetRow(messageTypeComboBox, 1);
+
+            TextBlock startDateLabel = new TextBlock {
+                Text = "Start Date:",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+            DatePicker startDatePicker = new DatePicker {
+                Margin = new Thickness(5)
+            };
+            Grid.SetColumn(startDateLabel, 0);
+            Grid.SetRow(startDateLabel, 2);
+            Grid.SetColumn(startDatePicker, 1);
+            Grid.SetRow(startDatePicker, 2);
+
+            TextBlock endDateLabel = new TextBlock {
+                Text = "End Date:",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+            DatePicker endDatePicker = new DatePicker {
+                Margin = new Thickness(5)
+            };
+            Grid.SetColumn(endDateLabel, 0);
+            Grid.SetRow(endDateLabel, 3);
+            Grid.SetColumn(endDatePicker, 1);
+            Grid.SetRow(endDatePicker, 3);
+
+            TextBlock textLabel = new TextBlock {
+                Text = "Text:",
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+            TextBox textTextBox = new TextBox {
+                Margin = new Thickness(5)
+            };
+            Grid.SetColumn(textLabel, 0);
+            Grid.SetRow(textLabel, 4);
+            Grid.SetColumn(textTextBox, 1);
+            Grid.SetRow(textTextBox, 4);
+
+
+            // Add search button
+            Button searchButton = new Button {
+                Content = "Search",
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Margin = new Thickness(0, 0, 10, 10)
+            };
+            Grid.SetColumn(searchButton, 1);
+            Grid.SetRow(searchButton, 5);
+
+            searchButton.Click += async (s, e) => {
+                // All nullable as user may not want to search with a specific filter
+                string? username = usernameTextBox.Text;
+                bool isUsernameNull = string.IsNullOrEmpty(username);
+
+                string? messageType = messageTypeComboBox.SelectedItem?.ToString();
+                bool isMessageTypeNull = messageType == null;
+
+                DateTime? startDate = startDatePicker.SelectedDate;
+                bool isStartDateNull = !startDate.HasValue;
+
+                DateTime? endDate = endDatePicker.SelectedDate;
+                bool isEndDateNull = !endDate.HasValue;
+
+                string? searchText = textTextBox.Text;
+                bool isSearchTextNull = string.IsNullOrEmpty(searchText);
+
+                SearchParameters searchParams = new SearchParameters {
+                    Username = username,
+                    IsUsernameNull = isUsernameNull,
+                    MessageType = messageType,
+                    IsMessageTypeNull = isMessageTypeNull,
+                    StartDate = startDate,
+                    IsStartDateNull = isStartDateNull,
+                    EndDate = endDate,
+                    IsEndDateNull = isEndDateNull,
+                    SearchText = searchText,
+                    IsSearchTextNull = isSearchTextNull
+                };
+
+                string json = JsonConvert.SerializeObject(searchParams);
+
+            };
+            
+
+            // Add elements to main grid
+            SearchGrid.Children.Add(usernameLabel);
+            SearchGrid.Children.Add(usernameTextBox);
+            SearchGrid.Children.Add(messageTypeLabel);
+            SearchGrid.Children.Add(messageTypeComboBox);
+            SearchGrid.Children.Add(startDateLabel);
+            SearchGrid.Children.Add(startDatePicker);
+            SearchGrid.Children.Add(endDateLabel);
+            SearchGrid.Children.Add(endDatePicker);
+            SearchGrid.Children.Add(textLabel);
+            SearchGrid.Children.Add(textTextBox);
+            SearchGrid.Children.Add(searchButton);
+
+            MainGrid.Children.Add(SearchGrid);
+            Grid.SetColumn(MainGrid, 0);
+            Grid.SetRow(MainGrid, 0);
+
+            StackPanel messageStackPanel = new StackPanel();
+
+            ScrollViewer messageScrollViewer = new ScrollViewer();
+            messageScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            messageScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            messageScrollViewer.Content = messageStackPanel;
+
+            MainGrid.Children.Add(messageScrollViewer);
+            Grid.SetColumn(messageScrollViewer, 1);
+            Grid.SetRow(messageScrollViewer, 0);
+            // Set content to the main grid
+
+            this.Content = MainGrid;
+        }
+
         StackPanel FriendsStackPanel;
         private async void InitializeFriendsUI() {
             Grid mainGrid = new Grid();
@@ -1282,7 +1490,7 @@ namespace Client {
             groupChatButton.Click += GroupChatButton_Click;
             exitButton.Click += ExitButton_Click;
 
-            
+
 
             StackPanel AddFriend = new StackPanel() { Margin = new Thickness(5) };
             AddFriend.Children.Add(addButton);
@@ -1353,7 +1561,7 @@ namespace Client {
             Grid.SetRow(RequestsScrollViewer, 1);
 
             List<User> FriendRequests = await FetchFriendRequests(Client);
-            foreach (User user in FriendRequests) { 
+            foreach (User user in FriendRequests) {
                 AddUserElement(user, true, false, false, true, RequestsStackPanel);
             }
 
@@ -1449,12 +1657,12 @@ namespace Client {
                 mainGrid.Children.Add(addToServer);
 
                 addToServer.Click += async (s, e) => {
-                    foreach(var obj in FriendsStackPanel.Children) {
+                    foreach (var obj in FriendsStackPanel.Children) {
                         Border border = (Border)obj;
                         StackPanel stackpanel = (StackPanel)border.Child;
                         CheckBox checkbox = (CheckBox)stackpanel.Children[0];
 
-                        if (checkbox.IsChecked == true){
+                        if (checkbox.IsChecked == true) {
                             string username = (string)border.Tag;
                             string id = await GetID(username, Client);
                             string[] data = { CurrentServerID, id };
@@ -1580,7 +1788,7 @@ namespace Client {
                 Fill = imageBrush,
                 HorizontalAlignment = HorizontalAlignment.Left
             };
-            
+
 
             Label label = new Label();
             label.Content = user.username;
@@ -1650,7 +1858,7 @@ namespace Client {
             SpacerWidth += Convert.ToInt32(ellipse.DesiredSize.Width); // Width of the Ellipse
 
             label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            SpacerWidth += Convert.ToInt32(label.DesiredSize.Width) ;
+            SpacerWidth += Convert.ToInt32(label.DesiredSize.Width);
 
             if (dropDownToggle) {
                 DropDownMenu_Roles.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
