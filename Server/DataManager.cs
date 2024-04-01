@@ -791,6 +791,8 @@ namespace Server.Database {
                                 MessageContent = Convert.ToString(reader["message_content"]),
                                 ChannelId = Convert.ToInt32(reader["channel_id"]),
                                 Username = GetUsername(reader["user_id"].ToString()),
+                                UserId = reader["user_id"].ToString(),
+                                PFP = GetProfilePicture(reader["user_id"].ToString()),
                                 DateSent = Convert.ToDateTime(reader["date_sent"]),
                                 MessageType = Convert.ToInt32(reader["message_type"])
                             };

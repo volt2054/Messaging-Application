@@ -1519,7 +1519,7 @@ namespace Client {
                 messageStackPanel.Children.Clear(); // clear children in case searching again
 
                 foreach (MessageSearchResult messageSearchResult in searchResults) {
-                    await AddMessage(messageStackPanel, await GetPFP(await GetID(messageSearchResult.Username, Client), Client), messageSearchResult.Username, messageSearchResult.MessageContent, false);
+                    await AddMessage(messageStackPanel, messageSearchResult.PFP, messageSearchResult.Username, messageSearchResult.MessageContent, false);
                 }
 
             };

@@ -25,6 +25,8 @@ namespace SharedLibrary {
             public string MessageContent { get; set; }
             public int ChannelId { get; set; }
             public string Username { get; set; }
+            public string UserId { get; set; }
+            public string PFP { get; set; }
             public DateTime DateSent { get; set; }
             public int MessageType { get; set; }
         }
