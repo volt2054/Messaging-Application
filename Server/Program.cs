@@ -8,6 +8,7 @@ using static Server.WebSocketServer;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
+using Azure;
 
 namespace Server {
 
@@ -321,7 +322,6 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetUsername) {
                         string UserIDToCheck = args[0];
                         string username = GetUsername(userID);
-                        //TODO WHAT IS HAPPENING HERE?
 
                         responseMessage = username;
                     } else if (communicationType == TypeOfCommunication.GetProfilePicture) {
@@ -338,8 +338,10 @@ namespace Server {
                         string channelId = args[1];
                         string RoleLevel = args[2];
                         string serverId = args[3];
-                        if (DoesUserOwnServer(userID, serverId) == true) {
+                        if (DoesUserOwnServer(userID, serverId)) {
                             AssignRoleToUser(userIdToChangeRole, channelId, Convert.ToInt32(RoleLevel));
+                        } else {
+                            responseMessage = "-1";
                         }
                     } else if (communicationType == TypeOfCommunication.CheckRole) {
                         string userIdToCheckRole = args[0];
@@ -357,13 +359,17 @@ namespace Server {
                         string userId = args[1];
                         AddUserToServer(userId, serverId);
                         
-                        //string[] argsToSend = {serverId, serverName};
-                        //SendMessageToUser(argsToSend, userId, TypeOfCommunication.NotifyServer);
+                        string[] argsToSend = {serverId, GetServerName(serverId)};
+                        SendMessageToUser(argsToSend, userId, TypeOfCommunication.NotifyServer);
 
                     } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
                         string serverId = args[0];
                         string userId = args[1];
-                        RemoveUserFromServer(userId, serverId); 
+                        if (DoesUserOwnServer(userId, serverId)) {
+                            RemoveUserFromServer(userId, serverId);
+                        } else {
+                            responseMessage = "-1";
+                        }
                     } else if (communicationType == TypeOfCommunication.SearchMessages) {
                         SearchParameters searchParams = JsonConvert.DeserializeObject<SearchParameters>(args[0]);
                         

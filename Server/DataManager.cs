@@ -718,6 +718,19 @@ namespace Server.Database {
             });
         }
 
+        public static string GetServerName(string serverID) {
+            string result = "";
+            ExecuteDatabaseOperations(connection => {
+                string selectQuery = "SELECT server_name FROM Servers WHERE server_id = @ServerID";
+                SqlCommand selectCommand = new SqlCommand(selectQuery, connection);
+                selectCommand.Parameters.AddWithValue("@ServerID", serverID);
+
+                result = ExecuteQuery<string>(connection, selectCommand).First();
+            });
+
+            return result;
+        }
+
         public static int GetUserRole(string userID, string channelID) {
             List<string> result = new List<string>();
             ExecuteDatabaseOperations(connection => {

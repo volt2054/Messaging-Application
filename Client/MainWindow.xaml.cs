@@ -613,8 +613,16 @@ namespace Client {
             Button changePasswordButton = new Button { Content = "Change", Margin = new Thickness(10, 0, 0, 0) };
 
             changePasswordButton.Click += async (s, e) => {
-                string[] data = { passwordTextBlock.Text };
-                await Client.SendAndRecieve(TypeOfCommunication.ChangePassword, data);
+                string password = passwordTextBox.Text;
+
+                if (CheckValidPassword(password)) {
+                    string[] data = { password };
+                    await Client.SendAndRecieve(TypeOfCommunication.ChangePassword, data);
+
+                } else {
+                    MessageBox.Show("Password must contain at least 8 characters with a capital letter and a number");
+                }
+
             };
 
             Grid.SetRow(passwordTextBlock, 1);
@@ -1140,15 +1148,7 @@ namespace Client {
             btn_Register.Click += async (s, e) => {
 
                 string password = txt_Password.Text;
-                string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$";
-                // "^": Start of the string
-                // "(?=.*[a-z])": Positive lookahead assertion that checks if there is at least one lowercase letter ([a-z]) in the string
-                // "(?=.*[A-Z])": Positive lookahead assertion that checks if there is at least one uppercase letter ([A-Z]) in the string
-                // "(?=.*\d)": Positive lookahead assertion that checks if there is at least one digit (\d) in the string.
-                // "[a-zA-Z\d]{8,}": Matches any character that is a lowercase letter ([a-z]), uppercase letter ([A-Z]), or digit (\d) repeated at least 8 times ({8,})
-                // "$": End of the string.
-
-                if (Regex.IsMatch(password, pattern)) {
+                if (CheckValidPassword(password)) {
                     CurrentUserID = await CreateUser(txt_Username.Text, txt_Password.Text, Client);
                     if (CurrentUserID != "-1") {
                         InitializeMessagingUI();
@@ -1190,6 +1190,23 @@ namespace Client {
             gridLogin.Children.Add(gridButtonOptions);
 
             Content = gridLogin;
+        }
+
+        static bool CheckValidPassword(string password) {
+            
+            string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$";
+            // "^": Start of the string
+            // "(?=.*[a-z])": Positive lookahead assertion that checks if there is at least one lowercase letter ([a-z]) in the string
+            // "(?=.*[A-Z])": Positive lookahead assertion that checks if there is at least one uppercase letter ([A-Z]) in the string
+            // "(?=.*\d)": Positive lookahead assertion that checks if there is at least one digit (\d) in the string.
+            // "[a-zA-Z\d]{8,}": Matches any character that is a lowercase letter ([a-z]), uppercase letter ([A-Z]), or digit (\d) repeated at least 8 times ({8,})
+            // "$": End of the string.
+
+            if (Regex.IsMatch(password, pattern)) {
+                return true;
+            } else {
+                return false;
+            }
         }
 
         StackPanel serverStackPanel = new StackPanel();
@@ -1790,7 +1807,9 @@ namespace Client {
                             string username = (string)border.Tag;
                             string id = await GetID(username, Client);
                             string[] data = { CurrentServerID, id };
-                            await Client.SendAndRecieve(TypeOfCommunication.RemoveFromServer, data);
+                            if (await Client.SendAndRecieve(TypeOfCommunication.RemoveFromServer, data) == "-1") {
+                                MessageBox.Show("Insufficient Perms");
+                            }
                         }
                     }
                 };
@@ -1922,7 +1941,9 @@ namespace Client {
                     if (DropDownMenu_Roles.SelectedItem != null) {
                         string roleSelected = (DropDownMenu_Roles.SelectedIndex + 1).ToString();
                         string[] data = { user.ID, CurrentChannelID, roleSelected, CurrentServerID };
-                        await Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data);
+                        if (await Client.SendAndRecieve(TypeOfCommunication.ChangeRole, data) == "-1") {
+                            MessageBox.Show("Insufficient Perms");
+                        }
                     }
                 };
 
@@ -1937,6 +1958,7 @@ namespace Client {
             removeButton.Click += async (s, e) => {
                 string[] data = { user.ID };
                 await Client.SendAndRecieve(TypeOfCommunication.RejectRequest, data);
+                stackPanel.Children.Remove(friendBorder);
             };
 
             Button acceptButton = new Button();
@@ -1948,6 +1970,7 @@ namespace Client {
             acceptButton.Click += async (s, e) => {
                 string[] data = { user.ID };
                 await Client.SendAndRecieve(TypeOfCommunication.AcceptRequest, data);
+                stackPanel.Children.Remove(friendBorder);
             };
 
 
