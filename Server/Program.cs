@@ -8,7 +8,6 @@ using static Server.WebSocketServer;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
-using Azure;
 
 namespace Server {
 
@@ -187,6 +186,9 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.GetID) {
                         string username = args[0];
                         responseMessage = GetID(username);
+                        if (responseMessage.IsNullOrEmpty()) {
+                            responseMessage = "-1";
+                        }
 
                     } else if (communicationType == TypeOfCommunication.FetchChannels) {
 
@@ -279,7 +281,9 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;
                         string user2 = args[0];
-                        responseMessage = AddFriend(user1, user2);
+                        if (user1!= user2) {
+                            responseMessage = AddFriend(user1, user2);
+                        }
                     } else if (communicationType == TypeOfCommunication.RemoveFriend) {
                         string user1 = userID;
                         string user2 = args[0];

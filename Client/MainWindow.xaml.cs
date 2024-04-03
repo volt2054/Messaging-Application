@@ -564,12 +564,20 @@ namespace Client {
                 if (openFileDialog.ShowDialog() == true) {
                     string imagePath = openFileDialog.FileName;
 
-                    string pfpUrl = await UploadFileAsync(imagePath);
-                    string[] data = { pfpUrl };
-                    await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
+                    try {
+                        profilePicture.Source = new BitmapImage(new Uri(imagePath));
+                    } catch {
+                        MessageBox.Show("Invalid image");
+                    } finally {
+                        string pfpUrl = await UploadFileAsync(imagePath);
+                        string[] data = { pfpUrl };
+                        await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
 
-                    // Save the file path and update the UI
-                    profilePicture.Source = new BitmapImage(new Uri(imagePath));
+                        // Save the file path and update the UI
+                    }
+
+
+
                 }
             };
 
