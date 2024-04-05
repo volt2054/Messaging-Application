@@ -12,9 +12,7 @@ namespace SharedLibrary {
             public int? MessageType { get; set; }
             public bool IsMessageTypeNull { get; set; }
             public DateTime? StartDate { get; set; }
-            public bool IsStartDateNull { get; set; }
             public DateTime? EndDate { get; set; }
-            public bool IsEndDateNull { get; set; }
             public string? SearchText { get; set; }
             public bool IsSearchTextNull { get; set; }
             public string ChannelID { get; set; }

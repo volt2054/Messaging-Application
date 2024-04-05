@@ -65,7 +65,7 @@ namespace Server {
 
         private async void HandleWebSocket(WebSocket webSocket, string clientID) {
             try {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[16384];
                 WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
                 while (!result.CloseStatus.HasValue) {

@@ -20,6 +20,8 @@ using System.Text.RegularExpressions;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
 using System.Linq;
+using DateTimePickerCustom;
+using System.IO;
 
 
 namespace Client {
@@ -1375,8 +1377,8 @@ namespace Client {
         private async void InitializeMessageSearchUI() {
 
             Grid MainGrid = new Grid();
-            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(2, GridUnitType.Star) });
-            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3, GridUnitType.Star) });
+            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            MainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
 
             MainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
 
@@ -1389,10 +1391,10 @@ namespace Client {
             // Row definitions
             SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // username
             SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // message type
-            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(3, GridUnitType.Star) }); // date start
-            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(3, GridUnitType.Star) }); // date end
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(4, GridUnitType.Star) }); // date start
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(4, GridUnitType.Star) }); // date end
             SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // search for text
-            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(2, GridUnitType.Star) }); // search button
+            SearchGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // search button
 
             // Search fields
             TextBlock usernameLabel = new TextBlock {
@@ -1432,26 +1434,52 @@ namespace Client {
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(5)
             };
-            DatePicker startDatePicker = new DatePicker {
-                Margin = new Thickness(5)
-            };
+
+            Grid startDateTimePicker = new Grid();
+
+            startDateTimePicker.ColumnDefinitions.Add(new ColumnDefinition());
+            startDateTimePicker.ColumnDefinitions.Add(new ColumnDefinition());
+
+            DatePickerWidget startDatePicker = new DatePickerWidget();
+            startDatePicker.HorizontalAlignment = HorizontalAlignment.Left;
+            Grid.SetColumn(startDatePicker, 0);
+            TimePickerWidget startTimePicker = new TimePickerWidget();
+            startTimePicker.HorizontalAlignment = HorizontalAlignment.Right;
+            Grid.SetColumn(startTimePicker, 1);
+
+            startDateTimePicker.Children.Add(startDatePicker);
+            startDateTimePicker.Children.Add(startTimePicker);
+
             Grid.SetColumn(startDateLabel, 0);
             Grid.SetRow(startDateLabel, 2);
-            Grid.SetColumn(startDatePicker, 1);
-            Grid.SetRow(startDatePicker, 2);
+            Grid.SetColumn(startDateTimePicker, 1);
+            Grid.SetRow(startDateTimePicker, 2);
 
             TextBlock endDateLabel = new TextBlock {
                 Text = "End Date:",
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(5)
             };
-            DatePicker endDatePicker = new DatePicker {
-                Margin = new Thickness(5)
-            };
+
+            Grid endDateTimePicker = new Grid();
+
+            endDateTimePicker.ColumnDefinitions.Add(new ColumnDefinition());
+            endDateTimePicker.ColumnDefinitions.Add(new ColumnDefinition());
+
+            DatePickerWidget endDatePicker = new DatePickerWidget();
+            endDatePicker.HorizontalAlignment = HorizontalAlignment.Left;
+            Grid.SetColumn(endDatePicker, 0);
+            TimePickerWidget endTimePicker = new TimePickerWidget();
+            endTimePicker.HorizontalAlignment = HorizontalAlignment.Right;
+            Grid.SetColumn(endTimePicker, 1);
+
+            endDateTimePicker.Children.Add(endDatePicker);
+            endDateTimePicker.Children.Add(endTimePicker);
+
             Grid.SetColumn(endDateLabel, 0);
             Grid.SetRow(endDateLabel, 3);
-            Grid.SetColumn(endDatePicker, 1);
-            Grid.SetRow(endDatePicker, 3);
+            Grid.SetColumn(endDateTimePicker, 1);
+            Grid.SetRow(endDateTimePicker, 3);
 
             TextBlock textLabel = new TextBlock {
                 Text = "Text:",
@@ -1502,11 +1530,29 @@ namespace Client {
                 int? messageType = messageTypeComboBox.SelectedIndex;
                 bool isMessageTypeNull = false;
 
-                DateTime? startDate = startDatePicker.SelectedDate;
-                bool isStartDateNull = !startDate.HasValue;
+                DateTime? startDate = startDatePicker.ActiveDate;
+                DateTime? startTime = startTimePicker.ActiveTime;
 
-                DateTime? endDate = endDatePicker.SelectedDate;
-                bool isEndDateNull = !endDate.HasValue;
+                DateTime? combinedStartTime = new DateTime(
+                    startDate.Value.Year,
+                    startDate.Value.Month,
+                    startDate.Value.Day,
+                    startTime.Value.Hour,
+                    startTime.Value.Minute,
+                    startTime.Value.Second
+                );
+
+                DateTime? endDate = endDatePicker.ActiveDate;
+                DateTime? endTime = endTimePicker.ActiveTime;
+
+                DateTime? combinedEndTime = new DateTime(
+                    endDate.Value.Year,
+                    endDate.Value.Month,
+                    endDate.Value.Day,
+                    endTime.Value.Hour,
+                    endTime.Value.Minute,
+                    endTime.Value.Second
+                );
 
                 string? searchText = textTextBox.Text;
                 bool isSearchTextNull = string.IsNullOrEmpty(searchText);
@@ -1521,9 +1567,7 @@ namespace Client {
                     MessageType = messageType,
                     IsMessageTypeNull = isMessageTypeNull,
                     StartDate = startDate,
-                    IsStartDateNull = isStartDateNull,
                     EndDate = endDate,
-                    IsEndDateNull = isEndDateNull,
                     SearchText = searchText,
                     IsSearchTextNull = isSearchTextNull,
                     ChannelID = CurrentChannelID
@@ -1538,6 +1582,27 @@ namespace Client {
 
                 messageStackPanel.Children.Clear(); // clear children in case searching again
 
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+
+                if (MessageBox.Show("Do you want to export to csv?",
+                    "Save file",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) == MessageBoxResult.Yes) {
+
+                    if(saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                        using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName)) {
+                            writer.WriteLine("MessageId,MessageContent,ChannelId,Username,UserId,PFP,DateSent,MessageType");
+
+                            foreach (var row in searchResults) {
+                                string line = $"{row.MessageId},\"{row.MessageContent.Replace("\"", "\"\"")}\",{row.ChannelId},{row.Username},{row.UserId},{row.PFP},{row.DateSent},{row.MessageType}";
+                                writer.WriteLine(line);
+                            }
+                        }
+                    }
+
+                }
+
                 foreach (MessageSearchResult messageSearchResult in searchResults) {
                     await AddMessage(messageStackPanel, messageSearchResult.PFP, messageSearchResult.Username, messageSearchResult.MessageContent, false);
                 }
@@ -1551,9 +1616,9 @@ namespace Client {
             SearchGrid.Children.Add(messageTypeLabel);
             SearchGrid.Children.Add(messageTypeComboBox);
             SearchGrid.Children.Add(startDateLabel);
-            SearchGrid.Children.Add(startDatePicker);
+            SearchGrid.Children.Add(startDateTimePicker);
             SearchGrid.Children.Add(endDateLabel);
-            SearchGrid.Children.Add(endDatePicker);
+            SearchGrid.Children.Add(endDateTimePicker);
             SearchGrid.Children.Add(textLabel);
             SearchGrid.Children.Add(textTextBox);
             SearchGrid.Children.Add(searchButton);

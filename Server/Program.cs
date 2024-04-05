@@ -47,6 +47,11 @@ namespace Server {
                 }
             } */
 
+            DropDatabase();
+            CreateDatabase();
+            DropTables();
+            CreateTables();
+
             Task task = Task.Run(CommandLine);
 
             WebSocketServer webSocketServer = new WebSocketServer(HandleClient);
@@ -63,9 +68,9 @@ namespace Server {
                 string[] commandParts = input.Split(' ');
                 string command = commandParts[0].ToUpper();
 
-                if (command == "NEWUSER" && commandParts.Length == 4) {
+                if (command == "NEWUSER" && commandParts.Length == 3) {
                     string username = commandParts[1];
-                    string password = commandParts[3];
+                    string password = commandParts[2];
 
                     string userID = InsertNewUser(username, password);
                     Console.WriteLine($"User {userID} inserted successfully.");
@@ -379,7 +384,9 @@ namespace Server {
                         responseMessage = GetUserRole(userIdToCheckRole,channelId).ToString();
                     } else if (communicationType == TypeOfCommunication.ChangeUsername) {
                         string usernameToChangeTo = args[0];
-                        ChangeUsername(userID, usernameToChangeTo);
+                        if (usernameToChangeTo.Length > 0) {
+                            ChangeUsername(userID, usernameToChangeTo);
+                        }
                     } else if (communicationType == TypeOfCommunication.ChangePassword) {
                         string passwordToChangeTo = args[0];
                         ChangePassword(userID, passwordToChangeTo);

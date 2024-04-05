@@ -384,21 +384,26 @@ namespace Server.Database {
             });
 
             foreach (string[] channel in result) {
-                string channelID = channel[0];
-                List<string> username = new List<string>();
-                ExecuteDatabaseOperations(connection => {
-                    string selectQuery = "SELECT Users.username " +
-                    "FROM ChannelUsers, Users " +
-                    "WHERE ChannelUsers.user_id = Users.user_id " +
-                    "AND channel_id = @ChannelID " +
-                    "AND Users.user_id != @UserID";
-                    SqlCommand command = new SqlCommand(selectQuery, connection);
-                    command.Parameters.AddWithValue("@ChannelID", channelID);
-                    command.Parameters.AddWithValue("@UserID", userID);
-                    username = ExecuteQuery<string>(connection, command);
+                if (channel[1].StartsWith("DM")) {
 
-                    channel[1] = username.First();
-                });
+                    string channelID = channel[0];
+                    List<string> username = new List<string>();
+                    ExecuteDatabaseOperations(connection => {
+                        string selectQuery = "SELECT Users.username " +
+                        "FROM ChannelUsers, Users " +
+                        "WHERE ChannelUsers.user_id = Users.user_id " +
+                        "AND channel_id = @ChannelID " +
+                        "AND Users.user_id != @UserID";
+                        SqlCommand command = new SqlCommand(selectQuery, connection);
+                        command.Parameters.AddWithValue("@ChannelID", channelID);
+                        command.Parameters.AddWithValue("@UserID", userID);
+                        username = ExecuteQuery<string>(connection, command);
+
+                        channel[1] = username.First();
+                    });
+                } else {
+                    channel[1] = "GROUP CHAT";
+                }
             }
             
 
@@ -765,12 +770,6 @@ namespace Server.Database {
                 if (!searchParameters.IsMessageTypeNull) {
                     commandBuilder.Append(" AND message_type = @MessageType");
                 }
-                if (!searchParameters.IsStartDateNull) {
-                    commandBuilder.Append(" AND date_sent >= @StartDate");
-                }
-                if (!searchParameters.IsEndDateNull) {
-                    commandBuilder.Append(" AND date_sent <= @EndDate");
-                }
                 if (!searchParameters.IsSearchTextNull) {
                     commandBuilder.Append(" AND message_content LIKE @Search");
                 }
@@ -784,12 +783,6 @@ namespace Server.Database {
                     }
                     if (!searchParameters.IsMessageTypeNull) {
                         command.Parameters.AddWithValue("@MessageType", searchParameters.MessageType);
-                    }
-                    if (!searchParameters.IsStartDateNull) {
-                        command.Parameters.AddWithValue("@StartDate", searchParameters.StartDate);
-                    }
-                    if (!searchParameters.IsEndDateNull) {
-                        command.Parameters.AddWithValue("@EndDate", searchParameters.EndDate);
                     }
                     if (!searchParameters.IsSearchTextNull) {
                         command.Parameters.AddWithValue("@Search", "%" + searchParameters.SearchText + "%");

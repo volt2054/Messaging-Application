@@ -50,7 +50,7 @@ namespace Client {
 
             Task.Run(async () => {
                 while (_webSocket.State == WebSocketState.Open) {
-                    byte[] buffer = new byte[1024];
+                    byte[] buffer = new byte[16384];
                     WebSocketReceiveResult result;
                     do {
                         result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -77,7 +77,7 @@ namespace Client {
         }
 
         private static async Task<string> ReceiveClientID(ClientWebSocket webSocket) {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[16384];
             WebSocketReceiveResult result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             string clientId = Encoding.ASCII.GetString(buffer, 0, result.Count);
             return clientId;
