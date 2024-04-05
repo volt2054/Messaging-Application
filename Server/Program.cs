@@ -103,7 +103,12 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    GetFriendsOfFriends(commandParts[1], 5);
+                    List<(User, int)> results = GetFriendsOfFriends(commandParts[1], 5);
+
+                    foreach((User,int) result in results) {
+                        Console.WriteLine($"{result.Item1.username}: {result.Item2}");
+                    }
+
                 } else {
                     Console.WriteLine("Invalid command.");
                 }

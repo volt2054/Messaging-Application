@@ -1,9 +1,0 @@
-MessageId,MessageContent,ChannelId,Username,UserId,PFP,DateSent,MessageType
-20,"a",6,Sam123,2,PFP.png,05/04/2024 21:29:47,1
-21,"b",6,Sam123,2,PFP.png,05/04/2024 21:29:51,1
-22,"b",6,Bob123,3,PFP.png,05/04/2024 21:29:54,1
-23,"c",6,Joe123,1,PFP.png,05/04/2024 21:32:03,1
-24,"d",6,Bob123,3,PFP.png,05/04/2024 21:32:07,1
-25,"e",6,Joe123,1,PFP.png,05/04/2024 21:32:14,1
-26,"f",6,Sam123,2,PFP.png,05/04/2024 21:32:18,1
-27,"f3a393e341dc4bccb6b94928985ae389.bat",6,Joe123,1,PFP.png,05/04/2024 21:32:21,2
