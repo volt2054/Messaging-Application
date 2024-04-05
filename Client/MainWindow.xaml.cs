@@ -19,10 +19,7 @@ using Microsoft.Win32;
 using System.Text.RegularExpressions;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
-using System.Windows.Documents;
-using System.Windows.Controls.Primitives;
 using System.Linq;
-using System.Globalization;
 
 
 namespace Client {
@@ -42,7 +39,6 @@ namespace Client {
     // channel ids that will be treated seperately. used to place fixed ui elements
     public class SpecialChannelIDs {
         public static readonly string Friends = "-1";
-        public static readonly string CreateChannel = "-2";
         public static readonly string NotMade = "-3";
         public static readonly string UsersList = "-4";
     }
@@ -1161,7 +1157,7 @@ namespace Client {
                     if (CurrentUserID != "-1") {
                         InitializeMessagingUI();
                     } else {
-                        MessageBox.Show("Username Taken");
+                        MessageBox.Show("Username Taken or Username Too Short");
                     }
                 } else {
                     MessageBox.Show("Password must contain at least 8 characters with a capital letter and a number");

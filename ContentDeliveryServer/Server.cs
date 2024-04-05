@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using Newtonsoft.Json;
-
 class ContentDeliveryServer {
 
     private static string filenameMappingsFilePath = "filenameMappings.json";

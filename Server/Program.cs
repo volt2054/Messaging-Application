@@ -14,12 +14,13 @@ namespace Server {
 
     class Server {
 
-        static Logger logger;
+        //static Logger logger;
 
 
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
+
             /*
             bool validInput = false;
             while (validInput == false) {
@@ -45,11 +46,6 @@ namespace Server {
                         break;
                 }
             } */
-            DropDatabase();
-            CreateDatabase();
-
-            DropTables();
-            CreateTables();
 
             Task task = Task.Run(CommandLine);
 
@@ -147,7 +143,8 @@ namespace Server {
                         string username = args[0];
                         string password = args[1];
 
-                        if (!GetID(username).IsNullOrEmpty()) {
+
+                        if (!GetID(username).IsNullOrEmpty() || username.Length == 0) {
                             responseMessage = "-1";
                         } else {
                             userID = InsertNewUser(username, password);
@@ -189,8 +186,6 @@ namespace Server {
                         responseMessage = InsertNewAttachment(file_id, channel, userID);
 
                         if (responseMessage == "1") {
-
-
 
                             List<User> usersInChannel = FetchUsersInChannel(channel);
                             string[] argsToSend = new string[4];
