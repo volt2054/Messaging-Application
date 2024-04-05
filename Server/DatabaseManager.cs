@@ -206,7 +206,8 @@ namespace Server.Database {
                     databaseOperation(connection);
                     connection.Close();
                 } catch {
-                    Console.WriteLine("Error");
+                    Console.WriteLine("Error with database operation");
+                    connection.Close();
                 }
             }
         }

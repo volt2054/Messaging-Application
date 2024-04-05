@@ -9,6 +9,7 @@ using static Server.Logger;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
+using Azure;
 
 namespace Server {
 
@@ -46,6 +47,16 @@ namespace Server {
                         break;
                 }
             } */
+            
+            /*
+            DropDatabase();
+            CreateDatabase();
+
+            DropTables();
+            CreateTables();
+            */
+            
+            
 
             DropDatabase();
             CreateDatabase();
@@ -131,8 +142,6 @@ namespace Server {
 
             try {
 
-
-
                 string[] args = message.Split(WebSocketMetadata.DELIMITER);
 
                 clientID = args[0];
@@ -148,14 +157,19 @@ namespace Server {
                         string username = args[0];
                         string password = args[1];
 
+                        if (username.Length >= 1) {
 
-                        if (!GetID(username).IsNullOrEmpty() || username.Length == 0) {
-                            responseMessage = "-1";
+                            if (!GetID(username).IsNullOrEmpty()) {
+                                responseMessage = "-1";
+                            } else {
+                                userID = InsertNewUser(username, password);
+                                SetClientUserId(clientID, userID);
+                                responseMessage = Convert.ToString(userID);
+                            }
                         } else {
-                            userID = InsertNewUser(username, password);
-                            SetClientUserId(clientID, userID);
-                            responseMessage = Convert.ToString(userID);
+                            responseMessage = "-1";
                         }
+
                     } else if (communicationType == TypeOfCommunication.ValidateUser) { // CHECK USER DETAILS
                         string username = args[0];
                         string password = args[1];
@@ -282,18 +296,22 @@ namespace Server {
                         string channelName = args[0];
                         string serverID = args[1];
 
-                        string channelID = CreateChannel(channelName, serverID);
+                        if (DoesUserOwnServer(userID, serverID)) {
+                            string channelID = CreateChannel(channelName, serverID);
 
-                        responseMessage = channelID;
+                            responseMessage = channelID;
 
-                        List<User> usersInChannel = FetchUsersInChannel(channelID);
-                        string[] argsToSend = new string[3];
-                        argsToSend[0] = channelID;
-                        argsToSend[1] = channelName;
-                        argsToSend[2] = serverID;
-                        foreach (User user in usersInChannel) {
-                            SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyChannel);
+                            List<User> usersInChannel = FetchUsersInChannel(channelID);
+                            string[] argsToSend = new string[3];
+                            argsToSend[0] = channelID;
+                            argsToSend[1] = channelName;
+                            argsToSend[2] = serverID;
+                            foreach (User user in usersInChannel) {
+                                SendMessageToUser(argsToSend, user.ID, TypeOfCommunication.NotifyChannel);
+                            }
                         }
+
+                        
 
                     } else if (communicationType == TypeOfCommunication.CreateGroupChannel) {
                         byte[] usersData = Convert.FromBase64String(args[0]);
@@ -311,9 +329,14 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.AddFriend) {
                         string user1 = userID;
                         string user2 = args[0];
-                        if (user1!= user2) {
-                            responseMessage = AddFriend(user1, user2);
+                        if (!user2.IsNullOrEmpty()) {
+                                if (user1 != user2) {
+                                    responseMessage = AddFriend(user1, user2);
+                                } else {
+                                    responseMessage = "-1";
+                                }
                         }
+
                     } else if (communicationType == TypeOfCommunication.RemoveFriend) {
                         string user1 = userID;
                         string user2 = args[0];
@@ -345,7 +368,7 @@ namespace Server {
                         string SenderOfFriendRequest = args[0];
 
                         responseMessage = RemoveFriend(RecieverOfFriendRequest, SenderOfFriendRequest);
-                    
+
                     } else if (communicationType == TypeOfCommunication.GetUsersInServer) {
                         string serverID = args[0];
 
@@ -381,7 +404,7 @@ namespace Server {
                         string userIdToCheckRole = args[0];
                         string channelId = args[1];
 
-                        responseMessage = GetUserRole(userIdToCheckRole,channelId).ToString();
+                        responseMessage = GetUserRole(userIdToCheckRole, channelId).ToString();
                     } else if (communicationType == TypeOfCommunication.ChangeUsername) {
                         string usernameToChangeTo = args[0];
                         if (usernameToChangeTo.Length > 0) {
@@ -394,8 +417,8 @@ namespace Server {
                         string serverId = args[0];
                         string userId = args[1];
                         AddUserToServer(userId, serverId);
-                        
-                        string[] argsToSend = {serverId, GetServerName(serverId)};
+
+                        string[] argsToSend = { serverId, GetServerName(serverId) };
                         SendMessageToUser(argsToSend, userId, TypeOfCommunication.NotifyServer);
 
                     } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
@@ -408,7 +431,7 @@ namespace Server {
                         }
                     } else if (communicationType == TypeOfCommunication.SearchMessages) {
                         SearchParameters searchParams = JsonConvert.DeserializeObject<SearchParameters>(args[0]);
-                        
+
                         List<MessageSearchResult> SearchResult = SearchMessages(searchParams);
 
                         string json = JsonConvert.SerializeObject(SearchResult);

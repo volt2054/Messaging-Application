@@ -405,7 +405,6 @@ namespace Server.Database {
                     channel[1] = "GROUP CHAT";
                 }
             }
-            
 
             return result;
         }

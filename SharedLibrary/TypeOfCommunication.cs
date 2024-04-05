@@ -9,7 +9,7 @@ namespace SharedLibrary {
         public const string ValidateUser = "CHECK"; // (CHECK + USERNAME + PASSWORD) RETURNS USER ID ON SUCCESS OR "BAD PASSWORD" ON FAIL
         public const string FetchChannels = "FETCHCHANNELS"; // (FETCHCHANNELS + SERVERID) RETURNS LIST OF CHANNELS
         public const string CreateDMChannel = "CREATEDMCHANNEL"; // (CREATEDMCHANNEL + USERID) RETURNS CHANNEL ID
-        public const string CreateGroupChannel = "CREATEGROUPDCHANNEL"; // (CREATEGROUPCHANNEL + USERID) RETURNS CHANNEL ID
+        public const string CreateGroupChannel = "CREATEGROUPCHANNEL"; // (CREATEGROUPCHANNEL + USERID) RETURNS CHANNEL ID
         public const string CreateServer = "CREATESERVER"; // (CREATESERVER + SERVER NAME + SERVER DESC + CHANNEL LIST) RETURNS WHETHER SUCCESSFUL
         public const string CreateChannel = "CREATECHANNEL"; // (CREATECHANNEL + CHANNEL NAME + SERVER ID) RETURNS CHANNELID
         public const string FetchServers = "FETCHSERVERS"; // (FETCHSERVERS) RETURNS LIST OF SERVERS

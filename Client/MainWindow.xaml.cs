@@ -54,7 +54,6 @@ namespace Client {
 
 
     public partial class MainWindow : Window {
-
         WebSocketClient Client;
 
         string CurrentUserID;

@@ -90,10 +90,12 @@ namespace Server {
 
                 Console.WriteLine($"Client {clientID} disconnected");
 
-                await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
-                
                 _clientWebSockets.Remove(clientID);
                 _clientUserIds.Remove(clientID);
+
+                await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
+                
+                
                 
 
             } catch (WebSocketException ex) {
