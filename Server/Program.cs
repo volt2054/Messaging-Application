@@ -58,11 +58,6 @@ namespace Server {
             
             
 
-            DropDatabase();
-            CreateDatabase();
-            DropTables();
-            CreateTables();
-
             Task task = Task.Run(CommandLine);
 
             WebSocketServer webSocketServer = new WebSocketServer(HandleClient);
