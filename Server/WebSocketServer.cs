@@ -20,9 +20,11 @@ namespace Server {
             _httpListener.Prefixes.Add($"http://{WebSocketMetadata.IP_ADDRESS}:{WebSocketMetadata.PORT}/");
             _messageHandler = messageHandler;
 
-            SetupPortForwarding().Wait(); // Using Wait() to make this method synchronous for simplicity
+            //SetupPortForwarding().Wait(); // Using Wait() to make this method synchronous for simplicity
         }
 
+        /*
+         * Setup port forwarding using UPnP
         private async Task SetupPortForwarding() {
                 // Discover NAT device
                 NatUtility.StartDiscovery();
@@ -35,6 +37,7 @@ namespace Server {
 
                 };
         }
+        */
 
 
         public async Task StartAsync() {
