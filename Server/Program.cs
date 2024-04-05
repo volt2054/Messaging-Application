@@ -5,6 +5,7 @@ using static Server.Database.DatabaseManager;
 using static Server.Database.DataManager;
 
 using static Server.WebSocketServer;
+using static Server.Logger;
 using static SharedLibrary.Search;
 using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
@@ -12,9 +13,38 @@ using Microsoft.IdentityModel.Tokens;
 namespace Server {
 
     class Server {
+
+        static Logger logger;
+
+
         static bool isRunning = true;
 
         static async Task Main(string[] args) {
+            /*
+            bool validInput = false;
+            while (validInput == false) {
+                Console.WriteLine("Specify logging level\n1. Low\n2. Medium\n3. High");
+                string loggingLevel = Console.ReadLine();
+                switch (loggingLevel) {
+                    case "1":
+                        logger = new Logger(LoggingLevel.Low);
+                        Console.WriteLine("Logging level set to low");
+                        validInput = true;
+                        break;
+                    case "2":
+                        logger = new Logger(LoggingLevel.Medium);
+                        Console.WriteLine("Logging level set to medium");
+                        validInput = true;
+                        break;
+                    case "3":
+                        logger = new Logger(LoggingLevel.High);
+                        Console.WriteLine("Logging level set to high");
+                        validInput = true;
+                        break;
+                    default:
+                        break;
+                }
+            } */
             DropDatabase();
             CreateDatabase();
 
@@ -66,7 +96,7 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    GetFriendsOfFriends("1", 5);
+                    GetFriendsOfFriends(commandParts[1], 5);
                 } else {
                     Console.WriteLine("Invalid command.");
                 }
