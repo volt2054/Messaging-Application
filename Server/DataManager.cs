@@ -7,6 +7,7 @@ using static SharedLibrary.Search.SearchParameters;
 using static SharedLibrary.Search.MessageSearchResult;
 using static SharedLibrary.Search;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Channels;
 
 namespace Server.Database {
     public class DataManager {
@@ -424,17 +425,19 @@ namespace Server.Database {
                 result = ExecuteQuery<string[]>(connection, command);
             });
 
+            List<string[]> newResults = new List<string[]>();
             //filter results by roles
             foreach (string[] channel in result) {
                 string channelID = channel[0];
                 int role = GetUserRole(userID, channelID);
 
-                if (role == PermissionLevel.NoAccess) {
-                    result.Remove(channel);
+                if (role != PermissionLevel.NoAccess) {
+                    newResults.Add(channel);
                 }
+
             }
 
-            return result;
+            return newResults;
         }
 
         public static List<string[]> FetchServers(string userID) {
@@ -772,6 +775,8 @@ namespace Server.Database {
                 if (!searchParameters.IsSearchTextNull) {
                     commandBuilder.Append(" AND message_content LIKE @Search");
                 }
+                    commandBuilder.Append(" AND date_sent >= @StartDate");
+                    commandBuilder.Append(" AND date_sent <= @EndDate");
 
                 commandBuilder.Append(" AND channel_id = @ChannelId");
 
@@ -787,6 +792,9 @@ namespace Server.Database {
                         command.Parameters.AddWithValue("@Search", "%" + searchParameters.SearchText + "%");
 
                     }
+
+                        command.Parameters.AddWithValue("@StartDate", searchParameters.StartDate);
+                        command.Parameters.AddWithValue("@EndDate", searchParameters.EndDate);
 
                     command.Parameters.AddWithValue("@ChannelId", searchParameters.ChannelID);
 

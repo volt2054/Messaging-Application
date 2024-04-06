@@ -57,6 +57,7 @@ namespace Server {
             */
             
             
+            
 
             Task task = Task.Run(CommandLine);
 
@@ -103,7 +104,7 @@ namespace Server {
                     DeleteUser(userId);
                     Console.WriteLine("User deleted successfully.");
                 } else if (command == "TEST") {
-                    List<(User, int)> results = GetFriendsOfFriends(commandParts[1], 5);
+                    List<(User, int)> results = GetFriendsOfFriends(commandParts[1], 2);
 
                     foreach((User,int) result in results) {
                         Console.WriteLine($"{result.Item1.username}: {result.Item2}");
@@ -424,7 +425,7 @@ namespace Server {
                     } else if (communicationType == TypeOfCommunication.RemoveFromServer) {
                         string serverId = args[0];
                         string userId = args[1];
-                        if (DoesUserOwnServer(userId, serverId)) {
+                        if (DoesUserOwnServer(userID, serverId)) {
                             RemoveUserFromServer(userId, serverId);
                         } else {
                             responseMessage = "-1";

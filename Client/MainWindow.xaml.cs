@@ -563,14 +563,11 @@ namespace Client {
 
                     try {
                         profilePicture.Source = new BitmapImage(new Uri(imagePath));
-                    } catch {
-                        MessageBox.Show("Invalid image");
-                    } finally {
                         string pfpUrl = await UploadFileAsync(imagePath);
                         string[] data = { pfpUrl };
                         await Client.SendAndRecieve(TypeOfCommunication.SetProfilePicture, data);
-
-                        // Save the file path and update the UI
+                    } catch {
+                        MessageBox.Show("Invalid image");
                     }
 
 
@@ -1565,8 +1562,8 @@ namespace Client {
                     IsUsernameNull = isUsernameNull,
                     MessageType = messageType,
                     IsMessageTypeNull = isMessageTypeNull,
-                    StartDate = startDate,
-                    EndDate = endDate,
+                    StartDate = combinedStartTime,
+                    EndDate = combinedEndTime,
                     SearchText = searchText,
                     IsSearchTextNull = isSearchTextNull,
                     ChannelID = CurrentChannelID

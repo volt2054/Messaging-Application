@@ -44,8 +44,13 @@
         private static string saveDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}/Cache";
 
         public static void ClearCache() {
-            foreach (string file in Directory.EnumerateFiles(saveDirectory)) {
-                File.Delete(file);
+            try {
+
+                foreach (string file in Directory.EnumerateFiles(saveDirectory)) {
+                    File.Delete(file);
+                }
+            } catch {
+                // error deleting cache probably being used by other process
             }
         }
 
